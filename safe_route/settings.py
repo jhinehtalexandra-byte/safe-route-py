@@ -141,12 +141,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # EMAIL — Gmail SMTP
 # ============================================
 EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST          = 'smtp.gmail.com'
+EMAIL_HOST          = 'smtp.sendgrid.net'
 EMAIL_PORT          = 587
 EMAIL_USE_TLS       = True
 EMAIL_TIMEOUT       = 10
-EMAIL_HOST_USER     = config('GMAIL_USER')
-EMAIL_HOST_PASSWORD = config('GMAIL_APP_PASSWORD')
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = config('SENDGRID_API_KEY')
 DEFAULT_FROM_EMAIL  = config('GMAIL_USER')
 
 # ============================================
