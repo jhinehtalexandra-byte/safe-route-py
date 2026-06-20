@@ -78,13 +78,25 @@ TEMPLATES = [
 WSGI_APPLICATION = 'safe_route.wsgi.application'
 
 # ============================================
-# BASE DE DATOS — PostgreSQL via Railway
+# BASE DE DATOS — PostgreSQL (local o Railway)
 # ============================================
-DATABASES = {
-    'default': dj_database_url.config(
-        default=config('DATABASE_URL')
-    )
-}
+DATABASE_URL = config('DATABASE_URL', default=None)
+
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.config(default=DATABASE_URL)
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE':   'django.db.backends.postgresql',
+            'NAME':     config('DB_NAME'),
+            'USER':     config('DB_USER'),
+            'PASSWORD': config('DB_PASSWORD'),
+            'HOST':     config('DB_HOST'),
+            'PORT':     config('DB_PORT'),
+        }
+    }
 
 # ============================================
 # VALIDACIÓN DE CONTRASEÑAS
