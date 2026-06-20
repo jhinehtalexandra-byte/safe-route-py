@@ -614,9 +614,11 @@ def editar_colegio(request, nit):
             colegio.max_estudiantes     = int(request.POST.get('max_estudiantes', 500))
             colegio.plan                = request.POST.get('plan', 'BASICO')
             colegio.observaciones = request.POST.get('observaciones', '').strip() or None
+            activo_val = request.POST.get('activo', 'true') == 'true'
+            colegio.activo = activo_val
             logo_nuevo = request.FILES.get('logo')
             if logo_nuevo:
-                colegio.logo = logo_nuevo           
+                colegio.logo = logo_nuevo         
             colegio.save()
 
             password_nueva = request.POST.get('password', '').strip()
