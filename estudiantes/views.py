@@ -47,6 +47,27 @@ def _procesar_acudiente(request, prefijo, nombre_hijo, es_principal):
             acudiente.save()
 
         if not acudiente.usuario or not acudiente.usuario.activo:
+            # Si no tiene usuario, crear uno nuevo antes de enviar invitación
+            if not acudiente.usuario:
+                try:
+                    import secrets
+                    from usuarios.models import Usuario
+                    usuario_nuevo = Usuario.objects.create(
+                        cedula         = acudiente.documento,
+                        tipo_documento = acudiente.tipo_documento,
+                        user_name      = acudiente.email.split('@')[0][:20],
+                        password       = '',
+                        nombre         = acudiente.nombre,
+                        email          = acudiente.email,
+                        telefono       = acudiente.telefono or None,
+                        rol            = 'PADRE',
+                        activo         = False,
+                    )
+                    acudiente.usuario = usuario_nuevo
+                    acudiente.save()
+                except Exception as e:
+                    print(f'Error creando usuario para acudiente existente: {e}')
+
             envio_ok = _generar_y_enviar_invitacion(request, acudiente, nombre_hijo)
             if envio_ok:
                 messages.info(
