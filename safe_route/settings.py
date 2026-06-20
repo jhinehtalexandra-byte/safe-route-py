@@ -146,7 +146,7 @@ EMAIL_PORT          = 587
 EMAIL_USE_TLS       = True
 EMAIL_TIMEOUT       = 10
 EMAIL_HOST_USER = 'apikey'
-EMAIL_HOST_PASSWORD = config('SENDGRID_API_KEY')
+EMAIL_HOST_PASSWORD = config('SENDGRID_API_KEY', default='')
 DEFAULT_FROM_EMAIL  = config('GMAIL_USER')
 
 # ============================================
