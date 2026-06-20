@@ -1,0 +1,542 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Rutas - RutaEscolar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f1f5f9; overflow-x: hidden; }
+        .app-container { display: flex; min-height: 100vh; }
+
+        /* ── Sidebar ── */
+        .sidebar { width: 260px; background: linear-gradient(135deg,#1e293b,#334155); color: white; position: fixed; height: 100vh; overflow-y: auto; z-index: 1000; display: flex; flex-direction: column; }
+        .logo-section { padding: 1.25rem 1rem; background: rgba(0,0,0,.2); border-bottom: 1px solid rgba(255,255,255,.08); flex-shrink: 0; }
+        .logo-icon { width: 38px; height: 38px; background: #f59e0b; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .logo-text h1 { font-size: 1rem; font-weight: 700; margin-bottom: .1rem; }
+        .logo-text p  { font-size: .68rem; color: #94a3b8; margin: 0; }
+        .nav-menu { padding: .5rem 0; flex: 1; overflow-y: auto; }
+        .nav-section-label { font-size: .62rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #64748b; padding: .85rem 1.25rem .35rem; }
+        .nav-item-custom { display: flex; align-items: center; gap: .75rem; padding: .65rem 1.25rem; color: #cbd5e1; text-decoration: none; transition: all .2s; font-size: .855rem; position: relative; border: none; background: none; width: 100%; }
+        .nav-item-custom:hover { background: rgba(245,158,11,.1); color: white; padding-left: 1.5rem; }
+        .nav-item-custom.active { background: #f59e0b; color: white; font-weight: 600; }
+        .nav-item-custom.active::before { content:''; position: absolute; left:0; top:0; bottom:0; width:3px; background:white; }
+        .nav-item-custom i { font-size: 1rem; flex-shrink: 0; width: 18px; text-align: center; }
+        .sidebar-footer { padding: .875rem 1.25rem; border-top: 1px solid rgba(255,255,255,.08); background: rgba(0,0,0,.2); flex-shrink: 0; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: #f59e0b; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem; flex-shrink: 0; }
+        .user-name { font-size: .82rem; font-weight: 600; color: white; margin: 0; }
+        .user-role { font-size: .7rem; color: #94a3b8; margin: 0; }
+
+        /* ── Main ── */
+        .main-content { margin-left: 260px; flex: 1; min-height: 100vh; }
+        .header-section { background: white; padding: 1.25rem 2rem; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+        .header-section h1 { font-size: 1.5rem; font-weight: bold; color: #1f2937; margin-bottom: .2rem; }
+
+        /* ── Cards ── */
+        .ruta-card { background: white; border-radius: .75rem; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,.07); margin-bottom: 1rem; overflow: hidden; transition: all .2s; }
+        .ruta-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+        .ruta-card-header { padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; }
+        .ruta-card-body { padding: 1rem 1.25rem; }
+        .ruta-nombre { font-size: 1rem; font-weight: 700; color: #1f2937; }
+        .ruta-codigo { font-size: .75rem; color: #6b7280; font-family: monospace; }
+
+        /* ── Paradas ── */
+        .parada-row { display: flex; align-items: center; gap: .75rem; padding: .5rem .75rem; border-radius: .375rem; background: #f8fafc; border: 1px solid #e5e7eb; margin-bottom: .5rem; transition: all .2s; }
+        .parada-row:hover { background: #f1f5f9; border-color: #f59e0b; }
+        .parada-num { width: 26px; height: 26px; border-radius: 50%; background: #3b82f6; color: white; font-size: .72rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+        /* ── Badges ── */
+        .badge-activo   { background: #dcfce7; color: #16a34a; font-size: .7rem; padding: .2rem .5rem; border-radius: .25rem; font-weight: 600; }
+        .badge-inactivo { background: #fee2e2; color: #dc2626; font-size: .7rem; padding: .2rem .5rem; border-radius: .25rem; font-weight: 600; }
+
+        /* ── Modal divider ── */
+        .modal-section-divider { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #9ca3af; display: flex; align-items: center; gap: .5rem; margin: .25rem 0; }
+        .modal-section-divider::before, .modal-section-divider::after { content:''; flex:1; height:1px; background:#e5e7eb; }
+
+        .empty-state { text-align: center; padding: 3rem; color: #6b7280; }
+        @media (max-width: 992px) { .sidebar { margin-left: -260px; } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+<div class="app-container">
+
+    <!-- SIDEBAR -->
+     {% include 'includes/sidebar_admin.html' %}
+    {% include 'includes/sidebar_colegio.html' %}
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="header-section d-flex justify-content-between align-items-center">
+            <div>
+                <h1><i class="bi bi-signpost-2 me-2 text-warning"></i>Gestión de Rutas</h1>
+                <p class="text-muted small mb-0">Crear, editar y asignar rutas y paradas</p>
+            </div>
+            <button class="btn btn-warning text-white" data-bs-toggle="modal" data-bs-target="#nuevaRutaModal">
+                <i class="bi bi-plus-lg me-1"></i>Nueva Ruta
+            </button>
+        </div>
+
+        <div class="p-4">
+
+            {% if messages %}{% for msg in messages %}
+            <div class="alert alert-{% if msg.tags == 'error' %}danger{% else %}{{ msg.tags }}{% endif %} alert-dismissible fade show mb-3">
+                {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}{% endif %}
+
+            {% if error %}<div class="alert alert-warning">{{ error }}</div>{% endif %}
+
+            <!-- Filtros rápidos -->
+            <form method="GET" class="row g-2 mb-4">
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" name="busqueda" class="form-control" value="{{ busqueda|default:'' }}" placeholder="Buscar por nombre de ruta…">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select name="turno" class="form-select">
+                        <option value="">Todos los turnos</option>
+                        {% for val, lbl in turnos %}<option value="{{ val }}" {% if turno == val %}selected{% endif %}>{{ lbl }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search me-1"></i>Filtrar</button>
+                </div>
+                <div class="col-md-2">
+                    <a href="{% url 'rutas_gestion' %}" class="btn btn-secondary w-100"><i class="bi bi-x-circle me-1"></i>Limpiar</a>
+                </div>
+            </form>
+
+            <!-- Estadísticas rápidas -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 shadow-sm text-center p-3">
+                        <div class="fs-3 fw-bold text-warning">{{ total_rutas|default:"0" }}</div>
+                        <div class="small text-muted">Total Rutas</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 shadow-sm text-center p-3">
+                        <div class="fs-3 fw-bold text-success">{{ rutas_activas|default:"0" }}</div>
+                        <div class="small text-muted">Activas</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 shadow-sm text-center p-3">
+                        <div class="fs-3 fw-bold text-primary">{{ conductores|length }}</div>
+                        <div class="small text-muted">Conductores Disponibles</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 shadow-sm text-center p-3">
+                        <div class="fs-3 fw-bold" style="color:#be185d;">{{ monitoras|length }}</div>
+                        <div class="small text-muted">Monitoras Disponibles</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de rutas -->
+            {% if not rutas %}
+            <div class="empty-state">
+                <i class="bi bi-signpost-2 d-block fs-1 mb-3"></i>
+                <h5>No hay rutas registradas</h5>
+                <p class="text-muted mb-4">Crea la primera ruta para comenzar</p>
+                <button class="btn btn-warning text-white" data-bs-toggle="modal" data-bs-target="#nuevaRutaModal">
+                    <i class="bi bi-plus-lg me-2"></i>Crear Primera Ruta
+                </button>
+            </div>
+            {% else %}
+                {% for ruta in rutas %}
+                <div class="ruta-card">
+                    <div class="ruta-card-header">
+                        <div>
+                            <div class="ruta-nombre">{{ ruta.nombre }}</div>
+                            <div class="ruta-codigo">Código: {{ ruta.codigo }}
+                                {% if ruta.turno %} &nbsp;·&nbsp; {{ ruta.get_turno_display }}{% endif %}
+                                {% if ruta.hora_inicio %} &nbsp;·&nbsp; {{ ruta.hora_inicio }} — {{ ruta.hora_fin }}{% endif %}
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            {% if ruta.activo %}
+                            <span class="badge-activo">Activa</span>
+                            {% else %}
+                            <span class="badge-inactivo">Inactiva</span>
+                            {% endif %}
+                            <!-- Editar -->
+                            <button class="btn btn-sm btn-outline-primary js-edit-ruta"
+                                    data-bs-toggle="modal" data-bs-target="#editarRutaModal"
+                                    data-codigo="{{ ruta.codigo }}"
+                                    data-nombre="{{ ruta.nombre }}"
+                                    data-desc="{{ ruta.descripcion|default:'' }}"
+                                    data-inicio="{{ ruta.hora_inicio|default:'' }}"
+                                    data-fin="{{ ruta.hora_fin|default:'' }}"
+                                    data-turno="{{ ruta.turno|default:'' }}"
+                                    data-capacidad="{{ ruta.capacidad_maxima|default:'' }}"
+                                    data-conductor="{{ ruta.conductor_cedula.cedula|default:'' }}"
+                                    data-activo="{{ ruta.activo|yesno:'true,false' }}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <!-- Agregar parada -->
+                            <button class="btn btn-sm btn-outline-success js-nueva-parada"
+                                    data-bs-toggle="modal" data-bs-target="#nuevaParadaModal"
+                                    data-codigo="{{ ruta.codigo }}" data-nombre="{{ ruta.nombre }}">
+                                <i class="bi bi-geo-alt-fill"></i>
+                            </button>
+                            <!-- Eliminar ruta -->
+                            <button class="btn btn-sm btn-outline-danger"
+                                    onclick="confirmarEliminar('{{ ruta.codigo }}', '{{ ruta.nombre }}')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="ruta-card-body">
+                        <!-- Info ruta -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-4 small">
+                                <i class="bi bi-person-badge text-primary me-1"></i>
+                                <strong>Conductor:</strong>
+                                {{ ruta.conductor_cedula.nombre|default:"Sin asignar" }}
+                            </div>
+                            <div class="col-md-4 small">
+                                <i class="bi bi-people text-success me-1"></i>
+                                <strong>Capacidad:</strong>
+                                {{ ruta.capacidad_maxima|default:"—" }} pasajeros
+                            </div>
+                            <div class="col-md-4 small">
+                                <i class="bi bi-geo-alt text-warning me-1"></i>
+                                <strong>Paradas:</strong> {{ ruta.paradas.count }}
+                            </div>
+                        </div>
+
+                        <!-- Paradas -->
+                        {% if ruta.paradas.all %}
+                        <div class="d-flex flex-column gap-1">
+                            {% for parada in ruta.paradas.all|dictsort:"orden" %}
+                            <div class="parada-row">
+                                <div class="parada-num">{{ parada.orden }}</div>
+                                <div class="flex-grow-1">
+                                    <div style="font-size:.82rem;font-weight:600;color:#1f2937;">{{ parada.nombre }}</div>
+                                    <div style="font-size:.73rem;color:#6b7280;">
+                                        <i class="bi bi-geo-alt me-1"></i>{{ parada.direccion }}
+                                        {% if parada.referencia %}<span class="text-muted"> — {{ parada.referencia }}</span>{% endif %}
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-1">
+                                    {% if parada.latitud %}<span class="badge bg-light text-success border" title="GPS registrado"><i class="bi bi-geo-fill"></i></span>{% endif %}
+                                    <form method="POST" action="{% url 'rutas_gestion' %}" style="margin:0;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="accion" value="parada_eliminar">
+                                        <input type="hidden" name="parada_id" value="{{ parada.id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1"
+                                                onclick="return confirm('¿Eliminar parada {{ parada.nombre }}?')">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted small mb-0"><i class="bi bi-info-circle me-1"></i>Sin paradas registradas.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+<!-- ══ Modal Nueva Ruta ══ -->
+<div class="modal fade" id="nuevaRutaModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <form method="POST" action="{% url 'rutas_gestion' %}">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="crear">
+                <div class="modal-header" style="background:#f59e0b;color:white;">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-signpost-2 me-2"></i>Nueva Ruta</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12"><div class="modal-section-divider">Datos de la Ruta</div></div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Código <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="codigo" required maxlength="50" placeholder="Ej: RUTA-01">
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="nombre" required maxlength="100" placeholder="Ej: Ruta Norte Mañana">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Descripción</label>
+                            <textarea class="form-control" name="descripcion" rows="2" maxlength="500"></textarea>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Turno</label>
+                            <select class="form-select" name="turno">
+                                <option value="">Seleccionar</option>
+                                {% for val, lbl in turnos %}<option value="{{ val }}">{{ lbl }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Hora Inicio</label>
+                            <input type="time" class="form-control" name="hora_inicio">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Hora Fin</label>
+                            <input type="time" class="form-control" name="hora_fin">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Capacidad Máxima</label>
+                            <input type="number" class="form-control" name="capacidad_maxima" min="1" max="100" placeholder="Ej: 25">
+                        </div>
+
+                        <div class="col-12"><div class="modal-section-divider">Asignación de Personal</div></div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Conductor</label>
+                            <select class="form-select" name="conductor_cedula">
+                                <option value="">Sin conductor asignado</option>
+                                {% for c in conductores %}
+                                <option value="{{ c.cedula }}">{{ c.nombre }} — {{ c.cedula }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Monitora</label>
+                            <select class="form-select" name="monitora_cedula">
+                                <option value="">Sin monitora asignada</option>
+                                {% for m in monitoras %}
+                                <option value="{{ m.usuario.cedula }}">{{ m.usuario.nombre }} — {{ m.usuario.cedula }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning text-white"><i class="bi bi-save me-1"></i>Crear Ruta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ══ Modal Editar Ruta ══ -->
+<div class="modal fade" id="editarRutaModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <form method="POST" action="{% url 'rutas_gestion' %}">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="editar">
+                <div class="modal-header" style="background:#f59e0b;color:white;">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-pencil me-2"></i>Editar Ruta</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="alert alert-info py-2 small">
+                                <i class="bi bi-info-circle me-1"></i>Código: <strong id="edit_codigo_display"></strong>
+                            </div>
+                            <input type="hidden" name="codigo" id="edit_codigo">
+                        </div>
+                        <div class="col-12"><div class="modal-section-divider">Datos de la Ruta</div></div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="nombre" id="edit_nombre" required maxlength="100">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Descripción</label>
+                            <textarea class="form-control" name="descripcion" id="edit_desc" rows="2" maxlength="500"></textarea>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Turno</label>
+                            <select class="form-select" name="turno" id="edit_turno">
+                                <option value="">Seleccionar</option>
+                                {% for val, lbl in turnos %}<option value="{{ val }}">{{ lbl }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Hora Inicio</label>
+                            <input type="time" class="form-control" name="hora_inicio" id="edit_inicio">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Hora Fin</label>
+                            <input type="time" class="form-control" name="hora_fin" id="edit_fin">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Capacidad Máxima</label>
+                            <input type="number" class="form-control" name="capacidad_maxima" id="edit_capacidad" min="1" max="100">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Estado</label>
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" name="activo" id="edit_activo">
+                                <label class="form-check-label" for="edit_activo">Ruta activa</label>
+                            </div>
+                        </div>
+                        <div class="col-12"><div class="modal-section-divider">Asignación de Personal</div></div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Conductor</label>
+                            <select class="form-select" name="conductor_cedula" id="edit_conductor">
+                                <option value="">Sin conductor asignado</option>
+                                {% for c in conductores %}
+                                <option value="{{ c.cedula }}">{{ c.nombre }} — {{ c.cedula }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Monitora</label>
+                            <select class="form-select" name="monitora_cedula" id="edit_monitora">
+                                <option value="">Sin monitora asignada</option>
+                                {% for m in monitoras %}
+                                <option value="{{ m.usuario.cedula }}">{{ m.usuario.nombre }} — {{ m.usuario.cedula }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning text-white"><i class="bi bi-save me-1"></i>Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ══ Modal Nueva Parada ══ -->
+<div class="modal fade" id="nuevaParadaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{% url 'rutas_gestion' %}">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="parada_nueva">
+                <input type="hidden" name="codigo_ruta" id="parada_ruta_codigo">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-geo-alt-fill me-2"></i>Nueva Parada — <span id="parada_ruta_nombre"></span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Nombre de la Parada <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="parada_nombre" required maxlength="150" placeholder="Ej: Casa de Sofía">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Dirección <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="parada_direccion" required maxlength="300" placeholder="Calle 123 # 45-67">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Referencia</label>
+                            <input type="text" class="form-control" name="parada_referencia" maxlength="200" placeholder="Frente al parque, edificio azul…">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Latitud (GPS)</label>
+                            <input type="number" class="form-control" name="parada_lat" step="any" placeholder="4.7110">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Longitud (GPS)</label>
+                            <input type="number" class="form-control" name="parada_lng" step="any" placeholder="-74.0721">
+                        </div>
+                        <div class="col-12">
+                            <div class="alert alert-info py-2 small mb-0">
+                                <i class="bi bi-info-circle me-1"></i>
+                                La parada se agregará al final del orden actual de la ruta.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success"><i class="bi bi-geo-alt-fill me-1"></i>Agregar Parada</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ══ Modal Confirmar Eliminar Ruta ══ -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-danger">
+                <h5 class="modal-title text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Eliminar Ruta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar la ruta <strong id="delete_nombre_ruta"></strong>?</p>
+                <p class="text-muted small"><strong class="text-danger">Esta acción eliminará también todas las paradas asociadas.</strong></p>
+            </div>
+            <div class="modal-footer">
+                <form method="POST" action="{% url 'rutas_gestion' %}" id="deleteForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="eliminar">
+                    <input type="hidden" name="codigo" id="delete_codigo">
+                    <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Sí, Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    /* ── Editar ruta ── */
+    document.querySelectorAll('.js-edit-ruta').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const d = this.dataset;
+            document.getElementById('edit_codigo').value         = d.codigo;
+            document.getElementById('edit_codigo_display').textContent = d.codigo;
+            document.getElementById('edit_nombre').value         = d.nombre    || '';
+            document.getElementById('edit_desc').value           = d.desc      || '';
+            document.getElementById('edit_inicio').value         = d.inicio    || '';
+            document.getElementById('edit_fin').value            = d.fin       || '';
+            document.getElementById('edit_capacidad').value      = d.capacidad || '';
+            document.getElementById('edit_activo').checked       = d.activo === 'true';
+            setSelect('edit_turno',     d.turno     || '');
+            setSelect('edit_conductor', d.conductor || '');
+        });
+    });
+
+    /* ── Nueva parada ── */
+    document.querySelectorAll('.js-nueva-parada').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.getElementById('parada_ruta_codigo').value       = this.dataset.codigo;
+            document.getElementById('parada_ruta_nombre').textContent = this.dataset.nombre;
+        });
+    });
+
+    /* ── Confirmar eliminar ── */
+    function confirmarEliminar(codigo, nombre) {
+        document.getElementById('delete_codigo').value            = codigo;
+        document.getElementById('delete_nombre_ruta').textContent = nombre;
+        new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    }
+
+    function setSelect(id, value) {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        for (let i = 0; i < sel.options.length; i++) {
+            if (sel.options[i].value === value) { sel.selectedIndex = i; return; }
+        }
+        sel.selectedIndex = 0;
+    }
+
+    setTimeout(() => {
+        document.querySelectorAll('.alert').forEach(a => {
+            try { new bootstrap.Alert(a).close(); } catch(e) {}
+        });
+    }, 5000);
+</script>
+</body>
+</html>

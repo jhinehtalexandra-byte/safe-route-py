@@ -1,0 +1,338 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes - RutaEscolar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f1f5f9; }
+        .app-container { display: flex; min-height: 100vh; }
+
+        /* ── Sidebar — idéntico al dashboard_admin ── */
+        .sidebar { width: 260px; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; position: fixed; height: 100vh; overflow-y: auto; z-index: 1000; box-shadow: 2px 0 10px rgba(0,0,0,0.15); display: flex; flex-direction: column; }
+        .logo-section { padding: 1.25rem 1rem; background-color: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; }
+        .logo-icon { width: 38px; height: 38px; background-color: #f59e0b; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 4px 12px rgba(245,158,11,0.3); }
+        .logo-text h1 { font-size: 1rem; font-weight: 700; margin-bottom: 0.1rem; }
+        .logo-text p { font-size: 0.68rem; color: #94a3b8; margin: 0; }
+        .nav-menu { padding: 0.5rem 0; flex: 1; overflow-y: auto; }
+        .nav-section-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; padding: 0.85rem 1.25rem 0.35rem; }
+        .nav-item-custom { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 1.25rem; color: #cbd5e1; text-decoration: none; transition: all 0.2s; font-size: 0.855rem; position: relative; border: none; background: none; width: 100%; cursor: pointer; }
+        .nav-item-custom:hover { background-color: rgba(245,158,11,0.1); color: white; padding-left: 1.5rem; }
+        .nav-item-custom.active { background-color: #f59e0b; color: white; font-weight: 600; }
+        .nav-item-custom.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background-color: white; }
+        .nav-item-custom i { font-size: 1rem; flex-shrink: 0; width: 18px; text-align: center; }
+        .sidebar-footer { padding: 0.875rem 1.25rem; border-top: 1px solid rgba(255,255,255,0.08); background-color: rgba(0,0,0,0.2); flex-shrink: 0; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background-color: #f59e0b; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem; flex-shrink: 0; }
+        .user-name { font-size: 0.82rem; font-weight: 600; color: white; margin: 0; }
+        .user-role { font-size: 0.7rem; color: #94a3b8; margin: 0; }
+        /* ── Contenido ── */
+        .main-content { margin-left: 260px; flex: 1; min-height: 100vh; background-color: #f1f5f9; }
+        .header-section { background: white; padding: 1.5rem 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+        .header-section h1 { font-size: 1.75rem; font-weight: bold; color: #1f2937; }
+        .stat-card { background: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; }
+        .filter-card { background: white; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; overflow: hidden; }
+        .filter-header { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; padding: 1.25rem; }
+        @media (max-width: 992px) { .sidebar { margin-left: -260px; } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+<div class="app-container">
+
+    <!-- SIDEBAR — mismo que dashboard_admin -->
+{% if usuario_rol == 'ADMIN' %}
+    {% include 'includes/sidebar_admin.html' %}
+{% elif usuario_rol == 'COLEGIO' %}
+    {% include 'includes/sidebar_colegio.html' %}
+{% endif %}
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="header-section">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1>Reportes y Analíticas</h1>
+                    <p class="text-muted">Consulta multicriterio y generación de reportes</p>
+                </div>
+                <form method="POST" action="{% url 'logout' %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="p-4">
+
+            <!-- Tarjetas resumen -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <p class="text-muted small mb-1"><i class="bi bi-people me-1 text-primary"></i>Total Usuarios</p>
+                        <h2 class="fw-bold mb-0">{{ total_usuarios|default:"0" }}</h2>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <p class="text-muted small mb-1"><i class="bi bi-person-check me-1 text-success"></i>Usuarios Activos</p>
+                        <h2 class="fw-bold mb-0">{{ usuarios_activos|default:"0" }}</h2>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <p class="text-muted small mb-1"><i class="bi bi-people-fill me-1 text-warning"></i>Total Estudiantes</p>
+                        <h2 class="fw-bold mb-0">{{ total_estudiantes|default:"0" }}</h2>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <p class="text-muted small mb-1"><i class="bi bi-credit-card me-1 text-info"></i>Total Pagos</p>
+                        <h2 class="fw-bold mb-0">{{ total_pagos|default:"0" }}</h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros multicriterio -->
+            <div class="filter-card mb-4">
+                <div class="filter-header">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-funnel me-2"></i>Filtros de Búsqueda Multicriterio
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="GET" action="{% url 'reportes' %}">
+                        <div class="row g-3">
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-file-text text-primary me-1"></i>Tipo de Reporte
+                                </label>
+                                <select class="form-select" name="tipo_reporte">
+                                    <option value="USUARIOS"    {% if tipo_reporte == 'USUARIOS' or not tipo_reporte %}selected{% endif %}>Usuarios</option>
+                                    <option value="ESTUDIANTES" {% if tipo_reporte == 'ESTUDIANTES' %}selected{% endif %}>Estudiantes</option>
+                                    <option value="PAGOS"       {% if tipo_reporte == 'PAGOS' %}selected{% endif %}>Pagos</option>
+                                    <option value="RUTAS"       {% if tipo_reporte == 'RUTAS' %}selected{% endif %}>Rutas</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-check-circle text-success me-1"></i>Estado
+                                </label>
+                                <select class="form-select" name="estado">
+                                    <option value="">Todos</option>
+                                    <option value="ACTIVO"   {% if estado == 'ACTIVO' %}selected{% endif %}>Activo</option>
+                                    <option value="INACTIVO" {% if estado == 'INACTIVO' %}selected{% endif %}>Inactivo</option>
+                                </select>
+                            </div>
+
+                            <!-- CORRECCIÓN: incluye COLEGIO y MONITORA -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-person-badge text-warning me-1"></i>Rol
+                                </label>
+                                <select class="form-select" name="rol">
+                                    <option value="">Todos los Roles</option>
+                                    <option value="ADMIN"     {% if rol == 'ADMIN' %}selected{% endif %}>Administrador</option>
+                                    <option value="COLEGIO"   {% if rol == 'COLEGIO' %}selected{% endif %}>Colegio</option>
+                                    <option value="CONDUCTOR" {% if rol == 'CONDUCTOR' %}selected{% endif %}>Conductor</option>
+                                    <option value="MONITORA"  {% if rol == 'MONITORA' %}selected{% endif %}>Monitora</option>
+                                    <option value="PADRE"     {% if rol == 'PADRE' %}selected{% endif %}>Padre</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-search text-info me-1"></i>Búsqueda por Nombre
+                                </label>
+                                <input type="text" class="form-control" name="busqueda"
+                                       value="{{ busqueda|default:'' }}" placeholder="Nombre...">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-calendar-check text-primary me-1"></i>Fecha Desde
+                                </label>
+                                <input type="date" class="form-control" name="fecha_desde"
+                                       value="{{ fecha_desde|default:'' }}">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-calendar-x text-danger me-1"></i>Fecha Hasta
+                                </label>
+                                <input type="date" class="form-control" name="fecha_hasta"
+                                       value="{{ fecha_hasta|default:'' }}">
+                            </div>
+
+                            <div class="col-12">
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-search me-2"></i>Buscar
+                                    </button>
+                                    <a href="{% url 'reportes' %}" class="btn btn-secondary">
+                                        <i class="bi bi-arrow-clockwise me-2"></i>Limpiar
+                                    </a>
+                                    <a href="{% url 'reportes_pdf' %}?tipo_reporte={{ tipo_reporte|default:'USUARIOS' }}&estado={{ estado|default:'' }}&rol={{ rol|default:'' }}&busqueda={{ busqueda|default:'' }}&fecha_desde={{ fecha_desde|default:'' }}&fecha_hasta={{ fecha_hasta|default:'' }}"
+                                       class="btn btn-danger" target="_blank">
+                                        <i class="bi bi-file-pdf me-2"></i>Descargar PDF
+                                    </a>
+                                    <a href="{% url 'reportes_excel' %}?tipo_reporte={{ tipo_reporte|default:'USUARIOS' }}&estado={{ estado|default:'' }}&rol={{ rol|default:'' }}&busqueda={{ busqueda|default:'' }}&fecha_desde={{ fecha_desde|default:'' }}&fecha_hasta={{ fecha_hasta|default:'' }}"
+                                       class="btn btn-success">
+                                        <i class="bi bi-file-earmark-excel me-2"></i>Descargar Excel
+                                    </a>
+                                </div>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tabla de resultados -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-table text-warning me-2"></i>Resultados
+                    </h5>
+                    <span class="badge bg-primary">Total: {{ total_registros|default:"0" }}</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    {% if tipo_reporte == 'ESTUDIANTES' %}
+                                    <th class="px-4 py-3">Documento</th>
+                                    <th class="px-4 py-3">Nombre</th>
+                                    <th class="px-4 py-3">Apellido</th>
+                                    <th class="px-4 py-3">Grado</th>
+                                    <th class="px-4 py-3">Institución</th>
+                                    <th class="px-4 py-3">Ruta</th>
+                                    <th class="px-4 py-3">Estado</th>
+                                    {% elif tipo_reporte == 'PAGOS' %}
+                                    <th class="px-4 py-3">Código</th>
+                                    <th class="px-4 py-3">Estudiante</th>
+                                    <th class="px-4 py-3">Monto</th>
+                                    <th class="px-4 py-3">Mes / Año</th>
+                                    <th class="px-4 py-3">Fecha Pago</th>
+                                    <th class="px-4 py-3">Método</th>
+                                    <th class="px-4 py-3">Estado</th>
+                                    {% elif tipo_reporte == 'RUTAS' %}
+                                    <th class="px-4 py-3">Código</th>
+                                    <th class="px-4 py-3">Nombre</th>
+                                    <th class="px-4 py-3">Turno</th>
+                                    <th class="px-4 py-3">Hora Inicio</th>
+                                    <th class="px-4 py-3">Hora Fin</th>
+                                    <th class="px-4 py-3">Capacidad</th>
+                                    <th class="px-4 py-3">Estado</th>
+                                    {% else %}{# USUARIOS #}
+                                    <th class="px-4 py-3">Cédula</th>
+                                    <th class="px-4 py-3">Nombre</th>
+                                    <th class="px-4 py-3">Usuario</th>
+                                    <th class="px-4 py-3">Email</th>
+                                    <th class="px-4 py-3">Teléfono</th>
+                                    <th class="px-4 py-3">Rol</th>
+                                    <th class="px-4 py-3">Estado</th>
+                                    {% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if not reportes %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted py-5">
+                                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                        No hay datos. Ajusta los filtros y presiona Buscar.
+                                    </td>
+                                </tr>
+                                {% else %}
+                                    {% if tipo_reporte == 'ESTUDIANTES' %}
+                                        {% for item in reportes %}
+                                        <tr>
+                                            <td class="px-4 py-3">{{ item.documento }}</td>
+                                            <td class="px-4 py-3">{{ item.nombre }}</td>
+                                            <td class="px-4 py-3">{{ item.apellido }}</td>
+                                            <td class="px-4 py-3">{{ item.grado|default:"—" }}</td>
+                                            <td class="px-4 py-3">{{ item.institucion|default:"—" }}</td>
+                                            <td class="px-4 py-3">{{ item.codigo_ruta_id|default:"Sin ruta" }}</td>
+                                            <td class="px-4 py-3">
+                                                {% if item.activo %}<span class="badge bg-success">Activo</span>
+                                                {% else %}<span class="badge bg-danger">Inactivo</span>{% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% elif tipo_reporte == 'PAGOS' %}
+                                        {% for item in reportes %}
+                                        <tr>
+                                            <td class="px-4 py-3">{{ item.codigo }}</td>
+                                            <td class="px-4 py-3">{{ item.documento_estudiante_id }}</td>
+                                            <td class="px-4 py-3">${{ item.monto }}</td>
+                                            <td class="px-4 py-3">{{ item.mes|default:"—" }} {{ item.anio|default:"" }}</td>
+                                            <td class="px-4 py-3">
+                                                {% if item.fecha_pago %}{{ item.fecha_pago|date:"d/m/Y" }}{% else %}—{% endif %}
+                                            </td>
+                                            <td class="px-4 py-3">{{ item.metodo_pago|default:"—" }}</td>
+                                            <td class="px-4 py-3">
+                                                {% if item.estado == 'PAGADO' %}<span class="badge bg-success">Pagado</span>
+                                                {% elif item.estado == 'PENDIENTE' %}<span class="badge bg-warning text-dark">Pendiente</span>
+                                                {% else %}<span class="badge bg-danger">Vencido</span>{% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% elif tipo_reporte == 'RUTAS' %}
+                                        {% for item in reportes %}
+                                        <tr>
+                                            <td class="px-4 py-3">{{ item.codigo }}</td>
+                                            <td class="px-4 py-3">{{ item.nombre }}</td>
+                                            <td class="px-4 py-3">{{ item.turno|default:"—" }}</td>
+                                            <td class="px-4 py-3">{{ item.hora_inicio|default:"—" }}</td>
+                                            <td class="px-4 py-3">{{ item.hora_fin|default:"—" }}</td>
+                                            <td class="px-4 py-3">{{ item.capacidad_maxima|default:"—" }}</td>
+                                            <td class="px-4 py-3">
+                                                {% if item.activo %}<span class="badge bg-success">Activa</span>
+                                                {% else %}<span class="badge bg-danger">Inactiva</span>{% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% else %}{# USUARIOS #}
+                                        {% for item in reportes %}
+                                        <tr>
+                                            <td class="px-4 py-3">{{ item.cedula }}</td>
+                                            <td class="px-4 py-3">{{ item.nombre }}</td>
+                                            <td class="px-4 py-3">{{ item.user_name }}</td>
+                                            <td class="px-4 py-3">{{ item.email }}</td>
+                                            <td class="px-4 py-3">{{ item.telefono|default:"—" }}</td>
+                                            <td class="px-4 py-3">
+                                                <span class="badge
+                                                    {% if item.rol == 'ADMIN' %}bg-dark
+                                                    {% elif item.rol == 'COLEGIO' %}bg-primary
+                                                    {% elif item.rol == 'CONDUCTOR' %}bg-info text-dark
+                                                    {% elif item.rol == 'MONITORA' %}bg-warning text-dark
+                                                    {% else %}bg-secondary{% endif %}">
+                                                    {{ item.rol }}
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-3">
+                                                {% if item.activo %}<span class="badge bg-success">Activo</span>
+                                                {% else %}<span class="badge bg-danger">Inactivo</span>{% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% endif %}
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

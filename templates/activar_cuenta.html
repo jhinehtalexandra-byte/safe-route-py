@@ -1,0 +1,279 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activar Cuenta - RutaEscolar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #1e293b 100%);
+            min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem;
+        }
+        .activate-container { width: 100%; max-width: 500px; }
+        .activate-card { background: white; border-radius: 1rem; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+        .activate-header {
+            background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+            padding: 2rem; text-align: center; color: white;
+        }
+        .activate-header .logo-icon {
+            width: 72px; height: 72px; background: rgba(255,255,255,0.2);
+            border-radius: 16px; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1rem; font-size: 2.5rem;
+        }
+        .activate-body { padding: 2rem; }
+        .pass-wrapper { position: relative; }
+        .btn-eye {
+            position: absolute; right: 0.75rem; top: 50%;
+            transform: translateY(-50%); background: none;
+            border: none; color: #a0aec0; font-size: 1.1rem; padding: 0; cursor: pointer; z-index: 5;
+        }
+        .btn-eye:hover { color: #f59e0b; }
+        .pass-wrapper .form-control { padding-right: 2.75rem; }
+        .form-control:focus { border-color: #f59e0b; box-shadow: 0 0 0 0.25rem rgba(245,158,11,0.15); }
+        .btn-activate {
+            background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+            border: none; color: white; font-weight: 600;
+            padding: 0.875rem; border-radius: 0.5rem; width: 100%; transition: all 0.3s;
+        }
+        .btn-activate:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(245,158,11,0.4); color: white; }
+        .btn-activate:disabled { opacity: 0.6; cursor: not-allowed; }
+        .password-reqs { list-style: none; padding: 0; margin: 0.5rem 0 0; font-size: 0.78rem; }
+        .password-reqs li { color: #dc3545; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.35rem; }
+        .password-reqs li.ok { color: #198754; }
+        .info-box {
+            background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 0.5rem;
+            padding: 0.875rem 1rem; margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+<div class="activate-container">
+
+    <div class="text-center mb-4">
+        <span style="color:#f59e0b; font-size:1.5rem; font-weight:800;">🚌 RutaEscolar</span>
+    </div>
+
+    <div class="activate-card">
+        <div class="activate-header">
+            <div class="logo-icon"><i class="bi bi-person-check"></i></div>
+            <h2 class="h4 fw-bold mb-1">Activar Cuenta</h2>
+            <p class="mb-0 opacity-75 small">
+                El colegio te ha invitado a SafeRoute.<br>
+                Crea tu contraseña para activar tu cuenta.
+            </p>
+        </div>
+
+        <div class="activate-body">
+
+            {% if error %}
+            <div class="alert alert-danger d-flex align-items-center mb-3">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}
+            </div>
+            {% endif %}
+
+            {% if expirado %}
+            <!-- Enlace expirado -->
+            <div class="text-center py-3">
+                <div class="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center mx-auto mb-4"
+                     style="width:80px;height:80px;">
+                    <i class="bi bi-clock-history text-danger" style="font-size:2.5rem;"></i>
+                </div>
+                <h5 class="fw-bold mb-2">Enlace expirado</h5>
+                <p class="text-muted mb-3">
+                    Este enlace de invitación ya venció (válido por 48 horas).<br>
+                    Contacta al colegio para que reenvíe la invitación.
+                </p>
+                <a href="{% url 'login' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Ir al inicio de sesión
+                </a>
+            </div>
+
+            {% elif activado %}
+            <!-- Cuenta activada exitosamente -->
+            <div class="text-center py-3">
+                <div class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center mx-auto mb-4"
+                     style="width:80px;height:80px;">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size:2.5rem;"></i>
+                </div>
+                <h5 class="fw-bold mb-2">¡Cuenta activada!</h5>
+                <p class="text-muted mb-3">
+                    Tu cuenta ha sido activada exitosamente.<br>
+                    Ya puedes iniciar sesión y ver el recorrido de tus hijos.
+                </p>
+                <a href="{% url 'login' %}" class="btn-activate d-inline-block text-decoration-none text-center" style="padding:.75rem 2rem;width:auto;">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar sesión
+                </a>
+            </div>
+
+            {% else %}
+            <!-- Formulario de activación -->
+            <div class="info-box">
+                <div class="d-flex align-items-start gap-2">
+                    <i class="bi bi-person-circle text-info mt-1"></i>
+                    <div>
+                        <p class="fw-semibold mb-0 small">Activando cuenta para:</p>
+                        <p class="mb-0 small text-muted">{{ usuario.nombre }} — {{ usuario.email }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <form method="POST" action="" id="activateForm" novalidate>
+                {% csrf_token %}
+
+                <!-- Nombre de usuario -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">
+                        Nombre de Usuario <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" class="form-control" name="user_name"
+                           value="{{ usuario.user_name|default:'' }}"
+                           required minlength="4" maxlength="50"
+                           placeholder="Ej: juanperez123" id="userName">
+                    <small class="text-muted">Solo letras, números y guion bajo (_)</small>
+                </div>
+
+                <!-- Contraseña -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">
+                        Contraseña <span class="text-danger">*</span>
+                    </label>
+                    <div class="pass-wrapper">
+                        <input type="password" class="form-control" name="password"
+                               id="password" required minlength="10" maxlength="100"
+                               placeholder="Mínimo 10 caracteres">
+                        <button type="button" class="btn-eye" onclick="toggleEye('password','eye1')" tabindex="-1">
+                            <i class="bi bi-eye-slash" id="eye1"></i>
+                        </button>
+                    </div>
+                    <ul class="password-reqs" id="passReqs">
+                        <li id="req-len">  <i class="bi bi-x-circle-fill"></i> Mínimo 10 caracteres</li>
+                        <li id="req-upper"><i class="bi bi-x-circle-fill"></i> Una mayúscula</li>
+                        <li id="req-lower"><i class="bi bi-x-circle-fill"></i> Una minúscula</li>
+                        <li id="req-num">  <i class="bi bi-x-circle-fill"></i> Un número</li>
+                    </ul>
+                </div>
+
+                <!-- Confirmar contraseña -->
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">
+                        Confirmar Contraseña <span class="text-danger">*</span>
+                    </label>
+                    <div class="pass-wrapper">
+                        <input type="password" class="form-control" id="confirmPassword"
+                               required minlength="10" maxlength="100" placeholder="Repita la contraseña">
+                        <button type="button" class="btn-eye" onclick="toggleEye('confirmPassword','eye2')" tabindex="-1">
+                            <i class="bi bi-eye-slash" id="eye2"></i>
+                        </button>
+                    </div>
+                    <div id="matchMsg" class="mt-1" style="font-size:.78rem;"></div>
+                </div>
+
+                <!-- Términos -->
+                <div class="mb-4">
+                    <div class="d-flex align-items-start gap-2">
+                        <input type="checkbox" id="terms" class="mt-1"
+                               style="width:1.1rem;height:1.1rem;cursor:pointer;" required>
+                        <label for="terms" style="font-size:0.875rem;color:#6b7280;cursor:pointer;">
+                            Acepto los
+                            <a href="{% url 'terminos' %}" target="_blank" style="color:#f59e0b;">términos y condiciones</a>
+                            y la
+                            <a href="{% url 'privacidad' %}" target="_blank" style="color:#f59e0b;">política de privacidad</a>
+                        </label>
+                    </div>
+                    <div id="termsFeedback" style="display:none;color:#dc3545;font-size:.75rem;margin-top:.25rem;">
+                        Debe aceptar los términos y condiciones.
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-activate" id="submitBtn">
+                    <i class="bi bi-person-check me-2"></i>Activar mi cuenta
+                </button>
+            </form>
+            {% endif %}
+
+            <div class="text-center mt-4">
+                <a href="{% url 'login' %}" class="text-muted text-decoration-none small">
+                    <i class="bi bi-arrow-left me-1"></i>Ya tengo cuenta — Iniciar sesión
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <p class="text-white-50 small">© 2025 SafeRoute — SENA, Bogotá D.C.</p>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function toggleEye(inputId, iconId) {
+    const f = document.getElementById(inputId);
+    const i = document.getElementById(iconId);
+    f.type = f.type === 'password' ? 'text' : 'password';
+    i.className = f.type === 'text' ? 'bi bi-eye' : 'bi bi-eye-slash';
+}
+
+function checkReq(id, ok) {
+    const li = document.getElementById(id);
+    if (!li) return ok;
+    const icon = li.querySelector('i');
+    if (ok) { li.classList.add('ok'); icon.className = 'bi bi-check-circle-fill'; }
+    else    { li.classList.remove('ok'); icon.className = 'bi bi-x-circle-fill'; }
+    return ok;
+}
+
+function validatePasswords() {
+    const p = document.getElementById('password')?.value || '';
+    const c = document.getElementById('confirmPassword')?.value || '';
+    const r1 = checkReq('req-len',   p.length >= 10);
+    const r2 = checkReq('req-upper', /[A-Z]/.test(p));
+    const r3 = checkReq('req-lower', /[a-z]/.test(p));
+    const r4 = checkReq('req-num',   /[0-9]/.test(p));
+    const passOk = r1 && r2 && r3 && r4;
+    const msg = document.getElementById('matchMsg');
+    const cf  = document.getElementById('confirmPassword');
+    if (c) {
+        if (passOk && p === c) {
+            msg.textContent = '✓ Las contraseñas coinciden'; msg.className = 'text-success';
+            cf.setCustomValidity(''); return true;
+        } else {
+            msg.textContent = '✗ Las contraseñas no coinciden'; msg.className = 'text-danger';
+            cf.setCustomValidity('no-match'); return false;
+        }
+    }
+    msg.textContent = '';
+    return passOk;
+}
+
+document.getElementById('password')?.addEventListener('input', validatePasswords);
+document.getElementById('confirmPassword')?.addEventListener('input', validatePasswords);
+document.getElementById('userName')?.addEventListener('input', function() {
+    this.value = this.value.replace(/[^a-zA-Z0-9_]/g, '');
+});
+
+const termsEl   = document.getElementById('terms');
+const termsFbEl = document.getElementById('termsFeedback');
+termsEl?.addEventListener('change', function() {
+    termsFbEl.style.display = this.checked ? 'none' : 'block';
+});
+
+document.getElementById('activateForm')?.addEventListener('submit', function(e) {
+    const passOk = validatePasswords();
+    if (!this.checkValidity() || !passOk || !termsEl.checked) {
+        e.preventDefault(); e.stopPropagation();
+        if (!termsEl.checked) termsFbEl.style.display = 'block';
+        this.classList.add('was-validated');
+        return;
+    }
+    const btn = document.getElementById('submitBtn');
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Activando...';
+    btn.disabled = true;
+});
+</script>
+</body>
+</html>

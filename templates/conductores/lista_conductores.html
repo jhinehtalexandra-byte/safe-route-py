@@ -1,0 +1,552 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Conductores - RutaEscolar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5; overflow-x: hidden; }
+        .app-container { display: flex; min-height: 100vh; }
+        .sidebar { width: 260px; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; position: fixed; height: 100vh; overflow-y: auto; z-index: 1000; box-shadow: 2px 0 10px rgba(0,0,0,0.15); display: flex; flex-direction: column; }
+        .logo-section { padding: 1.25rem 1rem; background-color: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; }
+        .logo-icon { width: 38px; height: 38px; background-color: #f59e0b; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 4px 12px rgba(245,158,11,0.3); }
+        .logo-text h1 { font-size: 1rem; font-weight: 700; margin-bottom: 0.1rem; }
+        .logo-text p { font-size: 0.68rem; color: #94a3b8; margin: 0; }
+        .nav-menu { padding: 0.5rem 0; flex: 1; overflow-y: auto; }
+        .nav-section-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; padding: 0.85rem 1.25rem 0.35rem; }
+        .nav-item-custom { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 1.25rem; color: #cbd5e1; text-decoration: none; transition: all 0.2s; font-size: 0.855rem; position: relative; border: none; background: none; width: 100%; cursor: pointer; }
+        .nav-item-custom:hover { background-color: rgba(245,158,11,0.1); color: white; padding-left: 1.5rem; }
+        .nav-item-custom.active { background-color: #f59e0b; color: white; font-weight: 600; }
+        .nav-item-custom.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background-color: white; }
+        .nav-item-custom i { font-size: 1rem; flex-shrink: 0; width: 18px; text-align: center; }
+        .sidebar-footer { padding: 0.875rem 1.25rem; border-top: 1px solid rgba(255,255,255,0.08); background-color: rgba(0,0,0,0.2); flex-shrink: 0; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background-color: #f59e0b; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem; flex-shrink: 0; }
+        .user-name { font-size: 0.82rem; font-weight: 600; color: white; margin: 0; }
+        .user-role { font-size: 0.7rem; color: #94a3b8; margin: 0; } 
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: #f59e0b; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; }
+        .main-content { margin-left: 260px; flex: 1; min-height: 100vh; background-color: #f5f5f5; }
+        .header-section { background-color: white; padding: 1.5rem 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .filter-card { border: 1px solid #dee2e6; border-radius: 0.5rem; margin-bottom: 1rem; overflow: hidden; }
+        .filter-card-header { background-color: #f8f9fa; padding: 0.75rem 1rem; border-bottom: 1px solid #dee2e6; font-weight: 600; font-size: 0.875rem; }
+        .filter-card-body { padding: 1rem; }
+        .conductor-card { background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: all 0.2s; border-left: 4px solid transparent; }
+        .conductor-card:hover { box-shadow: 0 4px 6px rgba(0,0,0,0.1); transform: translateY(-2px); }
+        .conductor-card.activo   { border-left-color: #22c55e; }
+        .conductor-card.inactivo { border-left-color: #ef4444; }
+        .conductor-card.alerta   { border-left-color: #f59e0b; }
+        .avatar { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #1d4ed8); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: 600; flex-shrink: 0; }
+        .conductor-name  { font-size: 1.125rem; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
+        .conductor-sub   { font-size: 0.875rem; color: #6b7280; }
+        .detail-icon  { color: #9ca3af; flex-shrink: 0; }
+        .detail-label { font-size: 0.75rem; color: #6b7280; font-weight: 500; margin-bottom: 0.125rem; }
+        .detail-value { font-size: 0.875rem; color: #374151; }
+        .detail-extra { font-size: 0.75rem; color: #9ca3af; margin-top: 0.125rem; }
+        .badge-vencido  { background-color: #fee2e2; color: #dc2626; font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-weight: 600; }
+        .badge-ok       { background-color: #dcfce7; color: #16a34a; font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-weight: 600; }
+        .badge-nd       { background-color: #f3f4f6; color: #6b7280; font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-weight: 600; }
+        .btn-icon { width: 40px; height: 40px; border-radius: 0.5rem; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .btn-edit   { background-color: transparent; color: #3b82f6; }
+        .btn-edit:hover   { background-color: #eff6ff; }
+        .btn-delete { background-color: transparent; color: #ef4444; }
+        .btn-delete:hover { background-color: #fef2f2; }
+        .btn-view   { background-color: transparent; color: #10b981; }
+        .btn-view:hover   { background-color: #ecfdf5; }
+        .status-badge { font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-weight: 500; }
+        .table-container { background: white; border-radius: 0.5rem; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .empty-state { text-align: center; padding: 3rem; color: #6b7280; }
+        .empty-state i { font-size: 3rem; margin-bottom: 1rem; }
+        .modal-header-blue { background-color: #1d4ed8; color: white; }
+        .modal-section-divider { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; display: flex; align-items: center; gap: 0.5rem; margin: 0.25rem 0; }
+        .modal-section-divider::before, .modal-section-divider::after { content: ''; flex: 1; height: 1px; background: #e5e7eb; }
+        @media (max-width: 992px) { .sidebar { margin-left: -260px; } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+<div class="app-container">
+
+        <!-- SIDEBAR -->
+{% if usuario_rol == 'ADMIN' %}
+    {% include 'includes/sidebar_admin.html' %}
+{% elif usuario_rol == 'COLEGIO' %}
+    {% include 'includes/sidebar_colegio.html' %}
+{% endif %}
+
+    <!-- MAIN CONTENT -->
+
+    <div class="main-content">
+        <div class="header-section">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h1 class="fw-bold fs-4 mb-1">Gestión de Conductores</h1>
+                    <p class="text-muted mb-0 small">Registro y administración de conductores y sus vehículos</p>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#conductorModal">
+                        <i class="bi bi-plus-lg me-1"></i>Nuevo Conductor
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4">
+
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-3">
+                    {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Filtros -->
+            <form method="GET" action="{% url 'conductores' %}" class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="filter-card">
+                        <div class="filter-card-header"><i class="bi bi-person me-2"></i>Filtro por Nombre</div>
+                        <div class="filter-card-body">
+                            <label class="form-label small">Nombre del Conductor</label>
+                            <div class="input-group">
+                                <input type="text" name="nombre" class="form-control form-control-sm" value="{{ nombre|default:'' }}" placeholder="Ej: Carlos Gómez">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="this.previousElementSibling.value=''"><i class="bi bi-x-circle"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="filter-card">
+                        <div class="filter-card-header"><i class="bi bi-car-front me-2"></i>Filtro por Placa</div>
+                        <div class="filter-card-body">
+                            <label class="form-label small">Placa del Vehículo</label>
+                            <div class="input-group">
+                                <input type="text" name="placa" class="form-control form-control-sm" value="{{ placa|default:'' }}" placeholder="Ej: ABC123">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="this.previousElementSibling.value=''"><i class="bi bi-x-circle"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="filter-card">
+                        <div class="filter-card-header"><i class="bi bi-card-text me-2"></i>Filtro por Categoría</div>
+                        <div class="filter-card-body">
+                            <label class="form-label small">Categoría de Licencia</label>
+                            <select class="form-select form-select-sm" name="categoria">
+                                <option value="">Todas las categorías</option>
+                                {% for val, lbl in categorias %}<option value="{{ val }}" {% if categoria == val %}selected{% endif %}>{{ lbl }}</option>{% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="filter-card">
+                        <div class="filter-card-header"><i class="bi bi-check-circle me-2"></i>Filtro por Estado</div>
+                        <div class="filter-card-body">
+                            <label class="form-label small">Estado</label>
+                            <select class="form-select form-select-sm" name="activo">
+                                <option value="">Todos los estados</option>
+                                <option value="true"  {% if activo == 'true' %}selected{% endif %}>Activo</option>
+                                <option value="false" {% if activo == 'false' %}selected{% endif %}>Inactivo</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="filter-card">
+                        <div class="filter-card-header"><i class="bi bi-sign-turn-right me-2"></i>Filtro por Ruta</div>
+                        <div class="filter-card-body">
+                            <label class="form-label small">Ruta Asignada</label>
+                            <select class="form-select form-select-sm" name="ruta">
+                                <option value="">Todas las rutas</option>
+                                {% for r in rutas %}<option value="{{ r.codigo }}" {% if ruta == r.codigo %}selected{% endif %}>{{ r.nombre }}</option>{% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="filter-card">
+                        <div class="filter-card-header"><i class="bi bi-shield-check me-2"></i>Estado SOAT</div>
+                        <div class="filter-card-body">
+                            <label class="form-label small">SOAT</label>
+                            <select class="form-select form-select-sm" name="soat">
+                                <option value="">Todos</option>
+                                <option value="vencido" {% if soat == 'vencido' %}selected{% endif %}>Vencido</option>
+                                <option value="vigente" {% if soat == 'vigente' %}selected{% endif %}>Vigente</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="filter-card">
+                        <div class="filter-card-header"><i class="bi bi-tools me-2"></i>Estado Tecnomecánica</div>
+                        <div class="filter-card-body">
+                            <label class="form-label small">Tecnomecánica</label>
+                            <select class="form-select form-select-sm" name="tecno">
+                                <option value="">Todos</option>
+                                <option value="vencida" {% if tecno == 'vencida' %}selected{% endif %}>Vencida</option>
+                                <option value="vigente" {% if tecno == 'vigente' %}selected{% endif %}>Vigente</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="filter-card">
+                        <div class="filter-card-header"><i class="bi bi-lightning-charge me-2"></i>Acciones</div>
+                        <div class="filter-card-body d-flex flex-column gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search me-1"></i>Buscar</button>
+                            <a href="{% url 'conductores' %}" class="btn btn-secondary btn-sm"><i class="bi bi-x-circle me-1"></i>Limpiar Filtros</a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Estadísticas -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="card border-primary border-start border-4">
+                        <div class="card-body py-2"><p class="text-muted small mb-1">Total Conductores</p><h4 class="text-primary mb-0">{{ total_conductores|default:"0" }}</h4></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-success border-start border-4">
+                        <div class="card-body py-2"><p class="text-muted small mb-1">Activos</p><h4 class="text-success mb-0">{{ conductores_activos|default:"0" }}</h4></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-danger border-start border-4">
+                        <div class="card-body py-2"><p class="text-muted small mb-1">Licencias Vencidas</p><h4 class="text-danger mb-0">{{ licencias_vencidas|default:"0" }}</h4></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-warning border-start border-4">
+                        <div class="card-body py-2"><p class="text-muted small mb-1">SOAT Vencidos</p><h4 class="text-warning mb-0">{{ soat_vencidos|default:"0" }}</h4></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista -->
+            <div class="table-container">
+                <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-person-badge me-2 text-primary"></i>Lista de Conductores</h5>
+                    <span class="badge bg-secondary">{{ conductores|length }} conductores</span>
+                </div>
+                <div class="row p-4">
+                    {% if not conductores %}
+                    <div class="empty-state">
+                        <i class="bi bi-person-badge d-block"></i>
+                        <h4 class="h5 mb-2">No hay conductores registrados</h4>
+                        <p class="text-muted mb-4">Comienza agregando tu primer conductor</p>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#conductorModal">
+                            <i class="bi bi-plus-lg me-2"></i>Agregar Primer Conductor
+                        </button>
+                    </div>
+                    {% else %}
+                        {% for c in conductores %}
+                        <div class="col-12 mb-3">
+                            <div class="conductor-card {% if c.usuario.activo %}activo{% else %}inactivo{% endif %}">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="d-flex gap-3 flex-grow-1">
+                                        <div class="avatar">{{ c.usuario.nombre|slice:":1" }}</div>
+                                        <div class="flex-grow-1">
+                                            <div class="mb-3">
+                                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                    <div class="conductor-name">{{ c.usuario.nombre }}</div>
+                                                    {% if c.usuario.activo %}<span class="status-badge bg-success text-white">Activo</span>
+                                                    {% else %}<span class="status-badge bg-danger text-white">Inactivo</span>{% endif %}
+                                                    {% if c.licencia_vencida %}<span class="badge-vencido"><i class="bi bi-exclamation-triangle me-1"></i>Lic. Vencida</span>{% endif %}
+                                                    {% if c.soat_vencido %}<span class="badge-vencido"><i class="bi bi-exclamation-triangle me-1"></i>SOAT Vencido</span>{% endif %}
+                                                    {% if c.tecno_vencida %}<span class="badge-vencido"><i class="bi bi-exclamation-triangle me-1"></i>Tecno Vencida</span>{% endif %}
+                                                </div>
+                                                <div class="conductor-sub">
+                                                    Cédula: {{ c.usuario.cedula }} • Lic. {{ c.categoria_licencia }} • {{ c.anios_experiencia }} año{{ c.anios_experiencia|pluralize }} de experiencia
+                                                </div>
+                                            </div>
+                                            <div class="row g-3">
+                                                <div class="col-md-6 col-lg-3">
+                                                    <div class="d-flex gap-2"><i class="bi bi-card-text detail-icon"></i>
+                                                        <div><div class="detail-label">Licencia</div><div class="detail-value">{{ c.numero_licencia }}</div><div class="detail-extra">Vence: {{ c.fecha_vencimiento_lic|date:"d/m/Y" }}</div></div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 col-lg-3">
+                                                    <div class="d-flex gap-2"><i class="bi bi-car-front detail-icon"></i>
+                                                        <div><div class="detail-label">Vehículo</div><div class="detail-value fw-bold">{{ c.placa }}</div><div class="detail-extra">{{ c.get_tipo_vehiculo_display }} • {{ c.marca_vehiculo }} {{ c.modelo_vehiculo }} {{ c.anio_vehiculo }}</div></div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 col-lg-3">
+                                                    <div class="d-flex gap-2"><i class="bi bi-shield-check detail-icon"></i>
+                                                        <div>
+                                                            <div class="detail-label">SOAT</div>
+                                                            <div class="detail-value">
+                                                                {% if c.numero_soat %}{{ c.numero_soat }}
+                                                                    {% if c.soat_vencido %}<span class="badge-vencido ms-1">Vencido</span>{% else %}<span class="badge-ok ms-1">Vigente</span>{% endif %}
+                                                                {% else %}<span class="badge-nd">No registrado</span>{% endif %}
+                                                            </div>
+                                                            {% if c.fecha_vencimiento_soat %}<div class="detail-extra">Vence: {{ c.fecha_vencimiento_soat|date:"d/m/Y" }}</div>{% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 col-lg-3">
+                                                    <div class="d-flex gap-2"><i class="bi bi-telephone detail-icon"></i>
+                                                        <div><div class="detail-label">Teléfono</div><div class="detail-value">{{ c.usuario.telefono|default:"No registrado" }}</div><div class="detail-extra">{{ c.usuario.email }}</div></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Botones -->
+                                    <div class="d-flex flex-column gap-2 ms-2">
+                                        <button class="btn-icon btn-view" title="Ver detalles"
+                                                data-bs-toggle="modal" data-bs-target="#viewConductorModal"
+                                                data-cedula="{{ c.usuario.cedula }}"
+                                                data-nombre="{{ c.usuario.nombre }}"
+                                                data-email="{{ c.usuario.email }}"
+                                                data-telefono="{{ c.usuario.telefono|default:'' }}"
+                                                data-licencia="{{ c.numero_licencia }}"
+                                                data-categoria="{{ c.get_categoria_licencia_display }}"
+                                                data-venc-lic="{{ c.fecha_vencimiento_lic|date:'d/m/Y' }}"
+                                                data-placa="{{ c.placa }}"
+                                                data-tipo-veh="{{ c.get_tipo_vehiculo_display }}"
+                                                data-vehiculo="{{ c.marca_vehiculo }} {{ c.modelo_vehiculo }} {{ c.anio_vehiculo }}"
+                                                data-soat="{{ c.numero_soat|default:'' }}"
+                                                data-venc-soat="{{ c.fecha_vencimiento_soat|date:'d/m/Y'|default:'' }}"
+                                                data-tecno="{{ c.numero_tecnomecanica|default:'' }}"
+                                                data-venc-tecno="{{ c.fecha_vencimiento_tecno|date:'d/m/Y'|default:'' }}"
+                                                data-experiencia="{{ c.anios_experiencia }}"
+                                                data-obs="{{ c.observaciones|default:'' }}"
+                                                onclick="verConductorDesdeData(this)">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+
+                                        <a href="{% url 'conductor_editar' c.usuario.cedula %}" class="btn-icon btn-edit" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+
+                                        {% url 'conductor_eliminar' c.usuario.cedula as url_del %}
+                                        <button class="btn-icon btn-delete" title="Eliminar"
+                                                onclick="confirmarEliminar('{{ url_del }}')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nuevo Conductor -->
+<div class="modal fade" id="conductorModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <form method="POST" action="{% url 'conductor_nuevo' %}" autocomplete="off">
+                {% csrf_token %}
+                <div class="modal-header modal-header-blue">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-person-badge me-2"></i>Nuevo Conductor</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12"><div class="modal-section-divider">Datos del Usuario</div></div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Tipo de Documento <span class="text-danger">*</span></label>
+                            <select class="form-select" name="tipo_documento" required>
+                                <option value="">Seleccionar</option>
+                                <option value="CEDULA_CIUDADANIA">Cédula de Ciudadanía</option>
+                                <option value="CEDULA_EXTRANJERIA">Cédula de Extranjería</option>
+                                <option value="PASAPORTE">Pasaporte</option>
+                                <option value="PERMISO_PROTECCION_TEMPORAL">PPT</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Cédula / Documento <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="cedula" required maxlength="20" placeholder="Número de documento">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Nombre Completo <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="nombre" required maxlength="100">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Correo Electrónico <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" name="email" required maxlength="100">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Teléfono</label>
+                            <input type="tel" class="form-control" name="telefono" maxlength="20" placeholder="+57 300 123 4567">
+                        </div>
+                        <!-- CAMBIO: sin placeholder que sugiera valor por defecto, campo requerido -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Nombre de usuario <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="user_name" maxlength="50" placeholder="Nombre de usuario" required autocomplete="off">
+                            <small class="text-muted">Requerido para el acceso al sistema.</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Contraseña <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" name="password" maxlength="128" placeholder="Contraseña" required autocomplete="new-password">
+                        </div>
+
+                        <div class="col-12"><div class="modal-section-divider">Licencia de Conducción</div></div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Número de Licencia <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="numero_licencia" required maxlength="30">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Categoría <span class="text-danger">*</span></label>
+                            <select class="form-select" name="categoria_licencia" required>
+                                <option value="">Seleccionar</option>
+                                {% for val, lbl in categorias %}<option value="{{ val }}">{{ lbl }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Lugar de Expedición</label>
+                            <input type="text" class="form-control" name="lugar_expedicion_lic" maxlength="100" placeholder="Ej: Bogotá D.C.">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Fecha de Expedición <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" name="fecha_expedicion_lic" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Fecha de Vencimiento <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" name="fecha_vencimiento_lic" required>
+                        </div>
+
+                        <div class="col-12"><div class="modal-section-divider">Datos del Vehículo</div></div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Placa <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control text-uppercase" name="placa" required maxlength="10" placeholder="Ej: ABC123" oninput="this.value=this.value.toUpperCase()">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Tipo de Vehículo <span class="text-danger">*</span></label>
+                            <select class="form-select" name="tipo_vehiculo" required>
+                                <option value="">Seleccionar</option>
+                                {% for val, lbl in tipos_vehiculo %}<option value="{{ val }}">{{ lbl }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Color</label>
+                            <input type="text" class="form-control" name="color_vehiculo" maxlength="50" placeholder="Ej: Blanco">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Marca <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="marca_vehiculo" required maxlength="50" placeholder="Ej: Chevrolet">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Modelo <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="modelo_vehiculo" required maxlength="50" placeholder="Ej: NHR">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold">Año <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="anio_vehiculo" required min="1990" max="2030" placeholder="2020">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold">Capacidad</label>
+                            <input type="number" class="form-control" name="capacidad_pasajeros" min="1" max="100" placeholder="20">
+                        </div>
+
+                        <div class="col-12"><div class="modal-section-divider">Documentos del Vehículo</div></div>
+                        <div class="col-md-4"><label class="form-label fw-semibold">N° SOAT</label><input type="text" class="form-control" name="numero_soat" maxlength="30"></div>
+                        <div class="col-md-4"><label class="form-label fw-semibold">Vencimiento SOAT</label><input type="date" class="form-control" name="fecha_vencimiento_soat"></div>
+                        <div class="col-md-4"></div>
+                        <div class="col-md-4"><label class="form-label fw-semibold">N° Tecnomecánica</label><input type="text" class="form-control" name="numero_tecnomecanica" maxlength="30"></div>
+                        <div class="col-md-4"><label class="form-label fw-semibold">Vencimiento Tecnomecánica</label><input type="date" class="form-control" name="fecha_vencimiento_tecno"></div>
+
+                        <div class="col-12"><div class="modal-section-divider">Información Adicional</div></div>
+                        <div class="col-md-4"><label class="form-label fw-semibold">Años de Experiencia</label><input type="number" class="form-control" name="anios_experiencia" min="0" max="60" value="0"></div>
+                        <div class="col-12"><label class="form-label fw-semibold">Observaciones</label><textarea class="form-control" name="observaciones" rows="2" maxlength="500"></textarea></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save me-2"></i>Guardar Conductor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ver Detalles -->
+<div class="modal fade" id="viewConductorModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header modal-header-blue">
+                <h5 class="modal-title fw-bold"><i class="bi bi-person-badge me-2"></i>Detalles del Conductor</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="conductorDetailsContent"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmar Eliminación -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-danger">
+                <h5 class="modal-title text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar este conductor permanentemente?</p>
+                <p class="text-muted small"><strong class="text-danger">Esta acción no se puede deshacer.</strong> Se eliminará también el usuario asociado.</p>
+            </div>
+            <div class="modal-footer">
+                <form method="POST" id="deleteForm" action="">
+                    {% csrf_token %}
+                    <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-2"></i>Sí, Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function verConductorDesdeData(btn) {
+        const d = btn.dataset;
+        document.getElementById('conductorDetailsContent').innerHTML = `
+        <div class="row g-3 p-2">
+            <div class="col-12"><p class="fw-bold text-primary mb-2"><i class="bi bi-person me-1"></i>Datos Personales</p></div>
+            <div class="col-md-6"><p class="mb-1 text-muted small">Cédula</p><p class="fw-semibold">${d.cedula}</p></div>
+            <div class="col-md-6"><p class="mb-1 text-muted small">Nombre</p><p class="fw-semibold">${d.nombre}</p></div>
+            <div class="col-md-6"><p class="mb-1 text-muted small">Correo</p><p class="fw-semibold">${d.email}</p></div>
+            <div class="col-md-6"><p class="mb-1 text-muted small">Teléfono</p><p class="fw-semibold">${d.telefono || 'No registrado'}</p></div>
+            <div class="col-12"><hr class="my-1"><p class="fw-bold text-primary mb-2"><i class="bi bi-card-text me-1"></i>Licencia</p></div>
+            <div class="col-md-4"><p class="mb-1 text-muted small">N° Licencia</p><p class="fw-semibold">${d.licencia}</p></div>
+            <div class="col-md-4"><p class="mb-1 text-muted small">Categoría</p><p class="fw-semibold">${d.categoria}</p></div>
+            <div class="col-md-4"><p class="mb-1 text-muted small">Vencimiento</p><p class="fw-semibold">${d.vencLic}</p></div>
+            <div class="col-12"><hr class="my-1"><p class="fw-bold text-primary mb-2"><i class="bi bi-car-front me-1"></i>Vehículo</p></div>
+            <div class="col-md-3"><p class="mb-1 text-muted small">Placa</p><p class="fw-semibold">${d.placa}</p></div>
+            <div class="col-md-3"><p class="mb-1 text-muted small">Tipo</p><p class="fw-semibold">${d.tipoVeh}</p></div>
+            <div class="col-md-6"><p class="mb-1 text-muted small">Descripción</p><p class="fw-semibold">${d.vehiculo}</p></div>
+            <div class="col-md-4"><p class="mb-1 text-muted small">N° SOAT</p><p class="fw-semibold">${d.soat || 'No registrado'}</p></div>
+            <div class="col-md-4"><p class="mb-1 text-muted small">Venc. SOAT</p><p class="fw-semibold">${d.vencSoat || '—'}</p></div>
+            <div class="col-md-4"><p class="mb-1 text-muted small">N° Tecno.</p><p class="fw-semibold">${d.tecno || 'No registrado'}</p></div>
+            <div class="col-12"><hr class="my-1"><p class="mb-1 text-muted small">Experiencia</p><p class="fw-semibold">${d.experiencia} años</p></div>
+            ${d.obs ? `<div class="col-12"><p class="mb-1 text-muted small">Observaciones</p><p class="fw-semibold">${d.obs}</p></div>` : ''}
+        </div>`;
+    }
+
+    function confirmarEliminar(url) {
+        document.getElementById('deleteForm').action = url;
+        new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    }
+
+    document.getElementById('conductorModal').addEventListener('hidden.bs.modal', function() {
+        this.querySelector('form').reset();
+    });
+
+    setTimeout(() => {
+        document.querySelectorAll('.alert').forEach(a => { try { new bootstrap.Alert(a).close(); } catch(e) {} });
+    }, 5000);
+</script>
+</body>
+</html>

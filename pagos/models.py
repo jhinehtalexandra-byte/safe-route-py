@@ -1,6 +1,8 @@
+# pagos/models.py
 from django.db import models
 from usuarios.models import Usuario
 from estudiantes.models import Estudiante
+
 
 class Pago(models.Model):
     ESTADO = [
@@ -10,38 +12,54 @@ class Pago(models.Model):
         ('CANCELADO', 'Cancelado'),
     ]
     METODO = [
-        ('EFECTIVO',      'Efectivo'),
-        ('TRANSFERENCIA', 'Transferencia'),
-        ('TARJETA',       'Tarjeta'),
-        ('NEQUI',         'Nequi'),
-        ('DAVIPLATA',     'Daviplata'),
+        ('EFECTIVO',         'Efectivo'),
+        ('TRANSFERENCIA',    'Transferencia'),
+        ('TARJETA_CREDITO',  'Tarjeta de Crédito'),
+        ('TARJETA_DEBITO',   'Tarjeta de Débito'),
+        ('PSE',              'PSE'),
+        ('NEQUI',            'Nequi'),
+        ('DAVIPLATA',        'Daviplata'),
+        ('EFECTY',           'Efecty'),
     ]
 
-    codigo               = models.CharField(max_length=50, primary_key=True)
-    monto                = models.DecimalField(max_digits=10, decimal_places=2)
-    fecha_pago           = models.DateField()
-    fecha_vencimiento    = models.DateField(blank=True, null=True)
-    estado               = models.CharField(max_length=20, choices=ESTADO)
-    metodo_pago          = models.CharField(max_length=50, choices=METODO, blank=True, null=True)
-    mes                  = models.CharField(max_length=20, blank=True, null=True)
-    anio                 = models.IntegerField(blank=True, null=True)
-    concepto             = models.CharField(max_length=500, blank=True, null=True)
-    comprobante          = models.CharField(max_length=100, blank=True, null=True)
+    codigo            = models.CharField(max_length=50, primary_key=True)
+    monto             = models.DecimalField(max_digits=10, decimal_places=2)
+
+    fecha_pago        = models.DateField(blank=True, null=True)
+    fecha_vencimiento = models.DateField(blank=True, null=True)
+
+    estado      = models.CharField(max_length=20, choices=ESTADO, default='PENDIENTE')
+    metodo_pago = models.CharField(max_length=50, choices=METODO, blank=True, null=True)
+    mes         = models.CharField(max_length=20, blank=True, null=True)
+    anio        = models.IntegerField(blank=True, null=True)
+    concepto    = models.CharField(max_length=500, blank=True, null=True)
+    comprobante = models.CharField(max_length=100, blank=True, null=True)
+
     documento_estudiante = models.ForeignKey(
         Estudiante,
         on_delete=models.CASCADE,
-        db_column='documento_estudiante'
+        db_column='documento_estudiante',
     )
-    cedula_padre         = models.ForeignKey(
+    cedula_padre = models.ForeignKey(
         Usuario,
         on_delete=models.CASCADE,
-        db_column='cedula_padre'
+        db_column='cedula_padre',
     )
+
     fecha_registro      = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
 
+    # ══════════════════════════════════════════
+    # NUEVOS CAMPOS — Integración Wompi
+    # ══════════════════════════════════════════
+    referencia_wompi    = models.CharField(max_length=100, blank=True, null=True, unique=True)
+    transaccion_id_wompi = models.CharField(max_length=100, blank=True, null=True)
+    estado_wompi         = models.CharField(max_length=20, blank=True, null=True)
+    # Valores que devuelve Wompi: APPROVED, DECLINED, PENDING, ERROR, VOIDED
+
     class Meta:
         db_table = 'pago'
+        ordering = ['-fecha_registro']
 
     def __str__(self):
-        return f"{self.codigo} - {self.estado}"
+        return f"{self.codigo} — {self.estado}"

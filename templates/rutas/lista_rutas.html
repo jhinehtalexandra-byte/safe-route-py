@@ -1,0 +1,216 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rutas - RutaEscolar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f1f5f9; }
+        .app-container { display: flex; min-height: 100vh; }
+        .sidebar { width: 260px; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; position: fixed; height: 100vh; overflow-y: auto; z-index: 1000; box-shadow: 2px 0 10px rgba(0,0,0,0.15); display: flex; flex-direction: column; }
+        .logo-section { padding: 1.25rem 1rem; background-color: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; }
+        .logo-icon { width: 38px; height: 38px; background-color: #f59e0b; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 4px 12px rgba(245,158,11,0.3); }
+        .logo-text h1 { font-size: 1rem; font-weight: 700; margin-bottom: 0.1rem; }
+        .logo-text p { font-size: 0.68rem; color: #94a3b8; margin: 0; }
+        .nav-menu { padding: 0.5rem 0; flex: 1; overflow-y: auto; }
+        .nav-section-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; padding: 0.85rem 1.25rem 0.35rem; }
+        .nav-item-custom { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 1.25rem; color: #cbd5e1; text-decoration: none; transition: all 0.2s; font-size: 0.855rem; position: relative; border: none; background: none; width: 100%; cursor: pointer; }
+        .nav-item-custom:hover { background-color: rgba(245,158,11,0.1); color: white; padding-left: 1.5rem; }
+        .nav-item-custom.active { background-color: #f59e0b; color: white; font-weight: 600; }
+        .nav-item-custom.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background-color: white; }
+        .nav-item-custom i { font-size: 1rem; flex-shrink: 0; width: 18px; text-align: center; }
+        .sidebar-footer { padding: 0.875rem 1.25rem; border-top: 1px solid rgba(255,255,255,0.08); background-color: rgba(0,0,0,0.2); flex-shrink: 0; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background-color: #f59e0b; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem; flex-shrink: 0; }
+        .user-name { font-size: 0.82rem; font-weight: 600; color: white; margin: 0; }
+        .user-role { font-size: 0.7rem; color: #94a3b8; margin: 0; }
+        .main-content { margin-left:260px; flex:1; }
+        .header-section { background:white; padding:1.25rem 1.5rem; box-shadow:0 1px 3px rgba(0,0,0,.1); }
+        .ruta-card { background:white; border-radius:.75rem; box-shadow:0 1px 3px rgba(0,0,0,.1); border-left:4px solid #f59e0b; transition:all .2s; }
+        .ruta-card:hover { box-shadow:0 4px 12px rgba(0,0,0,.1); transform:translateY(-2px); }
+        .ruta-card.inactiva { border-left-color:#94a3b8; opacity:.75; }
+        .turno-badge { font-size:.72rem; padding:.2rem .55rem; border-radius:1rem; font-weight:600; }
+        .empty-state { text-align:center; padding:3rem; color:#6b7280; }
+        @media (max-width:992px) { .sidebar{margin-left:-260px;} .main-content{margin-left:0;} }
+    </style>
+</head>
+<body>
+<div class="app-container">
+
+    <!-- SIDEBAR -->
+    {% include 'includes/sidebar_admin.html' %}
+    {% include 'includes/sidebar_colegio.html' %}
+
+    <!-- MAIN -->
+    <div class="main-content">
+        <div class="header-section">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <h1 class="fw-bold fs-5 mb-0"><i class="bi bi-signpost-2 text-warning me-2"></i>Rutas de Transporte</h1>
+                    <p class="text-muted mb-0 small">{{ fecha_actual|date:"d/m/Y" }}</p>
+                </div>
+                <form method="POST" action="{% url 'logout' %}">{% csrf_token %}
+                    <button class="btn btn-danger btn-sm"><i class="bi bi-box-arrow-right me-1"></i>Cerrar Sesión</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="p-3">
+            {% if messages %}{% for m in messages %}
+            <div class="alert alert-{% if m.tags == 'error' %}danger{% else %}{{ m.tags }}{% endif %} alert-dismissible fade show mb-3 py-2 small">
+                {{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>{% endfor %}{% endif %}
+
+            {% if error %}
+            <div class="alert alert-warning small"><i class="bi bi-exclamation-triangle me-1"></i>{{ error }}</div>
+            {% endif %}
+
+            <!-- Filtros -->
+            <form method="GET" class="row g-2 mb-3">
+                <div class="col-md-4">
+                    <input type="text" name="busqueda" class="form-control form-control-sm"
+                           placeholder="Buscar por nombre…" value="{{ busqueda|default:'' }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="turno" class="form-select form-select-sm">
+                        <option value="">Todos los turnos</option>
+                        <option value="MAÑANA"  {% if turno == 'MAÑANA'  %}selected{% endif %}>Mañana</option>
+                        <option value="TARDE"   {% if turno == 'TARDE'   %}selected{% endif %}>Tarde</option>
+                        <option value="NOCHE"   {% if turno == 'NOCHE'   %}selected{% endif %}>Noche</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="estado" class="form-select form-select-sm">
+                        <option value="">Todos los estados</option>
+                        <option value="activo"   {% if estado == 'activo'   %}selected{% endif %}>Activa</option>
+                        <option value="inactivo" {% if estado == 'inactivo' %}selected{% endif %}>Inactiva</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex gap-1">
+                    <button type="submit" class="btn btn-primary btn-sm flex-fill"><i class="bi bi-search"></i></button>
+                    <a href="{% url 'rutas' %}" class="btn btn-secondary btn-sm"><i class="bi bi-x"></i></a>
+                </div>
+            </form>
+
+            <!-- Estadísticas -->
+            <div class="row g-3 mb-3">
+                <div class="col-6 col-md-3">
+                    <div class="card border-warning border-start border-4 py-2 px-3">
+                        <p class="text-muted small mb-0">Total Rutas</p>
+                        <h4 class="fw-bold mb-0">{{ total_rutas|default:"0" }}</h4>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card border-success border-start border-4 py-2 px-3">
+                        <p class="text-muted small mb-0">Activas</p>
+                        <h4 class="fw-bold mb-0 text-success">{{ rutas_activas|default:"0" }}</h4>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card border-info border-start border-4 py-2 px-3">
+                        <p class="text-muted small mb-0">Mostrando</p>
+                        <h4 class="fw-bold mb-0 text-info">{{ rutas|length }}</h4>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista -->
+            {% if not rutas %}
+            <div class="empty-state bg-white rounded-3 shadow-sm">
+                <i class="bi bi-signpost-2 d-block" style="font-size:3rem;opacity:.3;"></i>
+                <h5 class="mt-2 mb-1">No hay rutas registradas</h5>
+                <p class="small text-muted">Las rutas se crean desde el módulo de gestión del colegio.</p>
+            </div>
+            {% else %}
+            <div class="row g-3">
+                {% for ruta in rutas %}
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="ruta-card {% if not ruta.activo %}inactiva{% endif %} p-3">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h6 class="fw-bold mb-0">{{ ruta.nombre }}</h6>
+                                <small class="text-muted">{{ ruta.codigo }}</small>
+                            </div>
+                            <div class="d-flex gap-1 flex-wrap">
+                                {% if ruta.turno %}
+                                <span class="turno-badge
+                                    {% if ruta.turno == 'MAÑANA' %}bg-warning text-dark
+                                    {% elif ruta.turno == 'TARDE' %}bg-orange text-white
+                                    {% else %}bg-dark text-white{% endif %}">
+                                    {{ ruta.get_turno_display }}
+                                </span>
+                                {% endif %}
+                                {% if ruta.activo %}
+                                <span class="badge bg-success">Activa</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Inactiva</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {% if ruta.descripcion %}
+                        <p class="small text-muted mb-2">{{ ruta.descripcion|truncatechars:80 }}</p>
+                        {% endif %}
+
+                        <div class="row g-2 mb-2">
+                            {% if ruta.hora_inicio %}
+                            <div class="col-6">
+                                <small class="text-muted d-block">Inicio</small>
+                                <small class="fw-semibold">{{ ruta.hora_inicio|time:"H:i" }}</small>
+                            </div>
+                            {% endif %}
+                            {% if ruta.hora_fin %}
+                            <div class="col-6">
+                                <small class="text-muted d-block">Fin</small>
+                                <small class="fw-semibold">{{ ruta.hora_fin|time:"H:i" }}</small>
+                            </div>
+                            {% endif %}
+                            {% if ruta.capacidad_maxima %}
+                            <div class="col-6">
+                                <small class="text-muted d-block">Capacidad</small>
+                                <small class="fw-semibold">{{ ruta.capacidad_maxima }} estudiantes</small>
+                            </div>
+                            {% endif %}
+                            {% if ruta.conductor_cedula %}
+                            <div class="col-12">
+                                <small class="text-muted d-block">Conductor</small>
+                                <small class="fw-semibold"><i class="bi bi-person me-1"></i>{{ ruta.conductor_cedula.nombre }}</small>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        {% if usuario_rol in 'ADMIN,COLEGIO' %}
+                        <div class="d-flex gap-1 justify-content-end border-top pt-2">
+                            <a href="{% url 'mapa_conductor' %}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-map me-1"></i>Ver mapa
+                            </a>
+                        </div>
+                        {% else %}
+                        <div class="d-flex gap-1 justify-content-end border-top pt-2">
+                            <a href="{% url 'mapa_conductor' %}" class="btn btn-warning btn-sm text-dark fw-semibold">
+                                <i class="bi bi-play-circle me-1"></i>Iniciar recorrido
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+setTimeout(() => {
+    document.querySelectorAll('.alert-dismissible').forEach(a => {
+        try { bootstrap.Alert.getOrCreateInstance(a).close(); } catch(e) {}
+    });
+}, 5000);
+</script>
+</body>
+</html>

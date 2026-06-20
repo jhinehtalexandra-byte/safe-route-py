@@ -1,0 +1,518 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Monitoras - RutaEscolar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5; overflow-x: hidden; }
+        .app-container { display: flex; min-height: 100vh; }
+        .sidebar { width: 260px; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; position: fixed; height: 100vh; overflow-y: auto; z-index: 1000; box-shadow: 2px 0 10px rgba(0,0,0,0.15); display: flex; flex-direction: column; }
+        .logo-section { padding: 1.25rem 1rem; background-color: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; }
+        .logo-icon { width: 38px; height: 38px; background-color: #f59e0b; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 4px 12px rgba(245,158,11,0.3); }
+        .logo-text h1 { font-size: 1rem; font-weight: 700; margin-bottom: 0.1rem; }
+        .logo-text p { font-size: 0.68rem; color: #94a3b8; margin: 0; }
+        .nav-menu { padding: 0.5rem 0; flex: 1; overflow-y: auto; }
+        .nav-section-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; padding: 0.85rem 1.25rem 0.35rem; }
+        .nav-item-custom { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 1.25rem; color: #cbd5e1; text-decoration: none; transition: all 0.2s; font-size: 0.855rem; position: relative; border: none; background: none; width: 100%; cursor: pointer; }
+        .nav-item-custom:hover { background-color: rgba(245,158,11,0.1); color: white; padding-left: 1.5rem; }
+        .nav-item-custom.active { background-color: #f59e0b; color: white; font-weight: 600; }
+        .nav-item-custom.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background-color: white; }
+        .nav-item-custom i { font-size: 1rem; flex-shrink: 0; width: 18px; text-align: center; }
+        .sidebar-footer { padding: 0.875rem 1.25rem; border-top: 1px solid rgba(255,255,255,0.08); background-color: rgba(0,0,0,0.2); flex-shrink: 0; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background-color: #f59e0b; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem; flex-shrink: 0; }
+        .user-name { font-size: 0.82rem; font-weight: 600; color: white; margin: 0; }
+        .user-role { font-size: 0.7rem; color: #94a3b8; margin: 0; }
+        .main-content { margin-left: 240px; flex: 1; min-height: 100vh; background-color: #f5f5f5; }
+        .header-section { background-color: white; padding: 1.5rem 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .filter-card { border: 1px solid #dee2e6; border-radius: 0.5rem; margin-bottom: 1rem; overflow: hidden; }
+        .filter-card-header { background-color: #f8f9fa; padding: 0.75rem 1rem; border-bottom: 1px solid #dee2e6; font-weight: 600; font-size: 0.875rem; }
+        .filter-card-body { padding: 1rem; }
+        .monitora-card { background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: all 0.2s; border-left: 4px solid transparent; }
+        .monitora-card:hover { box-shadow: 0 4px 6px rgba(0,0,0,0.1); transform: translateY(-2px); }
+        .monitora-card.activo   { border-left-color: #22c55e; }
+        .monitora-card.inactivo { border-left-color: #ef4444; }
+        .avatar { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #ec4899, #be185d); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: 600; flex-shrink: 0; }
+        .monitora-name  { font-size: 1.125rem; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
+        .monitora-sub   { font-size: 0.875rem; color: #6b7280; }
+        .detail-icon  { color: #9ca3af; flex-shrink: 0; }
+        .detail-label { font-size: 0.75rem; color: #6b7280; font-weight: 500; margin-bottom: 0.125rem; }
+        .detail-value { font-size: 0.875rem; color: #374151; }
+        .detail-extra { font-size: 0.75rem; color: #9ca3af; margin-top: 0.125rem; }
+        .badge-vencido { background-color: #fee2e2; color: #dc2626; font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-weight: 600; }
+        .badge-ok      { background-color: #dcfce7; color: #16a34a; font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-weight: 600; }
+        .badge-nd      { background-color: #f3f4f6; color: #6b7280; font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-weight: 600; }
+        .badge-pink    { background-color: #fce7f3; color: #be185d; font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-weight: 600; }
+        .btn-icon { width: 40px; height: 40px; border-radius: 0.5rem; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .btn-edit   { background-color: transparent; color: #3b82f6; }
+        .btn-edit:hover   { background-color: #eff6ff; }
+        .btn-delete { background-color: transparent; color: #ef4444; }
+        .btn-delete:hover { background-color: #fef2f2; }
+        .btn-view   { background-color: transparent; color: #10b981; }
+        .btn-view:hover   { background-color: #ecfdf5; }
+        .status-badge { font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-weight: 500; }
+        .table-container { background: white; border-radius: 0.5rem; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .empty-state { text-align: center; padding: 3rem; color: #6b7280; }
+        .empty-state i { font-size: 3rem; margin-bottom: 1rem; }
+        .modal-header-pink { background-color: #be185d; color: white; }
+        .modal-section-divider { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; display: flex; align-items: center; gap: 0.5rem; margin: 0.25rem 0; }
+        .modal-section-divider::before, .modal-section-divider::after { content: ''; flex: 1; height: 1px; background: #e5e7eb; }
+        .cert-fields { border: 1.5px solid #fce7f3; border-radius: 0.5rem; padding: 1rem; background: #fff7fb; display: none; }
+        .cert-fields.visible { display: block; }
+        @media (max-width: 768px) { .sidebar { margin-left: -240px; } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+<div class="app-container">
+
+    <!-- SIDEBAR -->
+    {% if usuario_rol == 'ADMIN' %}
+        {% include 'includes/sidebar_admin.html' %}
+    {% elif usuario_rol == 'COLEGIO' %}
+        {% include 'includes/sidebar_colegio.html' %}
+    {% endif %}
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="header-section">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h1 class="fw-bold fs-4 mb-1">Gestión de Monitoras</h1>
+                    <p class="text-muted mb-0 small">Registro y administración de monitoras de ruta</p>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn" style="background-color:#be185d;color:white;" data-bs-toggle="modal" data-bs-target="#monitoraModal">
+                        <i class="bi bi-plus-lg me-1"></i>Nueva Monitora
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4">
+
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-3">
+                    {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Filtros -->
+            <form method="GET" action="{% url 'monitoras' %}" class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="filter-card">
+                        <div class="filter-card-header"><i class="bi bi-person me-2"></i>Filtro por Nombre</div>
+                        <div class="filter-card-body">
+                            <label class="form-label small">Nombre de la Monitora</label>
+                            <div class="input-group">
+                                <input type="text" name="nombre" class="form-control form-control-sm" value="{{ nombre|default:'' }}" placeholder="Ej: María Rodríguez">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="this.previousElementSibling.value=''"><i class="bi bi-x-circle"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="filter-card">
+                        <div class="filter-card-header"><i class="bi bi-check-circle me-2"></i>Filtro por Estado</div>
+                        <div class="filter-card-body">
+                            <label class="form-label small">Estado</label>
+                            <select class="form-select form-select-sm" name="activo">
+                                <option value="">Todos los estados</option>
+                                <option value="true"  {% if activo == 'true' %}selected{% endif %}>Activo</option>
+                                <option value="false" {% if activo == 'false' %}selected{% endif %}>Inactivo</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="filter-card">
+                        <div class="filter-card-header"><i class="bi bi-sign-turn-right me-2"></i>Filtro por Ruta</div>
+                        <div class="filter-card-body">
+                            <label class="form-label small">Ruta Asignada</label>
+                            <select class="form-select form-select-sm" name="ruta">
+                                <option value="">Todas las rutas</option>
+                                {% for r in rutas %}<option value="{{ r.codigo }}" {% if ruta == r.codigo %}selected{% endif %}>{{ r.nombre }}</option>{% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="filter-card">
+                        <div class="filter-card-header"><i class="bi bi-patch-check me-2"></i>Filtro por Certificado</div>
+                        <div class="filter-card-body">
+                            <label class="form-label small">Primeros Auxilios</label>
+                            <select class="form-select form-select-sm" name="certificado">
+                                <option value="">Todos</option>
+                                <option value="true"  {% if certificado == 'true' %}selected{% endif %}>Con certificado</option>
+                                <option value="false" {% if certificado == 'false' %}selected{% endif %}>Sin certificado</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="filter-card">
+                        <div class="filter-card-header"><i class="bi bi-lightning-charge me-2"></i>Acciones</div>
+                        <div class="filter-card-body d-flex flex-column gap-2">
+                            <button type="submit" class="btn btn-sm" style="background-color:#be185d;color:white;"><i class="bi bi-search me-1"></i>Buscar</button>
+                            <a href="{% url 'monitoras' %}" class="btn btn-secondary btn-sm"><i class="bi bi-x-circle me-1"></i>Limpiar Filtros</a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Estadísticas -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="card border-start border-4" style="border-color:#be185d !important;">
+                        <div class="card-body py-2"><p class="text-muted small mb-1">Total Monitoras</p><h4 class="mb-0" style="color:#be185d;">{{ total_monitoras|default:"0" }}</h4></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-success border-start border-4">
+                        <div class="card-body py-2"><p class="text-muted small mb-1">Activas</p><h4 class="text-success mb-0">{{ monitoras_activas|default:"0" }}</h4></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-info border-start border-4">
+                        <div class="card-body py-2"><p class="text-muted small mb-1">Con Certificado PA</p><h4 class="text-info mb-0">{{ con_certificado|default:"0" }}</h4></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-warning border-start border-4">
+                        <div class="card-body py-2"><p class="text-muted small mb-1">Sin Ruta Asignada</p><h4 class="text-warning mb-0">{{ sin_ruta|default:"0" }}</h4></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista -->
+            <div class="table-container">
+                <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-person-heart me-2" style="color:#be185d;"></i>Lista de Monitoras</h5>
+                    <span class="badge bg-secondary">{{ monitoras|length }} monitoras</span>
+                </div>
+                <div class="row p-4">
+                    {% if not monitoras %}
+                    <div class="empty-state">
+                        <i class="bi bi-person-heart d-block"></i>
+                        <h4 class="h5 mb-2">No hay monitoras registradas</h4>
+                        <p class="text-muted mb-4">Comienza agregando tu primera monitora</p>
+                        <button class="btn" style="background-color:#be185d;color:white;" data-bs-toggle="modal" data-bs-target="#monitoraModal">
+                            <i class="bi bi-plus-lg me-2"></i>Agregar Primera Monitora
+                        </button>
+                    </div>
+                    {% else %}
+                        {% for m in monitoras %}
+                        <div class="col-12 mb-3">
+                            <div class="monitora-card {% if m.usuario.activo %}activo{% else %}inactivo{% endif %}">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="d-flex gap-3 flex-grow-1">
+                                        <div class="avatar">{{ m.usuario.nombre|slice:":1" }}</div>
+                                        <div class="flex-grow-1">
+                                            <div class="mb-3">
+                                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                    <div class="monitora-name">{{ m.usuario.nombre }}</div>
+                                                    {% if m.usuario.activo %}<span class="status-badge bg-success text-white">Activa</span>
+                                                    {% else %}<span class="status-badge bg-danger text-white">Inactiva</span>{% endif %}
+                                                    {% if m.tiene_certificado_pa %}
+                                                        {% if m.certificado_vencido %}<span class="badge-vencido"><i class="bi bi-exclamation-triangle me-1"></i>Cert. Vencido</span>
+                                                        {% else %}<span class="badge-ok"><i class="bi bi-patch-check me-1"></i>Primeros Auxilios</span>{% endif %}
+                                                    {% else %}<span class="badge-nd">Sin certificado PA</span>{% endif %}
+                                                </div>
+                                                <div class="monitora-sub">
+                                                    Cédula: {{ m.usuario.cedula }} •
+                                                    {{ m.anios_experiencia }} año{{ m.anios_experiencia|pluralize }} de experiencia
+                                                    {% if m.nivel_educativo %} • {{ m.get_nivel_educativo_display }}{% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="row g-3">
+                                                <div class="col-md-6 col-lg-3">
+                                                    <div class="d-flex gap-2"><i class="bi bi-sign-turn-right detail-icon"></i>
+                                                        <div>
+                                                            <div class="detail-label">Ruta Asignada</div>
+                                                            <div class="detail-value">
+                                                                {% if m.ruta_asignada %}{{ m.ruta_asignada.nombre }}
+                                                                {% else %}<span class="badge-nd">Sin asignar</span>{% endif %}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 col-lg-3">
+                                                    <div class="d-flex gap-2"><i class="bi bi-patch-check detail-icon"></i>
+                                                        <div>
+                                                            <div class="detail-label">Certificado P.A.</div>
+                                                            <div class="detail-value">
+                                                                {% if m.tiene_certificado_pa %}{{ m.entidad_certificadora_pa|default:"Registrado" }}
+                                                                {% else %}No registrado{% endif %}
+                                                            </div>
+                                                            {% if m.fecha_vencimiento_pa %}<div class="detail-extra">Vence: {{ m.fecha_vencimiento_pa|date:"d/m/Y" }}</div>{% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 col-lg-3">
+                                                    <div class="d-flex gap-2"><i class="bi bi-telephone detail-icon"></i>
+                                                        <div>
+                                                            <div class="detail-label">Teléfono</div>
+                                                            <div class="detail-value">{{ m.usuario.telefono|default:"No registrado" }}</div>
+                                                            <div class="detail-extra">{{ m.usuario.email }}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {% if m.observaciones %}
+                                                <div class="col-md-6 col-lg-3">
+                                                    <div class="d-flex gap-2"><i class="bi bi-chat-text detail-icon"></i>
+                                                        <div>
+                                                            <div class="detail-label">Observaciones</div>
+                                                            <div class="detail-value">{{ m.observaciones|truncatechars:60 }}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Botones -->
+                                    <div class="d-flex flex-column gap-2 ms-2">
+                                        <button class="btn-icon btn-view" title="Ver detalles"
+                                                data-bs-toggle="modal" data-bs-target="#viewMonitoraModal"
+                                                data-cedula="{{ m.usuario.cedula }}"
+                                                data-nombre="{{ m.usuario.nombre }}"
+                                                data-email="{{ m.usuario.email }}"
+                                                data-telefono="{{ m.usuario.telefono|default:'' }}"
+                                                data-ruta="{{ m.ruta_asignada.nombre|default:'' }}"
+                                                data-tiene-cert="{{ m.tiene_certificado_pa|yesno:'Sí,No' }}"
+                                                data-entidad="{{ m.entidad_certificadora_pa|default:'' }}"
+                                                data-venc-cert="{{ m.fecha_vencimiento_pa|date:'d/m/Y'|default:'' }}"
+                                                data-nivel="{{ m.get_nivel_educativo_display|default:'' }}"
+                                                data-experiencia="{{ m.anios_experiencia }}"
+                                                data-obs="{{ m.observaciones|default:'' }}"
+                                                onclick="verMonitoraDesdeData(this)">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <a href="{% url 'monitora_editar' m.usuario.cedula %}" class="btn-icon btn-edit" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        {% url 'monitora_eliminar' m.usuario.cedula as url_del %}
+                                        <button class="btn-icon btn-delete" title="Eliminar"
+                                                onclick="confirmarEliminar('{{ url_del }}')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nueva Monitora -->
+<div class="modal fade" id="monitoraModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <form method="POST" action="{% url 'monitora_nueva' %}" autocomplete="off">
+                {% csrf_token %}
+                <div class="modal-header modal-header-pink">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-person-heart me-2"></i>Nueva Monitora</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12"><div class="modal-section-divider">Datos del Usuario</div></div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Tipo de Documento <span class="text-danger">*</span></label>
+                            <select class="form-select" name="tipo_documento" required>
+                                <option value="">Seleccionar</option>
+                                <option value="CEDULA_CIUDADANIA">Cédula de Ciudadanía</option>
+                                <option value="CEDULA_EXTRANJERIA">Cédula de Extranjería</option>
+                                <option value="PASAPORTE">Pasaporte</option>
+                                <option value="PERMISO_PROTECCION_TEMPORAL">PPT</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Cédula / Documento <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="cedula" required maxlength="20">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Nombre Completo <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="nombre" required maxlength="100">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Correo Electrónico <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" name="email" required maxlength="100">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Teléfono</label>
+                            <input type="tel" class="form-control" name="telefono" maxlength="20" placeholder="+57 300 123 4567">
+                        </div>
+                        <!-- CAMBIO: sin placeholder que sugiera valor por defecto, campo requerido -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Nombre de usuario <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="user_name" maxlength="50" placeholder="Nombre de usuario" required autocomplete="off">
+                            <small class="text-muted">Requerido para el acceso al sistema.</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Contraseña <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" name="password" maxlength="128" placeholder="Contraseña" required autocomplete="new-password">
+                        </div>
+
+                        <div class="col-12"><div class="modal-section-divider">Formación y Experiencia</div></div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Nivel Educativo</label>
+                            <select class="form-select" name="nivel_educativo">
+                                <option value="">Seleccionar</option>
+                                {% for val, lbl in niveles_educativos %}<option value="{{ val }}">{{ lbl }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Años de Experiencia con Menores</label>
+                            <input type="number" class="form-control" name="anios_experiencia" min="0" max="60" value="0">
+                        </div>
+
+                        <div class="col-12"><div class="modal-section-divider">Certificado de Primeros Auxilios</div></div>
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="tiene_certificado_pa"
+                                       id="new_tiene_cert" onchange="toggleCertFields('new_cert_fields', this.checked)">
+                                <label class="form-check-label fw-semibold" for="new_tiene_cert">
+                                    La monitora tiene certificado de primeros auxilios vigente
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="cert-fields" id="new_cert_fields">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Entidad Certificadora</label>
+                                        <input type="text" class="form-control" name="entidad_certificadora_pa" maxlength="150" placeholder="Ej: Cruz Roja Colombiana">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-semibold">Fecha del Certificado</label>
+                                        <input type="date" class="form-control" name="fecha_certificado_pa">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-semibold">Fecha de Vencimiento</label>
+                                        <input type="date" class="form-control" name="fecha_vencimiento_pa">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12"><div class="modal-section-divider">Asignación y Observaciones</div></div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Ruta Asignada</label>
+                            <select class="form-select" name="ruta_asignada">
+                                <option value="">Sin ruta asignada</option>
+                                {% for r in rutas %}<option value="{{ r.codigo }}">{{ r.nombre }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Observaciones</label>
+                            <textarea class="form-control" name="observaciones" rows="2" maxlength="500"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn" style="background-color:#be185d;color:white;">
+                        <i class="bi bi-save me-2"></i>Guardar Monitora
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ver Detalles -->
+<div class="modal fade" id="viewMonitoraModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header modal-header-pink">
+                <h5 class="modal-title fw-bold"><i class="bi bi-person-heart me-2"></i>Detalles de la Monitora</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="monitoraDetailsContent"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmar Eliminación -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-danger">
+                <h5 class="modal-title text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar esta monitora permanentemente?</p>
+                <p class="text-muted small"><strong class="text-danger">Esta acción no se puede deshacer.</strong> Se eliminará también el usuario asociado.</p>
+            </div>
+            <div class="modal-footer">
+                <form method="POST" id="deleteForm" action="">
+                    {% csrf_token %}
+                    <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-2"></i>Sí, Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function toggleCertFields(id, show) {
+        const el = document.getElementById(id);
+        if (show) el.classList.add('visible');
+        else      el.classList.remove('visible');
+    }
+
+    function verMonitoraDesdeData(btn) {
+        const d = btn.dataset;
+        document.getElementById('monitoraDetailsContent').innerHTML = `
+        <div class="row g-3 p-2">
+            <div class="col-12"><p class="fw-bold mb-2" style="color:#be185d;"><i class="bi bi-person me-1"></i>Datos Personales</p></div>
+            <div class="col-md-6"><p class="mb-1 text-muted small">Cédula</p><p class="fw-semibold">${d.cedula}</p></div>
+            <div class="col-md-6"><p class="mb-1 text-muted small">Nombre</p><p class="fw-semibold">${d.nombre}</p></div>
+            <div class="col-md-6"><p class="mb-1 text-muted small">Correo</p><p class="fw-semibold">${d.email}</p></div>
+            <div class="col-md-6"><p class="mb-1 text-muted small">Teléfono</p><p class="fw-semibold">${d.telefono || 'No registrado'}</p></div>
+            <div class="col-12"><hr class="my-1"><p class="fw-bold mb-2" style="color:#be185d;"><i class="bi bi-mortarboard me-1"></i>Formación</p></div>
+            <div class="col-md-6"><p class="mb-1 text-muted small">Nivel Educativo</p><p class="fw-semibold">${d.nivel || 'No registrado'}</p></div>
+            <div class="col-md-6"><p class="mb-1 text-muted small">Años de Experiencia</p><p class="fw-semibold">${d.experiencia} años</p></div>
+            <div class="col-12"><hr class="my-1"><p class="fw-bold mb-2" style="color:#be185d;"><i class="bi bi-patch-check me-1"></i>Certificado P.A.</p></div>
+            <div class="col-md-4"><p class="mb-1 text-muted small">¿Tiene certificado?</p><p class="fw-semibold">${d.tieneCert}</p></div>
+            <div class="col-md-4"><p class="mb-1 text-muted small">Entidad</p><p class="fw-semibold">${d.entidad || '—'}</p></div>
+            <div class="col-md-4"><p class="mb-1 text-muted small">Vencimiento</p><p class="fw-semibold">${d.vencCert || '—'}</p></div>
+            <div class="col-12"><hr class="my-1"><p class="mb-1 text-muted small">Ruta Asignada</p><p class="fw-semibold">${d.ruta || 'Sin asignar'}</p></div>
+            ${d.obs ? `<div class="col-12"><p class="mb-1 text-muted small">Observaciones</p><p class="fw-semibold">${d.obs}</p></div>` : ''}
+        </div>`;
+    }
+
+    function confirmarEliminar(url) {
+        document.getElementById('deleteForm').action = url;
+        new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    }
+
+    document.getElementById('monitoraModal').addEventListener('hidden.bs.modal', function() {
+        this.querySelector('form').reset();
+        document.getElementById('new_cert_fields').classList.remove('visible');
+    });
+
+    setTimeout(() => {
+        document.querySelectorAll('.alert').forEach(a => { try { new bootstrap.Alert(a).close(); } catch(e) {} });
+    }, 5000);
+</script>
+</body>
+</html>

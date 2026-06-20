@@ -1,0 +1,102 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Términos y Condiciones - RutaEscolar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        .doc-header { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; padding: 2.5rem 0; }
+        .doc-body { background: white; border-radius: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 2.5rem; margin: 2rem 0; }
+        h2 { color: #1e293b; font-size: 1.2rem; font-weight: 700; margin-top: 2rem; margin-bottom: 0.75rem; border-left: 4px solid #f59e0b; padding-left: 0.75rem; }
+        p, li { color: #374151; line-height: 1.7; font-size: 0.95rem; }
+        .back-btn { background-color: #f59e0b; color: white; border: none; padding: 0.6rem 1.5rem; border-radius: 50px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.3s; }
+        .back-btn:hover { background-color: #e67e22; color: white; transform: translateY(-2px); }
+        .update-badge { background-color: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.8rem; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="doc-header">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div style="width:48px;height:48px;background:#f59e0b;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">
+                        <i class="bi bi-bus-front text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="mb-0 fw-bold fs-4">Términos y Condiciones</h1>
+                        <p class="mb-0 opacity-75 small">RutaEscolar — Sistema de Gestión de Transporte</p>
+                    </div>
+                </div>
+                <a href="{% url 'registrarse' %}" class="back-btn">
+                    <i class="bi bi-arrow-left"></i> Volver al Registro
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="doc-body">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <span class="update-badge"><i class="bi bi-calendar3 me-1"></i>Última actualización: Abril 2026</span>
+            </div>
+
+            <p>Bienvenido a <strong>RutaEscolar</strong>. Al registrarse y utilizar nuestra plataforma, usted acepta los siguientes términos y condiciones. Le pedimos leerlos detenidamente antes de usar el servicio.</p>
+
+            <h2>1. Aceptación de los Términos</h2>
+            <p>El acceso y uso de RutaEscolar implica la aceptación plena y sin reservas de los presentes términos. Si no está de acuerdo con alguno de ellos, no debe utilizar la plataforma.</p>
+
+            <h2>2. Descripción del Servicio</h2>
+            <p>RutaEscolar es una plataforma de gestión de transporte escolar que permite a instituciones educativas, padres de familia y conductores coordinar rutas, realizar seguimiento GPS, gestionar pagos y comunicarse en tiempo real.</p>
+
+            <h2>3. Registro de Usuarios</h2>
+            <ul>
+                <li>La información proporcionada durante el registro debe ser veraz, completa y actualizada.</li>
+                <li>El usuario es responsable de mantener la confidencialidad de sus credenciales de acceso.</li>
+                <li>No está permitido compartir cuentas ni acceder con credenciales de terceros.</li>
+                <li>RutaEscolar se reserva el derecho de suspender cuentas con información falsa o sospechosa.</li>
+            </ul>
+
+            <h2>4. Uso Aceptable</h2>
+            <p>El usuario se compromete a utilizar la plataforma únicamente para los fines previstos, y en particular:</p>
+            <ul>
+                <li>No intentar acceder a datos de otros usuarios sin autorización.</li>
+                <li>No realizar actividades que puedan dañar, sobrecargar o comprometer la plataforma.</li>
+                <li>No publicar contenido ofensivo, falso o que viole derechos de terceros.</li>
+                <li>No utilizar la plataforma para actividades ilegales.</li>
+            </ul>
+
+            <h2>5. Protección de Menores</h2>
+            <p>RutaEscolar maneja información de menores de edad exclusivamente en el contexto del servicio de transporte escolar. Los padres o tutores legales son los únicos autorizados para registrar y gestionar la información de los estudiantes menores.</p>
+
+            <h2>6. Pagos y Facturación</h2>
+            <ul>
+                <li>Los pagos realizados a través de la plataforma son procesados de forma segura.</li>
+                <li>El historial de pagos estará disponible para consulta en cualquier momento.</li>
+                <li>Las tarifas pueden variar según la institución educativa y la ruta asignada.</li>
+            </ul>
+
+            <h2>7. Disponibilidad del Servicio</h2>
+            <p>RutaEscolar no garantiza disponibilidad ininterrumpida del servicio. Podrán realizarse mantenimientos programados con aviso previo a los usuarios registrados.</p>
+
+            <h2>8. Modificaciones</h2>
+            <p>RutaEscolar puede modificar estos términos en cualquier momento. Los cambios serán notificados mediante la plataforma y/o correo electrónico registrado. El uso continuado del servicio implica aceptación de los nuevos términos.</p>
+
+            <h2>9. Ley Aplicable</h2>
+            <p>Estos términos se rigen por las leyes de la República de Colombia. Cualquier disputa será sometida a la jurisdicción de los tribunales competentes de Bogotá, Colombia.</p>
+
+            <h2>10. Contacto</h2>
+            <p>Para dudas sobre estos términos, puede contactarnos en: <a href="mailto:legal@rutaescolar.com" style="color:#f59e0b;">legal@rutaescolar.com</a></p>
+
+            <div class="mt-4 pt-3 border-top text-center">
+                <a href="{% url 'registrarse' %}" class="back-btn">
+                    <i class="bi bi-arrow-left me-2"></i>Volver al Registro
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

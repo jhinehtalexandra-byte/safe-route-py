@@ -1,0 +1,413 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Colegio - RutaEscolar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f1f5f9; overflow-x: hidden; }
+        .app-container { display: flex; min-height: 100vh; }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white; position: fixed; height: 100vh;
+            overflow-y: auto; z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.15);
+            display: flex; flex-direction: column;
+        }
+        .logo-section {
+            padding: 1.25rem 1rem;
+            background-color: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            flex-shrink: 0;
+        }
+        .logo-icon {
+            width: 38px; height: 38px; background-color: #f59e0b;
+            border-radius: 8px; display: flex; align-items: center;
+            justify-content: center; font-size: 1.2rem;
+            box-shadow: 0 4px 12px rgba(245,158,11,0.3);
+        }
+        .logo-text h1 { font-size: 1rem; font-weight: 700; margin-bottom: 0.1rem; }
+        .logo-text p  { font-size: 0.68rem; color: #94a3b8; margin: 0; }
+
+        .nav-menu { padding: 0.5rem 0; flex: 1; overflow-y: auto; }
+        .nav-section-label {
+            font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.1em; color: #64748b;
+            padding: 0.85rem 1.25rem 0.35rem;
+        }
+        .nav-item-custom {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.65rem 1.25rem;
+            color: #cbd5e1; text-decoration: none;
+            transition: all 0.2s; font-size: 0.855rem;
+            position: relative; border: none; background: none; width: 100%;
+        }
+        .nav-item-custom:hover { background-color: rgba(245,158,11,0.1); color: white; padding-left: 1.5rem; }
+        .nav-item-custom.active { background-color: #f59e0b; color: white; font-weight: 600; }
+        .nav-item-custom.active::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+            width: 3px; background-color: white;
+        }
+        .nav-item-custom i { font-size: 1rem; flex-shrink: 0; width: 18px; text-align: center; }
+
+        .sidebar-footer {
+            padding: 0.875rem 1.25rem;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            background-color: rgba(0,0,0,0.2); flex-shrink: 0;
+        }
+        .user-avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            background-color: #f59e0b; display: flex; align-items: center;
+            justify-content: center; color: white; font-size: 1.1rem; flex-shrink: 0;
+        }
+        .user-name { font-size: 0.82rem; font-weight: 600; color: white; margin: 0; }
+        .user-role { font-size: 0.7rem; color: #94a3b8; margin: 0; }
+
+        /* ── Main ── */
+        .main-content { margin-left: 260px; flex: 1; min-height: 100vh; background-color: #f1f5f9; }
+        .header-section {
+            background: white; padding: 1.25rem 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .header-section h1 { font-size: 1.5rem; font-weight: bold; color: #1f2937; margin-bottom: 0.2rem; }
+        .header-section p  { font-size: 0.82rem; color: #6b7280; margin: 0; }
+
+        /* ── Stat cards ── */
+        .stat-card {
+            background: white; border-radius: 0.75rem; padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: all 0.3s;
+            border: 1px solid #e5e7eb;
+        }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
+        .stat-icon { width: 48px; height: 48px; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; }
+        .stat-number { font-size: 2.25rem; font-weight: bold; color: #1f2937; line-height: 1; }
+        .stat-label  { font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem; }
+
+        /* ── Info cards ── */
+        .info-card {
+            background: white; border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid #e5e7eb;
+        }
+
+        /* ── Quick actions ── */
+        .quick-action-card {
+            background: white; border-radius: 0.75rem; padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: all 0.3s;
+            text-align: center; border: 1px solid #e5e7eb;
+            text-decoration: none; color: inherit; display: block;
+        }
+        .quick-action-card:hover { transform: translateY(-4px); box-shadow: 0 6px 12px rgba(0,0,0,0.12); color: inherit; }
+        .quick-action-icon {
+            width: 48px; height: 48px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 0.6rem; font-size: 1.3rem;
+        }
+
+        /* ── Mini stat ── */
+        .mini-stat {
+            background: white; border-radius: 0.5rem; padding: 1rem;
+            border: 1px solid #e5e7eb; text-align: center;
+        }
+        .mini-stat .number { font-size: 1.5rem; font-weight: 700; }
+        .mini-stat .label  { font-size: 0.75rem; color: #6b7280; }
+
+        @media (max-width: 992px) { .sidebar { margin-left: -260px; } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+<div class="app-container">
+
+    <!-- ══════════════════════════════════════════
+         SIDEBAR — ROL: COLEGIO
+    ══════════════════════════════════════════ -->
+    {% include 'includes/sidebar_colegio.html' %}
+
+    <!-- ══════════════════════════════════════════
+         MAIN CONTENT
+    ══════════════════════════════════════════ -->
+    <div class="main-content">
+
+        <!-- Header -->
+        <div class="header-section d-flex justify-content-between align-items-center">
+            <div>
+                <h1>Dashboard Colegio</h1>
+                <p>Gestión de transporte escolar — {{ fecha_actual|date:"d/m/Y" }}</p>
+            </div>
+            <a href="{% url 'notificaciones' %}" class="btn btn-outline-secondary position-relative">
+                <i class="bi bi-bell"></i>
+                {% if notif_pendientes > 0 %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    {{ notif_pendientes }}
+                </span>
+                {% endif %}
+            </a>
+        </div>
+
+        <div class="p-4">
+
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-3">
+                    {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- ── Fila 1: KPIs principales ── -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-xl-3">
+                    <div class="stat-card">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="stat-icon bg-primary bg-opacity-10">
+                                <i class="bi bi-people text-primary fs-4"></i>
+                            </div>
+                            <span class="badge bg-success">Activos</span>
+                        </div>
+                        <div class="stat-number">{{ total_estudiantes|default:"0" }}</div>
+                        <div class="stat-label">Estudiantes</div>
+                        <a href="{% url 'estudiantes' %}" class="btn btn-sm btn-outline-primary mt-3">
+                            <i class="bi bi-eye me-1"></i>Ver todos
+                        </a>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-3">
+                    <div class="stat-card">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="stat-icon bg-success bg-opacity-10">
+                                <i class="bi bi-sign-turn-right text-success fs-4"></i>
+                            </div>
+                            <span class="badge bg-info">{{ total_rutas|default:"0" }}</span>
+                        </div>
+                        <div class="stat-number">{{ total_rutas|default:"0" }}</div>
+                        <div class="stat-label">Rutas Activas</div>
+                        <a href="{% url 'lista_rutas' %}" class="btn btn-sm btn-outline-success mt-3">
+                            <i class="bi bi-map me-1"></i>Ver rutas
+                        </a>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-3">
+                    <div class="stat-card">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="stat-icon bg-warning bg-opacity-10">
+                                <i class="bi bi-person-badge text-warning fs-4"></i>
+                            </div>
+                            <span class="badge bg-warning text-dark">Hoy</span>
+                        </div>
+                        <div class="stat-number">{{ total_conductores|default:"0" }}</div>
+                        <div class="stat-label">Conductores Activos</div>
+                        <a href="{% url 'conductores' %}" class="btn btn-sm btn-outline-warning mt-3">
+                            <i class="bi bi-person-lines-fill me-1"></i>Ver conductores
+                        </a>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-3">
+                    <div class="stat-card">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="stat-icon bg-danger bg-opacity-10">
+                                <i class="bi bi-exclamation-triangle text-danger fs-4"></i>
+                            </div>
+                            <span class="badge bg-danger">{{ pagos_pendientes|default:"0" }}</span>
+                        </div>
+                        <div class="stat-number">{{ pagos_pendientes|default:"0" }}</div>
+                        <div class="stat-label">Pagos Pendientes</div>
+                        <a href="{% url 'pagos' %}" class="btn btn-sm btn-outline-danger mt-3">
+                            <i class="bi bi-cash me-1"></i>Ver pagos
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Fila 2: Monitoras + novedades rápidas ── -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-3">
+                    <div class="mini-stat">
+                        <div class="number" style="color:#be185d;">{{ total_monitoras|default:"0" }}</div>
+                        <div class="label"><i class="bi bi-person-heart me-1"></i>Monitoras</div>
+                        <a href="{% url 'monitoras' %}" class="btn btn-sm mt-2 w-100"
+                           style="border-color:#be185d;color:#be185d;">Ver</a>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="mini-stat">
+                        <div class="number text-danger">{{ ausencias_hoy|default:"0" }}</div>
+                        <div class="label"><i class="bi bi-person-x me-1"></i>Ausencias hoy</div>
+                        <a href="{% url 'notificaciones' %}" class="btn btn-sm btn-outline-danger mt-2 w-100">Ver</a>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="mini-stat">
+                        <div class="number text-warning">{{ novedades_pendientes|default:"0" }}</div>
+                        <div class="label"><i class="bi bi-clipboard-x me-1"></i>Novedades</div>
+                        <a href="{% url 'notificaciones' %}" class="btn btn-sm btn-outline-warning mt-2 w-100">Ver</a>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="mini-stat">
+                        <div class="number text-success">{{ recorridos_activos|default:"0" }}</div>
+                        <div class="label"><i class="bi bi-broadcast me-1"></i>En curso</div>
+                        <a href="{% url 'mapa_tiempo_real' %}" class="btn btn-sm btn-outline-success mt-2 w-100">Ver mapa</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Fila 3: Novedades del día + Acciones rápidas ── -->
+            <div class="row g-4 mb-4">
+                <div class="col-12 col-lg-8">
+                    <div class="info-card p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-bold mb-0">
+                                <i class="bi bi-clipboard-check me-2 text-primary"></i>Novedades del Día
+                            </h5>
+                            <a href="{% url 'notificaciones' %}" class="btn btn-sm btn-outline-primary">Ver todas</a>
+                        </div>
+                        {% if novedades %}
+                            {% for nov in novedades %}
+                            <div class="d-flex gap-3 mb-3 p-3 rounded"
+                                 style="background:#f8fafc; border-left:4px solid #f59e0b;">
+                                <i class="bi bi-info-circle-fill text-warning mt-1"></i>
+                                <div>
+                                    <p class="mb-1 small fw-semibold">{{ nov.descripcion }}</p>
+                                    <p class="mb-0 text-muted" style="font-size:0.72rem;">
+                                        {{ nov.fecha|date:"d/m/Y H:i" }}
+                                    </p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-4 text-muted">
+                                <i class="bi bi-check-circle-fill text-success fs-2 d-block mb-2"></i>
+                                Sin novedades registradas hoy
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-4">
+                    <div class="info-card p-4">
+                        <h5 class="fw-bold mb-4">
+                            <i class="bi bi-lightning-charge me-2 text-warning"></i>Acciones Rápidas
+                        </h5>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <a href="{% url 'estudiantes' %}" class="quick-action-card">
+                                    <div class="quick-action-icon bg-primary bg-opacity-10">
+                                        <i class="bi bi-person-plus text-primary"></i>
+                                    </div>
+                                    <p class="fw-semibold mb-0 small">Estudiantes</p>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="{% url 'conductores' %}" class="quick-action-card">
+                                    <div class="quick-action-icon bg-info bg-opacity-10">
+                                        <i class="bi bi-person-badge text-info"></i>
+                                    </div>
+                                    <p class="fw-semibold mb-0 small">Conductores</p>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="{% url 'monitoras' %}" class="quick-action-card">
+                                    <div class="quick-action-icon" style="background:#fce7f3;">
+                                        <i class="bi bi-person-heart" style="color:#be185d;"></i>
+                                    </div>
+                                    <p class="fw-semibold mb-0 small">Monitoras</p>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="{% url 'rutas_gestion' %}" class="quick-action-card">
+                                    <div class="quick-action-icon bg-warning bg-opacity-10">
+                                        <i class="bi bi-signpost-2 text-warning"></i>
+                                    </div>
+                                    <p class="fw-semibold mb-0 small">Gestionar Rutas</p>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="{% url 'pagos' %}" class="quick-action-card">
+                                    <div class="quick-action-icon bg-success bg-opacity-10">
+                                        <i class="bi bi-cash-coin text-success"></i>
+                                    </div>
+                                    <p class="fw-semibold mb-0 small">Pagos</p>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="{% url 'reportes' %}" class="quick-action-card">
+                                    <div class="quick-action-icon bg-danger bg-opacity-10">
+                                        <i class="bi bi-bar-chart-line text-danger"></i>
+                                    </div>
+                                    <p class="fw-semibold mb-0 small">Reportes</p>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Fila 4: Rutas activas hoy ── -->
+            <div class="info-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-geo-alt me-2 text-success"></i>Rutas Activas Hoy
+                    </h5>
+                    <a href="{% url 'mapa_tiempo_real' %}" class="btn btn-sm btn-outline-success">
+                        <i class="bi bi-broadcast me-1"></i>Ver Mapa en Tiempo Real
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ruta</th>
+                                <th>Conductor</th>
+                                <th>Monitora</th>
+                                <th>Turno</th>
+                                <th>Horario</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if rutas_activas %}
+                                {% for ruta in rutas_activas %}
+                                <tr>
+                                    <td class="fw-semibold">{{ ruta.nombre }}</td>
+                                    <td>{{ ruta.conductor_cedula|default:"Sin asignar" }}</td>
+                                    <td>—</td>
+                                    <td>{{ ruta.turno|default:"—" }}</td>
+                                    <td class="small text-muted">
+                                        {{ ruta.hora_inicio|default:"—" }} - {{ ruta.hora_fin|default:"—" }}
+                                    </td>
+                                    <td><span class="badge bg-success">Activa</span></td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-3">
+                                        <i class="bi bi-inbox me-2"></i>No hay rutas activas registradas hoy
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    setTimeout(() => {
+        document.querySelectorAll('.alert').forEach(a => {
+            try { new bootstrap.Alert(a).close(); } catch(e) {}
+        });
+    }, 5000);
+</script>
+</body>
+</html>

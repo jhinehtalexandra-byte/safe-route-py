@@ -1,0 +1,568 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Conductor - RutaEscolar</title>
+    <!-- En la sección del header, junto al nombre -->
+    <button class="btn btn-outline-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalNovedad">
+        <i class="bi bi-exclamation-triangle me-1"></i>Reportar Novedad
+    </button>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f1f5f9; overflow-x: hidden;
+        }
+        .app-container { display: flex; min-height: 100vh; }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white; position: fixed; height: 100vh;
+            overflow-y: auto; z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.15);
+            display: flex; flex-direction: column;
+        }
+        .logo-section {
+            padding: 1.25rem 1rem;
+            background-color: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            flex-shrink: 0;
+        }
+        .logo-icon {
+            width: 38px; height: 38px; background-color: #f59e0b;
+            border-radius: 8px; display: flex; align-items: center;
+            justify-content: center; font-size: 1.2rem;
+            box-shadow: 0 4px 12px rgba(245,158,11,0.3);
+        }
+        .logo-text h1 { font-size: 1rem; font-weight: 700; margin-bottom: 0.1rem; }
+        .logo-text p  { font-size: 0.68rem; color: #94a3b8; margin: 0; }
+
+        .nav-menu { padding: 0.5rem 0; flex: 1; overflow-y: auto; }
+        .nav-section-label {
+            font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.1em; color: #64748b;
+            padding: 0.85rem 1.25rem 0.35rem;
+        }
+        .nav-item-custom {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.65rem 1.25rem;
+            color: #cbd5e1; text-decoration: none;
+            transition: all 0.2s; font-size: 0.855rem;
+            position: relative; border: none; background: none; width: 100%;
+        }
+        .nav-item-custom:hover { background-color: rgba(245,158,11,0.1); color: white; padding-left: 1.5rem; }
+        .nav-item-custom.active { background-color: #f59e0b; color: white; font-weight: 600; }
+        .nav-item-custom.active::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+            width: 3px; background-color: white;
+        }
+        .nav-item-custom i { font-size: 1rem; flex-shrink: 0; width: 18px; text-align: center; }
+
+        .sidebar-footer {
+            padding: 0.875rem 1.25rem;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            background-color: rgba(0,0,0,0.2); flex-shrink: 0;
+        }
+        .user-avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            background-color: #f59e0b; display: flex; align-items: center;
+            justify-content: center; color: white; font-size: 1.1rem; flex-shrink: 0;
+        }
+        .user-name { font-size: 0.82rem; font-weight: 600; color: white; margin: 0; }
+        .user-role { font-size: 0.7rem; color: #94a3b8; margin: 0; }
+
+        /* ── Main ── */
+        .main-content { margin-left: 260px; flex: 1; min-height: 100vh; background-color: #f1f5f9; }
+        .header-section {
+            background: white; padding: 1.25rem 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .header-section h1 { font-size: 1.5rem; font-weight: bold; color: #1f2937; margin-bottom: 0.2rem; }
+        .header-section p  { font-size: 0.82rem; color: #6b7280; margin: 0; }
+
+        /* ── Stat cards ── */
+        .stat-card {
+            background: white; border-radius: 0.75rem; padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: all 0.3s; border: 1px solid #e5e7eb;
+        }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
+        .stat-icon { width: 48px; height: 48px; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; }
+        .stat-number { font-size: 2.25rem; font-weight: bold; color: #1f2937; line-height: 1; }
+        .stat-label  { font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem; }
+
+        /* ── Info card ── */
+        .info-card {
+            background: white; border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border: 1px solid #e5e7eb;
+        }
+
+        /* ── Banner ruta bloqueada (monitora no confirmó) ── */
+        .blocked-banner {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 2px solid #f59e0b; border-radius: 0.75rem;
+            padding: 1.5rem; margin-bottom: 1rem;
+        }
+
+        /* ── Lista de paradas ── */
+        .parada-item {
+            display: flex; gap: 1rem; align-items: flex-start;
+            padding: 0.875rem 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background 0.2s;
+        }
+        .parada-item:last-child { border-bottom: none; }
+        .parada-item:hover { background: #f8fafc; }
+        .parada-numero {
+            width: 28px; height: 28px; border-radius: 50%;
+            background: #3b82f6; color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+        }
+        .parada-numero.completada { background: #10b981; }
+        .parada-numero.pendiente  { background: #e5e7eb; color: #6b7280; }
+        .parada-nombre { font-weight: 600; font-size: 0.875rem; color: #1f2937; margin-bottom: 0.125rem; }
+        .parada-dir    { font-size: 0.78rem; color: #6b7280; }
+        .parada-est    { font-size: 0.75rem; color: #94a3b8; margin-top: 0.125rem; }
+
+        /* ── GPS placeholder ── */
+        .map-placeholder {
+            height: 200px; border-radius: 0.5rem;
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            color: white; position: relative; overflow: hidden;
+        }
+        .map-placeholder::before {
+            content: ''; position: absolute;
+            top: -30%; right: -10%;
+            width: 150px; height: 150px;
+            background: rgba(255,255,255,0.08); border-radius: 50%;
+        }
+
+        /* ── Alert items ── */
+        .alert-item {
+            background: #fff; border-radius: 0.5rem; padding: 0.875rem;
+            border: 1px solid #e5e7eb; border-left: 4px solid #ef4444;
+            margin-bottom: 0.75rem; transition: all 0.2s;
+        }
+        .alert-item:hover { transform: translateX(4px); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .alert-item.warning { border-left-color: #f59e0b; }
+
+        /* ── Badge estado recorrido ── */
+        .estado-badge {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            padding: 0.35rem 0.75rem; border-radius: 2rem; font-weight: 600; font-size: 0.8rem;
+        }
+        .estado-pendiente   { background: #fef3c7; color: #92400e; }
+        .estado-en-curso    { background: #dcfce7; color: #14532d; }
+        .estado-bloqueado   { background: #fee2e2; color: #7f1d1d; }
+        .estado-finalizado  { background: #f0f9ff; color: #0c4a6e; }
+
+        @media (max-width: 992px) {
+            .sidebar { margin-left: -260px; }
+            .main-content { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+
+    <!-- ══════════════════════════════════════════
+         SIDEBAR — ROL: CONDUCTOR
+    ══════════════════════════════════════════ -->
+    
+    {% include 'includes/sidebar_conductor.html' %}
+
+    <!-- ══════════════════════════════════════════
+         MAIN CONTENT
+    ══════════════════════════════════════════ -->
+    <div class="main-content">
+
+        <!-- Header -->
+        <div class="header-section d-flex justify-content-between align-items-center">
+            <div>
+                <h1>Dashboard Conductor</h1>
+                <p>Bienvenido, <strong>{{ usuario_nombre|default:"Conductor" }}</strong> —
+                   <i class="bi bi-calendar3 me-1"></i>{{ fecha_actual|date:"d/m/Y" }}
+                   <i class="bi bi-clock ms-2 me-1"></i>{{ hora_actual|time:"H:i"|default:"" }}
+                </p>
+            </div>
+        </div>
+
+        <div class="p-4">
+
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-3">
+                    {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- ══ AVISO: recorrido bloqueado hasta que monitora confirme lista ══ -->
+            {% if recorrido_hoy and not recorrido_hoy.lista_confirmada %}
+            <div class="blocked-banner d-flex gap-3 align-items-start mb-4">
+                <i class="bi bi-lock-fill text-warning fs-3 flex-shrink-0 mt-1"></i>
+                <div>
+                    <p class="fw-bold mb-1 text-warning" style="font-size:.95rem;">
+                        Esperando confirmación de la monitora
+                    </p>
+                    <p class="mb-0 small text-muted">
+                        El botón <strong>"Iniciar Recorrido"</strong> estará disponible una vez que la monitora
+                        llame lista y confirme las novedades del día.
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- ── Fila 1: KPIs ── -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-xl-3">
+                    <div class="stat-card">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="stat-icon bg-primary bg-opacity-10">
+                                <i class="bi bi-sign-turn-right text-primary fs-4"></i>
+                            </div>
+                            <span class="badge bg-primary">Hoy</span>
+                        </div>
+                        <div class="stat-number">{{ total_rutas_hoy|default:"1" }}</div>
+                        <div class="stat-label">Ruta Asignada</div>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-3">
+                    <div class="stat-card">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="stat-icon bg-success bg-opacity-10">
+                                <i class="bi bi-people text-success fs-4"></i>
+                            </div>
+                            <span class="badge bg-success">Lista</span>
+                        </div>
+                        <div class="stat-number">{{ total_estudiantes_ruta|default:"0" }}</div>
+                        <div class="stat-label">Estudiantes en Ruta</div>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-3">
+                    <div class="stat-card">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="stat-icon bg-warning bg-opacity-10">
+                                <i class="bi bi-geo-alt text-warning fs-4"></i>
+                            </div>
+                            <span class="badge bg-warning text-dark">Paradas</span>
+                        </div>
+                        <div class="stat-number">{{ total_paradas|default:"0" }}</div>
+                        <div class="stat-label">Paradas del Día</div>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-3">
+                    <div class="stat-card">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="stat-icon bg-info bg-opacity-10">
+                                <i class="bi bi-clock-history text-info fs-4"></i>
+                            </div>
+                            {% if recorrido_hoy %}
+                                <span class="estado-badge
+                                    {% if recorrido_hoy.estado == 'EN_CURSO' %}estado-en-curso
+                                    {% elif recorrido_hoy.estado == 'PENDIENTE' %}estado-pendiente
+                                    {% elif recorrido_hoy.estado == 'FINALIZADO' %}estado-finalizado
+                                    {% else %}estado-bloqueado{% endif %}">
+                                    {{ recorrido_hoy.get_estado_display }}
+                                </span>
+                            {% else %}
+                                <span class="estado-badge estado-pendiente">Sin recorrido</span>
+                            {% endif %}
+                        </div>
+                        <div class="stat-number" style="font-size:1.5rem;">
+                            {% if recorrido_hoy %}{{ recorrido_hoy.get_estado_display }}
+                            {% else %}—{% endif %}
+                        </div>
+                        <div class="stat-label">Estado Recorrido</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Fila 2: Ruta del día + GPS/Alertas ── -->
+            <div class="row g-4 mb-4">
+
+                <!-- Lista de paradas -->
+                <div class="col-12 col-lg-8">
+                    <div class="info-card">
+                        <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="fw-bold mb-0">
+                                    <i class="bi bi-sign-turn-right me-2 text-primary"></i>
+                                    {% if ruta_actual %}{{ ruta_actual.nombre }}{% else %}Ruta Asignada del Día{% endif %}
+                                </h5>
+                                {% if ruta_actual %}
+                                <p class="text-muted small mb-0 mt-1">
+                                    <i class="bi bi-clock me-1"></i>{{ ruta_actual.hora_inicio }} — {{ ruta_actual.hora_fin }}
+                                    &nbsp;|&nbsp;
+                                    <i class="bi bi-sun me-1"></i>{{ ruta_actual.get_turno_display }}
+                                </p>
+                                {% endif %}
+                            </div>
+                            <!-- Botón Iniciar: habilitado solo si monitora confirmó lista -->
+                            {% if recorrido_hoy %}
+                                {% if recorrido_hoy.lista_confirmada and recorrido_hoy.estado == 'PENDIENTE' %}
+                                <form method="POST" action="{% url 'iniciar_recorrido' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="recorrido_id" value="{{ recorrido_hoy.id }}">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="bi bi-play-fill me-1"></i>Iniciar Recorrido
+                                    </button>
+                                </form>
+                                {% elif recorrido_hoy.estado == 'EN_CURSO' %}
+                                <form method="POST" action="{% url 'finalizar_recorrido' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="recorrido_id" value="{{ recorrido_hoy.id }}">
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="bi bi-stop-fill me-1"></i>Finalizar
+                                    </button>
+                                </form>
+                                {% elif recorrido_hoy.estado == 'FINALIZADO' %}
+                                <span class="badge bg-success p-2">
+                                    <i class="bi bi-check-circle me-1"></i>Finalizado
+                                </span>
+                                {% else %}
+                                <button class="btn btn-secondary" disabled>
+                                    <i class="bi bi-lock me-1"></i>Esperando monitora
+                                </button>
+                                {% endif %}
+                            {% else %}
+                            <span class="badge bg-secondary p-2">Sin recorrido hoy</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Paradas del recorrido -->
+                        {% if paradas %}
+                            {% for parada in paradas %}
+                            <div class="parada-item">
+                                <div class="parada-numero
+                                    {% if parada.estado == 'COMPLETADA' %}completada
+                                    {% elif parada.estado == 'PENDIENTE' %}pendiente
+                                    {% endif %}">
+                                    {{ parada.parada.orden }}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="parada-nombre">{{ parada.parada.nombre }}</div>
+                                    <div class="parada-dir">
+                                        <i class="bi bi-geo-alt me-1"></i>{{ parada.parada.direccion }}
+                                    </div>
+                                    {% if parada.parada.referencia %}
+                                    <div class="parada-est">{{ parada.parada.referencia }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-shrink-0 text-end">
+                                    {% if parada.estado == 'COMPLETADA' %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check2"></i> Completada
+                                    </span>
+                                    {% elif recorrido_hoy.estado == 'EN_CURSO' %}
+                                    <form method="POST" action="{% url 'notificar_llegada' %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="parada_recorrido_id" value="{{ parada.id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-success">
+                                            <i class="bi bi-check-circle me-1"></i>Llegué
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <span class="badge bg-light text-muted">Pendiente</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                        <div class="text-center py-4 text-muted p-4">
+                            <i class="bi bi-geo-alt fs-2 d-block mb-2"></i>
+                            <p class="mb-0 small">
+                                {% if ruta_actual %}
+                                    No hay paradas registradas para esta ruta.
+                                {% else %}
+                                    No tienes una ruta asignada para hoy.
+                                {% endif %}
+                            </p>
+                        </div>
+                        {% endif %}
+
+                        <!-- Barra de progreso -->
+                        {% if paradas %}
+                        <div class="p-4 border-top">
+                            {% with completadas=paradas|length %}
+                            <div class="d-flex justify-content-between mb-2 small">
+                                <span class="text-muted">Progreso del recorrido</span>
+                                <span class="fw-bold text-primary">
+                                    {{ paradas_completadas|default:"0" }} / {{ paradas|length }} paradas
+                                </span>
+                            </div>
+                            <div class="progress" style="height:8px;">
+                                <div class="progress-bar bg-success"
+                                     style="width:{% widthratio paradas_completadas|default:0 paradas|length 100 %}%">
+                                </div>
+                            </div>
+                            {% endwith %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- GPS + Alertas -->
+                <div class="col-12 col-lg-4 d-flex flex-column gap-4">
+
+                    <!-- GPS -->
+                    <div class="info-card">
+                        <div class="p-3 border-bottom">
+                            <h6 class="fw-bold mb-0">
+                                <i class="bi bi-broadcast me-2 text-primary"></i>Ubicación GPS
+                            </h6>
+                        </div>
+                        <div class="p-0">
+                            <div class="map-placeholder">
+                                <i class="bi bi-geo-alt-fill fs-1 mb-2" style="position:relative;z-index:1;"></i>
+                                <p class="fw-semibold mb-0" style="position:relative;z-index:1;">GPS Activo</p>
+                                <small class="opacity-75" style="position:relative;z-index:1;" id="gps_coords">
+                                    Obteniendo ubicación…
+                                </small>
+                            </div>
+                        </div>
+                        <div class="p-3">
+                            <a href="{% url 'mapa_conductor' %}" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="bi bi-map me-1"></i>Abrir Mapa Conductor
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Alertas -->
+                    <div class="info-card flex-grow-1">
+                        <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+                            <h6 class="fw-bold mb-0">
+                                <i class="bi bi-exclamation-triangle me-2 text-warning"></i>Alertas
+                            </h6>
+                            {% if alertas_count %}<span class="badge bg-danger">{{ alertas_count }}</span>{% endif %}
+                        </div>
+                        <div class="p-3">
+                            {% if alertas %}
+                                {% for alerta in alertas %}
+                                <div class="alert-item {% if alerta.tipo == 'warning' %}warning{% endif %}">
+                                    <h6 class="mb-1 fw-semibold small">{{ alerta.titulo }}</h6>
+                                    <p class="small mb-1 text-muted">{{ alerta.descripcion }}</p>
+                                    <small class="text-muted">{{ alerta.tiempo }}</small>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                            <div class="text-center py-3 text-muted">
+                                <i class="bi bi-check-circle-fill text-success fs-4 d-block mb-2"></i>
+                                <small>Sin alertas activas</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    /* ── GPS: obtener posición y enviar al servidor cada 30s ── */
+    function actualizarUbicacion() {
+        if (!navigator.geolocation) return;
+        navigator.geolocation.getCurrentPosition(
+            function(pos) {
+                const lat = pos.coords.latitude.toFixed(6);
+                const lng = pos.coords.longitude.toFixed(6);
+                document.getElementById('gps_coords').textContent = lat + ', ' + lng;
+
+                /* Enviar al servidor si hay recorrido activo */
+                {% if recorrido_hoy and recorrido_hoy.estado == 'EN_CURSO' %}
+                fetch("{% url 'actualizar_ubicacion' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        recorrido_id: {{ recorrido_hoy.id|default:"null" }},
+                        lat: lat,
+                        lng: lng
+                    })
+                });
+                {% endif %}
+            },
+            function() {
+                document.getElementById('gps_coords').textContent = 'No disponible';
+            }
+        );
+    }
+
+    actualizarUbicacion();
+    setInterval(actualizarUbicacion, 30000);
+
+    /* ── Auto-ocultar alertas ── */
+    setTimeout(() => {
+        document.querySelectorAll('.alert').forEach(a => {
+            try { new bootstrap.Alert(a).close(); } catch(e) {}
+        });
+    }, 5000);
+</script>
+<!-- Modal Registrar Novedad — Conductor -->
+<div class="modal fade" id="modalNovedad" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle me-2"></i>Registrar Novedad</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'registrar_novedad_conductor' %}">
+                {% csrf_token %}
+                {% if ruta_actual %}
+                <input type="hidden" name="ruta_codigo" value="{{ ruta_actual.codigo }}">
+                {% endif %}
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Tipo de novedad <span class="text-danger">*</span></label>
+                            <select class="form-select" name="tipo" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="RETRASO">Retraso en la ruta</option>
+                                <option value="AUSENCIA_EST">Ausencia de estudiante</option>
+                                <option value="FALLA_MECANICA">Falla mecánica del vehículo</option>
+                                <option value="ACCIDENTE">Accidente de tránsito</option>
+                                <option value="CLIMA">Condiciones climáticas</option>
+                                <option value="OTRO">Otro</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Descripción <span class="text-danger">*</span></label>
+                            <textarea class="form-control" name="descripcion" rows="3"
+                                      placeholder="Describe la novedad con detalle..." required maxlength="500"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <div class="alert alert-info small mb-0">
+                                <i class="bi bi-bell me-1"></i>
+                                El colegio y el administrador serán notificados automáticamente.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning fw-semibold">
+                        <i class="bi bi-send me-1"></i>Enviar Novedad
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

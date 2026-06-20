@@ -1,0 +1,88 @@
+<div class="sidebar">
+    <div class="logo-section d-flex align-items-center gap-2">
+        <div class="logo-icon"><i class="bi bi-bus-front"></i></div>
+        <div class="logo-text">
+            <h1>RutaEscolar</h1>
+            <p>Panel Colegio</p>
+        </div>
+    </div>
+
+    <nav class="nav-menu">
+
+        <div class="nav-section-label">Principal</div>
+        <a class="nav-item-custom {% if request.resolver_match.url_name == 'dashboard_colegio' %}active{% endif %}"
+           href="{% url 'dashboard_colegio' %}">
+            <i class="bi bi-grid-1x2"></i><span>Dashboard</span>
+        </a>
+
+        <div class="nav-section-label">Gestión</div>
+        <a class="nav-item-custom {% if request.resolver_match.url_name == 'estudiantes' %}active{% endif %}"
+           href="{% url 'estudiantes' %}">
+            <i class="bi bi-people"></i><span>Estudiantes</span>
+        </a>
+        <a class="nav-item-custom {% if request.resolver_match.url_name == 'conductores' %}active{% endif %}"
+           href="{% url 'conductores' %}">
+            <i class="bi bi-person-badge"></i><span>Conductores</span>
+        </a>
+        <a class="nav-item-custom {% if request.resolver_match.url_name == 'monitoras' %}active{% endif %}"
+           href="{% url 'monitoras' %}">
+            <i class="bi bi-person-heart"></i><span>Monitoras</span>
+        </a>
+
+        <div class="nav-section-label">Rutas</div>
+        <a class="nav-item-custom {% if request.resolver_match.url_name == 'rutas_gestion' %}active{% endif %}"
+           href="{% url 'rutas_gestion' %}">
+            <i class="bi bi-signpost-2"></i><span>Gestión de Rutas</span>
+        </a>
+        <a class="nav-item-custom {% if request.resolver_match.url_name == 'lista_rutas' %}active{% endif %}"
+           href="{% url 'lista_rutas' %}">
+            <i class="bi bi-sign-turn-right"></i><span>Lista de Rutas</span>
+        </a>
+        <a class="nav-item-custom {% if request.resolver_match.url_name == 'monitoreo' %}active{% endif %}"
+           href="{% url 'monitoreo' %}">
+            <i class="bi bi-broadcast"></i><span>Mapa en Tiempo Real</span>
+        </a>
+
+        <div class="nav-section-label">Finanzas</div>
+        <a class="nav-item-custom {% if request.resolver_match.url_name == 'pagos' %}active{% endif %}"
+           href="{% url 'pagos' %}">
+            <i class="bi bi-credit-card"></i><span>Control de Pagos</span>
+        </a>
+
+        <div class="nav-section-label">Sistema</div>
+        <a class="nav-item-custom {% if request.resolver_match.url_name == 'notificaciones' %}active{% endif %}"
+           href="{% url 'notificaciones' %}">
+            <i class="bi bi-bell"></i><span>Notificaciones</span>
+            {% if notif_pendientes %}<span class="badge bg-danger ms-auto">{{ notif_pendientes }}</span>{% endif %}
+        </a>
+        <a class="nav-item-custom {% if request.resolver_match.url_name == 'reporte_viajes' %}active{% endif %}"
+           href="{% url 'reporte_viajes' %}">
+            <i class="bi bi-file-text"></i><span>Reporte de Viajes</span>
+        </a>
+        <a class="nav-item-custom {% if request.resolver_match.url_name == 'reportes' %}active{% endif %}"
+           href="{% url 'reportes' %}">
+            <i class="bi bi-bar-chart-line"></i><span>Reportes</span>
+        </a>
+        <a class="nav-item-custom {% if request.resolver_match.url_name == 'perfil' %}active{% endif %}"
+           href="{% url 'perfil' %}">
+            <i class="bi bi-person-circle"></i><span>Mi Perfil</span>
+        </a>
+        <form method="POST" action="{% url 'logout' %}" style="margin:0;padding:0;">
+            {% csrf_token %}
+            <button type="submit" class="nav-item-custom" style="color:#fca5a5;">
+                <i class="bi bi-box-arrow-right"></i><span>Cerrar Sesión</span>
+            </button>
+        </form>
+
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="d-flex align-items-center gap-2">
+            <div class="user-avatar"><i class="bi bi-person-circle"></i></div>
+            <div class="overflow-hidden">
+                <p class="user-name text-truncate">{{ usuario_nombre|default:"Colegio" }}</p>
+                <p class="user-role">COLEGIO</p>
+            </div>
+        </div>
+    </div>
+</div>

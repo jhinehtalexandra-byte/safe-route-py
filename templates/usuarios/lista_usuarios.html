@@ -1,0 +1,364 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios - RutaEscolar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f1f5f9; overflow-x: hidden; }
+        .app-container { display: flex; min-height: 100vh; }
+
+        .sidebar { width: 260px; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; position: fixed; height: 100vh; overflow-y: auto; z-index: 1000; box-shadow: 2px 0 10px rgba(0,0,0,0.15); display: flex; flex-direction: column; }
+        .logo-section { padding: 1.25rem 1rem; background-color: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; }
+        .logo-icon { width: 38px; height: 38px; background-color: #f59e0b; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 4px 12px rgba(245,158,11,0.3); }
+        .logo-text h1 { font-size: 1rem; font-weight: 700; margin-bottom: 0.1rem; }
+        .logo-text p { font-size: 0.68rem; color: #94a3b8; margin: 0; }
+        .nav-menu { padding: 0.5rem 0; flex: 1; overflow-y: auto; }
+        .nav-section-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; padding: 0.85rem 1.25rem 0.35rem; }
+        .nav-item-custom { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 1.25rem; color: #cbd5e1; text-decoration: none; transition: all 0.2s; font-size: 0.855rem; position: relative; border: none; background: none; width: 100%; }
+        .nav-item-custom:hover { background-color: rgba(245,158,11,0.1); color: white; padding-left: 1.5rem; }
+        .nav-item-custom.active { background-color: #f59e0b; color: white; font-weight: 600; }
+        .nav-item-custom.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background-color: white; }
+        .nav-item-custom i { font-size: 1rem; flex-shrink: 0; width: 18px; text-align: center; }
+        .sidebar-footer { padding: 0.875rem 1.25rem; border-top: 1px solid rgba(255,255,255,0.08); background-color: rgba(0,0,0,0.2); flex-shrink: 0; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background-color: #f59e0b; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem; flex-shrink: 0; }
+        .user-name { font-size: 0.82rem; font-weight: 600; color: white; margin: 0; }
+        .user-role { font-size: 0.7rem; color: #94a3b8; margin: 0; }
+
+        .main-content { margin-left: 260px; flex: 1; min-height: 100vh; }
+        .header-section { background: white; padding: 1.5rem 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+        .filter-card { border: 1px solid #dee2e6; border-radius: 0.5rem; overflow: hidden; }
+        .filter-card-header { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; padding: 0.75rem 1rem; font-weight: 600; font-size: 0.9rem; }
+        .filter-card-body { padding: 1rem; background: white; }
+        .stat-card { background: white; border-radius: 0.5rem; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .table-container { background: white; border-radius: 0.5rem; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .table th { background-color: #f9fafb; font-weight: 600; font-size: 0.875rem; color: #374151; border-bottom: 2px solid #e5e7eb; }
+        .btn-action { padding: 0.25rem 0.55rem; font-size: 0.8rem; border-radius: 6px; }
+        @media (max-width: 992px) { .sidebar { margin-left: -260px; } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+<div class="app-container">
+
+{% include 'includes/sidebar_admin.html' %}
+
+    <div class="main-content">
+        <div class="header-section">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h1 class="fw-bold fs-4 text-dark mb-1">
+                        <i class="bi bi-person-gear text-primary me-2"></i>Gestión de Usuarios
+                    </h1>
+                    <p class="text-muted mb-0 small">Administra todos los usuarios del sistema</p>
+                </div>
+        
+        </div>
+
+        <div class="p-4">
+
+            {% if messages %}{% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-3">
+                {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>{% endfor %}{% endif %}
+
+            {% if error %}
+            <div class="alert alert-danger alert-dismissible fade show">
+                <i class="bi bi-exclamation-triangle me-2"></i>{{ error }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>{% endif %}
+
+            <!-- Estadísticas -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card border-start border-4 border-primary">
+                        <p class="text-muted small mb-1"><i class="bi bi-people me-1"></i>Total Usuarios</p>
+                        <h3 class="fw-bold text-primary mb-0">{{ total_usuarios|default:"0" }}</h3>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card border-start border-4 border-success">
+                        <p class="text-muted small mb-1"><i class="bi bi-person-check me-1"></i>Activos</p>
+                        <h3 class="fw-bold text-success mb-0">{{ usuarios_activos|default:"0" }}</h3>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card border-start border-4 border-warning">
+                        <p class="text-muted small mb-1"><i class="bi bi-bus-front me-1"></i>Conductores</p>
+                        <h3 class="fw-bold text-warning mb-0">{{ total_conductores|default:"0" }}</h3>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card border-start border-4 border-info">
+                        <p class="text-muted small mb-1"><i class="bi bi-list-check me-1"></i>Mostrando</p>
+                        <h3 class="fw-bold text-info mb-0">{{ usuarios|length }}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Búsqueda Multicriterio -->
+            <h5 class="fw-bold mb-3"><i class="bi bi-search me-2 text-primary"></i>Búsqueda Multicriterio</h5>
+            <form method="GET" action="{% url 'usuarios' %}" id="filterForm">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="filter-card">
+                            <div class="filter-card-header"><i class="bi bi-person me-2"></i>Filtro por Nombre</div>
+                            <div class="filter-card-body">
+                                <label class="form-label small">Nombre del Usuario</label>
+                                <div class="input-group">
+                                    <input type="text" name="busqueda" class="form-control"
+                                           value="{{ busqueda|default:'' }}" placeholder="Ej: Juan García">
+                                    <button type="button" class="btn btn-outline-secondary"
+                                            onclick="this.previousElementSibling.value=''">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="filter-card">
+                            <div class="filter-card-header"><i class="bi bi-person-badge me-2"></i>Filtro por Rol</div>
+                            <div class="filter-card-body">
+                                <label class="form-label small">Rol</label>
+                                <select class="form-select" name="rol">
+                                    <option value="">Todos los Roles</option>
+                                    <option value="ADMIN"     {% if rol == 'ADMIN' %}selected{% endif %}>Administrador</option>
+                                    <option value="COLEGIO"   {% if rol == 'COLEGIO' %}selected{% endif %}>Colegio</option>
+                                    <option value="CONDUCTOR" {% if rol == 'CONDUCTOR' %}selected{% endif %}>Conductor</option>
+                                    <option value="MONITORA"  {% if rol == 'MONITORA' %}selected{% endif %}>Monitora</option>
+                                    <option value="PADRE"     {% if rol == 'PADRE' %}selected{% endif %}>Padre de Familia</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="filter-card">
+                            <div class="filter-card-header"><i class="bi bi-check-circle me-2"></i>Filtro por Estado</div>
+                            <div class="filter-card-body">
+                                <label class="form-label small">Estado</label>
+                                <select class="form-select" name="estado">
+                                    <option value="">Todos</option>
+                                    <option value="activo"   {% if estado == 'activo' %}selected{% endif %}>Activo</option>
+                                    <option value="inactivo" {% if estado == 'inactivo' %}selected{% endif %}>Inactivo</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="filter-card">
+                            <div class="filter-card-header"><i class="bi bi-lightning-charge me-2"></i>Acciones</div>
+                            <div class="filter-card-body d-flex flex-wrap gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-search me-1"></i>Buscar
+                                </button>
+                                <a href="{% url 'usuarios' %}" class="btn btn-secondary">
+                                    <i class="bi bi-x-circle me-1"></i>Limpiar Filtros
+                                </a>
+                                <a href="{% url 'usuarios_pdf' %}?busqueda={{ busqueda|default:'' }}&rol={{ rol|default:'' }}&estado={{ estado|default:'' }}"
+                                   class="btn btn-danger" target="_blank">
+                                    <i class="bi bi-file-pdf me-1"></i>Descargar PDF
+                                </a>
+                                <a href="{% url 'usuarios_excel' %}?busqueda={{ busqueda|default:'' }}&rol={{ rol|default:'' }}&estado={{ estado|default:'' }}"
+                                   class="btn btn-success">
+                                    <i class="bi bi-file-earmark-excel me-1"></i>Descargar Excel
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Tabla -->
+            <div class="table-container">
+                <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-table text-primary me-2"></i>Lista de Usuarios</h5>
+                    <span class="badge bg-primary">{{ usuarios|length }} registros</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-3">Cédula</th>
+                                <th class="px-4 py-3">Nombre</th>
+                                <th class="px-4 py-3">Usuario</th>
+                                <th class="px-4 py-3">Email</th>
+                                <th class="px-4 py-3">Teléfono</th>
+                                <th class="px-4 py-3">Rol</th>
+                                <th class="px-4 py-3">Estado</th>
+                                <th class="px-4 py-3 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if not usuarios %}
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-5">
+                                    <i class="bi bi-person-x fs-1 d-block mb-2"></i>
+                                    No hay usuarios. <a href="{% url 'usuarios_nuevo' %}">Crea uno nuevo</a>.
+                                </td>
+                            </tr>
+                            {% else %}
+                            {% for u in usuarios %}
+                            <tr>
+                                <td class="px-4 py-3 fw-semibold">{{ u.cedula }}</td>
+                                <td class="px-4 py-3">{{ u.nombre }}</td>
+                                <td class="px-4 py-3 text-muted">{{ u.user_name }}</td>
+                                <td class="px-4 py-3">{{ u.email }}</td>
+                                <td class="px-4 py-3">{{ u.telefono|default:"—" }}</td>
+                                <td class="px-4 py-3">
+                                    {% if u.rol == 'ADMIN' %}
+                                        <span class="badge bg-dark">Admin</span>
+                                    {% elif u.rol == 'COLEGIO' %}
+                                        <span class="badge bg-primary">Colegio</span>
+                                    {% elif u.rol == 'CONDUCTOR' %}
+                                        <span class="badge bg-warning text-dark">Conductor</span>
+                                    {% elif u.rol == 'MONITORA' %}
+                                        <span class="badge bg-info text-dark">Monitora</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Padre</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3">
+                                    {% if u.activo %}
+                                        <span class="badge bg-success">Activo</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Inactivo</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    <button class="btn btn-info btn-action me-1 text-white" title="Ver detalle"
+                                            onclick="verUsuario('{{ u.cedula }}','{{ u.nombre|escapejs }}','{{ u.user_name }}','{{ u.email }}','{{ u.telefono|default:'' }}','{{ u.rol }}','{% if u.activo %}Activo{% else %}Inactivo{% endif %}')">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <a href="{% url 'usuarios_editar' u.cedula %}"
+                                    class="btn btn-warning btn-action me-1" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-danger btn-action" title="Eliminar"
+                                            onclick="confirmarEliminarUsuario('{% url 'usuarios_eliminar' u.cedula %}','{{ u.nombre|escapejs }}')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+</td>
+                            </tr>
+                            {% endfor %}
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL — Ver Detalle
+══════════════════════════════════════════ -->
+<div class="modal fade" id="viewModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background:linear-gradient(135deg,#6366f1,#4f46e5);color:white;">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-person-circle me-2"></i>Detalle del Usuario
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="viewContent"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i>Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // ── Ver detalle ───────────────────────────────────────────────────
+    function verUsuario(cedula, nombre, username, email, telefono, rol, estado) {
+        const rolLabels = {
+            ADMIN:     '<span class="badge bg-dark">Administrador</span>',
+            COLEGIO:   '<span class="badge bg-primary">Colegio</span>',
+            CONDUCTOR: '<span class="badge bg-warning text-dark">Conductor</span>',
+            MONITORA:  '<span class="badge bg-info text-dark">Monitora</span>',
+            PADRE:     '<span class="badge bg-success">Padre de Familia</span>',
+        };
+    function confirmarEliminarUsuario(url, nombre) {
+        document.getElementById('deleteUsuarioForm').action = url;
+        document.getElementById('deleteUsuarioNombre').textContent = nombre;
+        new bootstrap.Modal(document.getElementById('deleteUsuarioModal')).show();
+}    
+        const estadoBadge = estado === 'Activo'
+            ? '<span class="badge bg-success">Activo</span>'
+            : '<span class="badge bg-danger">Inactivo</span>';
+
+        document.getElementById('viewContent').innerHTML = `
+            <div class="row g-3 p-1">
+                <div class="col-6">
+                    <p class="text-muted small mb-1"><i class="bi bi-card-text me-1"></i>Cédula</p>
+                    <p class="fw-semibold mb-0">${cedula}</p>
+                </div>
+                <div class="col-6">
+                    <p class="text-muted small mb-1"><i class="bi bi-person me-1"></i>Nombre</p>
+                    <p class="fw-semibold mb-0">${nombre}</p>
+                </div>
+                <div class="col-6">
+                    <p class="text-muted small mb-1"><i class="bi bi-at me-1"></i>Usuario</p>
+                    <p class="fw-semibold mb-0">${username}</p>
+                </div>
+                <div class="col-6">
+                    <p class="text-muted small mb-1"><i class="bi bi-envelope me-1"></i>Email</p>
+                    <p class="fw-semibold mb-0" style="font-size:.85rem;">${email}</p>
+                </div>
+                <div class="col-6">
+                    <p class="text-muted small mb-1"><i class="bi bi-telephone me-1"></i>Teléfono</p>
+                    <p class="fw-semibold mb-0">${telefono || '—'}</p>
+                </div>
+                <div class="col-6">
+                    <p class="text-muted small mb-1"><i class="bi bi-shield me-1"></i>Rol</p>
+                    ${rolLabels[rol] || `<span class="badge bg-secondary">${rol}</span>`}
+                </div>
+                <div class="col-12">
+                    <p class="text-muted small mb-1"><i class="bi bi-toggle-on me-1"></i>Estado</p>
+                    ${estadoBadge}
+                </div>
+            </div>`;
+        new bootstrap.Modal(document.getElementById('viewModal')).show();
+    }
+
+    // Auto-cerrar alertas después de 5 s
+    setTimeout(() => document.querySelectorAll('.alert').forEach(a => {
+        try { new bootstrap.Alert(a).close(); } catch(e) {}
+    }), 5000);
+</script>
+<!-- Modal Confirmar Eliminación Usuario -->
+<div class="modal fade" id="deleteUsuarioModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-danger">
+                <h5 class="modal-title text-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Confirmar Eliminación
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Eliminar al usuario <strong id="deleteUsuarioNombre"></strong>?</p>
+                <p class="text-muted small"><strong class="text-danger">Esta acción no se puede deshacer.</strong></p>
+            </div>
+            <div class="modal-footer">
+                <form method="POST" id="deleteUsuarioForm" action="">
+                    {% csrf_token %}
+                    <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i>Sí, Eliminar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

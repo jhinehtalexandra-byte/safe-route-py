@@ -269,6 +269,22 @@
             box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
         }
 
+        .form-control.is-invalid {
+            border-color: #dc3545;
+            background-image: none;
+        }
+
+        .form-control.is-valid {
+            border-color: #198754;
+            background-image: none;
+        }
+
+        .invalid-feedback {
+            font-size: 0.8rem;
+            color: #dc3545;
+            margin-top: 0.25rem;
+        }
+
         .btn-submit {
             width: 100%;
             padding: 0.875rem;
@@ -285,6 +301,29 @@
             background-color: #e67e22;
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+        }
+
+        /* Mensajes Django */
+        .alert-custom {
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .alert-success-custom {
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .alert-error-custom {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
         }
 
         /* Footer */
@@ -349,7 +388,6 @@
                         <a class="nav-link" href="#contacto">Contacto</a>
                     </li>
                     <li class="nav-item ms-lg-3">
-                        <!-- ✅ Django: enlace a la vista login -->
                         <a href="{% url 'login' %}" class="btn btn-login">Iniciar Sesión</a>
                     </li>
                 </ul>
@@ -368,7 +406,6 @@
                         eficientes y en tiempo real. Monitoreo GPS, notificaciones a padres y
                         administración sencilla.
                     </p>
-                    <!-- ✅ Django: enlace a la vista login -->
                     <a href="{% url 'login' %}" class="btn btn-primary-custom">Comenzar Ahora</a>
                 </div>
             </div>
@@ -490,9 +527,21 @@
                 <div class="col-12 col-lg-7">
                     <div class="contact-card p-4">
                         <h3 class="h4 fw-bold mb-4">Envíanos un Mensaje</h3>
-                        <!-- ✅ Django: formulario con csrf_token obligatorio -->
-                        <form id="contactForm" method="POST" action="{% url 'contacto' %}">
+
+                        <!-- Mensajes Django (éxito o error del backend) -->
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert-custom {% if message.tags == 'error' %}alert-error-custom{% else %}alert-success-custom{% endif %}">
+                                    <i class="bi bi-{% if message.tags == 'error' %}exclamation-circle{% else %}check-circle{% endif %}"></i>
+                                    <span>{{ message }}</span>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <form id="contactForm" method="POST" action="{% url 'contacto' %}" novalidate>
                             {% csrf_token %}
+
+                            <!-- Nombre Completo: solo letras y espacios -->
                             <div class="mb-3">
                                 <label for="nombre" class="form-label">Nombre Completo</label>
                                 <input
@@ -501,10 +550,15 @@
                                     id="nombre"
                                     name="nombre"
                                     placeholder="Juan Pérez"
+                                    maxlength="100"
                                     required
                                 />
+                                <div class="invalid-feedback" id="nombreFeedback">
+                                    El nombre solo debe contener letras y espacios.
+                                </div>
                             </div>
 
+                            <!-- Correo Electrónico -->
                             <div class="mb-3">
                                 <label for="email" class="form-label">Correo Electrónico</label>
                                 <input
@@ -513,10 +567,15 @@
                                     id="email"
                                     name="email"
                                     placeholder="tu@email.com"
+                                    maxlength="150"
                                     required
                                 />
+                                <div class="invalid-feedback" id="emailFeedback">
+                                    Ingresa un correo electrónico válido (ejemplo@dominio.com).
+                                </div>
                             </div>
 
+                            <!-- Teléfono: solo números -->
                             <div class="mb-3">
                                 <label for="telefono" class="form-label">Teléfono</label>
                                 <input
@@ -524,8 +583,13 @@
                                     class="form-control"
                                     id="telefono"
                                     name="telefono"
-                                    placeholder="+57 300 123 4567"
+                                    placeholder="3001234567"
+                                    maxlength="15"
                                 />
+                                <div class="invalid-feedback" id="telefonoFeedback">
+                                    El teléfono solo debe contener números (mínimo 7 dígitos).
+                                </div>
+                                <small class="text-muted">Solo números, sin espacios ni símbolos.</small>
                             </div>
 
                             <div class="mb-3">
@@ -537,6 +601,9 @@
                                     <option value="ventas">Ventas</option>
                                     <option value="otro">Otro</option>
                                 </select>
+                                <div class="invalid-feedback">
+                                    Por favor selecciona un asunto.
+                                </div>
                             </div>
 
                             <div class="mb-4">
@@ -547,11 +614,15 @@
                                     name="mensaje"
                                     rows="5"
                                     placeholder="Escribe tu mensaje aquí..."
+                                    maxlength="1000"
                                     required
                                 ></textarea>
+                                <div class="invalid-feedback">
+                                    El mensaje es requerido.
+                                </div>
                             </div>
 
-                            <button type="submit" class="btn-submit">
+                            <button type="submit" class="btn-submit" id="btnSubmit">
                                 <i class="bi bi-send-fill me-2"></i>
                                 Enviar Mensaje
                             </button>
@@ -571,9 +642,115 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // ──────────────────────────────────────────────
+        // VALIDACIONES DE SEGURIDAD - Formulario Contacto
+        // ──────────────────────────────────────────────
+
+        // 1. Nombre: solo letras (incluyendo tildes y ñ) y espacios
+        const nombreInput = document.getElementById('nombre');
+        nombreInput.addEventListener('input', function () {
+            // Eliminar caracteres no permitidos en tiempo real
+            this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, '');
+        });
+
+        function validarNombre() {
+            const valor = nombreInput.value.trim();
+            const regex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]{3,100}$/;
+            if (!valor) {
+                setInvalid(nombreInput, 'nombreFeedback', 'El nombre completo es requerido.');
+                return false;
+            }
+            if (!regex.test(valor)) {
+                setInvalid(nombreInput, 'nombreFeedback', 'El nombre solo debe contener letras y espacios (mínimo 3 caracteres).');
+                return false;
+            }
+            setValid(nombreInput);
+            return true;
+        }
+
+        // 2. Email: debe tener @ y dominio con punto
+        const emailInput = document.getElementById('email');
+
+        function validarEmail() {
+            const valor = emailInput.value.trim();
+            const regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+            if (!valor) {
+                setInvalid(emailInput, 'emailFeedback', 'El correo electrónico es requerido.');
+                return false;
+            }
+            if (!regex.test(valor)) {
+                setInvalid(emailInput, 'emailFeedback', 'Ingresa un correo válido (ejemplo@dominio.com).');
+                return false;
+            }
+            setValid(emailInput);
+            return true;
+        }
+
+        // 3. Teléfono: solo números, mínimo 7 dígitos (campo opcional)
+        const telefonoInput = document.getElementById('telefono');
+        telefonoInput.addEventListener('input', function () {
+            // Eliminar todo lo que no sea número
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+        function validarTelefono() {
+            const valor = telefonoInput.value.trim();
+            // Si está vacío, es opcional → válido
+            if (!valor) {
+                telefonoInput.classList.remove('is-invalid', 'is-valid');
+                return true;
+            }
+            const regex = /^[0-9]{7,15}$/;
+            if (!regex.test(valor)) {
+                setInvalid(telefonoInput, 'telefonoFeedback', 'El teléfono debe contener solo números (mínimo 7 dígitos).');
+                return false;
+            }
+            setValid(telefonoInput);
+            return true;
+        }
+
+        // Helpers para clases de validación
+        function setInvalid(input, feedbackId, msg) {
+            input.classList.remove('is-valid');
+            input.classList.add('is-invalid');
+            const fb = document.getElementById(feedbackId);
+            if (fb) fb.textContent = msg;
+        }
+
+        function setValid(input) {
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+        }
+
+        // Validación en tiempo real (al salir del campo)
+        nombreInput.addEventListener('blur', validarNombre);
+        emailInput.addEventListener('blur', validarEmail);
+        telefonoInput.addEventListener('blur', validarTelefono);
+
+        // Validación al enviar el formulario
+        document.getElementById('contactForm').addEventListener('submit', function (e) {
+            const formValido = this.checkValidity();
+            const nombreOk = validarNombre();
+            const emailOk = validarEmail();
+            const telOk = validarTelefono();
+
+            if (!formValido || !nombreOk || !emailOk || !telOk) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.classList.add('was-validated');
+                return;
+            }
+
+            this.classList.add('was-validated');
+            // Deshabilitar botón para evitar doble envío
+            const btn = document.getElementById('btnSubmit');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Enviando...';
+            btn.disabled = true;
+        });
+
         // Scroll suave para enlaces internos
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
+            anchor.addEventListener('click', function (e) {
                 e.preventDefault();
                 const targetId = this.getAttribute('href');
                 if (targetId === '#') return;
@@ -586,6 +763,15 @@
                 }
             });
         });
+
+        // Auto-ocultar mensajes de Django después de 5 segundos
+        setTimeout(function () {
+            document.querySelectorAll('.alert-custom').forEach(function (el) {
+                el.style.transition = 'opacity 0.5s ease-out';
+                el.style.opacity = '0';
+                setTimeout(() => el.style.display = 'none', 500);
+            });
+        }, 5000);
     </script>
 </body>
 </html>

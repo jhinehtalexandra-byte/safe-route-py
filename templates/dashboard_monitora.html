@@ -1,0 +1,328 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Monitora - RutaEscolar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f1f5f9; overflow-x: hidden; }
+        .app-container { display: flex; min-height: 100vh; }
+
+        /* ══ Sidebar — estilo unificado ══ */
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white; position: fixed; height: 100vh;
+            overflow-y: auto; z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.15);
+            display: flex; flex-direction: column;
+        }
+        .logo-section {
+            padding: 1.25rem 1rem;
+            background-color: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            flex-shrink: 0;
+        }
+        .logo-icon {
+            width: 38px; height: 38px; background-color: #f59e0b;
+            border-radius: 8px; display: flex; align-items: center;
+            justify-content: center; font-size: 1.2rem;
+            box-shadow: 0 4px 12px rgba(245,158,11,0.3);
+        }
+        .logo-text h1 { font-size: 1rem; font-weight: 700; margin-bottom: 0.1rem; }
+        .logo-text p  { font-size: 0.68rem; color: #94a3b8; margin: 0; }
+
+        .nav-menu { padding: 0.5rem 0; flex: 1; overflow-y: auto; }
+        .nav-section-label {
+            font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.1em; color: #64748b;
+            padding: 0.85rem 1.25rem 0.35rem;
+        }
+        .nav-item-custom {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.65rem 1.25rem;
+            color: #cbd5e1; text-decoration: none;
+            transition: all 0.2s; font-size: 0.855rem;
+            position: relative; border: none; background: none; width: 100%;
+        }
+        .nav-item-custom:hover { background-color: rgba(245,158,11,0.1); color: white; padding-left: 1.5rem; }
+        .nav-item-custom.active { background-color: #f59e0b; color: white; font-weight: 600; }
+        .nav-item-custom.active::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+            width: 3px; background-color: white;
+        }
+        .nav-item-custom i { font-size: 1rem; flex-shrink: 0; width: 18px; text-align: center; }
+
+        .sidebar-footer {
+            padding: 0.875rem 1.25rem;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            background-color: rgba(0,0,0,0.2); flex-shrink: 0;
+        }
+        .user-avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            background-color: #f59e0b; display: flex; align-items: center;
+            justify-content: center; color: white; font-size: 1.1rem; flex-shrink: 0;
+        }
+        .user-name { font-size: 0.82rem; font-weight: 600; color: white; margin: 0; }
+        .user-role { font-size: 0.7rem; color: #94a3b8; margin: 0; }
+
+        /* ══ Main ══ */
+        .main-content { margin-left: 260px; flex: 1; min-height: 100vh; background-color: #f1f5f9; }
+        .header-section {
+            background: white; padding: 1.25rem 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .header-section h1 { font-size: 1.5rem; font-weight: bold; color: #1f2937; margin-bottom: 0.2rem; }
+        .header-section p  { font-size: 0.82rem; color: #6b7280; margin: 0; }
+
+        /* ══ Cards ══ */
+        .info-card {
+            background: white; border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid #e5e7eb;
+        }
+        .estudiante-item {
+            background: white; border-radius: 0.5rem; padding: 1rem;
+            border: 1px solid #e5e7eb; transition: all 0.2s;
+        }
+        .estudiante-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+        /* ══ Estado badges ══ */
+        .estado-presente  { background:#dcfce7; color:#14532d; }
+        .estado-ausente   { background:#fee2e2; color:#7f1d1d; }
+        .estado-pendiente { background:#fef3c7; color:#713f12; }
+
+        @media (max-width: 992px) { .sidebar { margin-left: -260px; } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+<div class="app-container">
+
+    <!-- ══════════════════════════════════════════
+         SIDEBAR — ROL: MONITORA
+    ══════════════════════════════════════════ -->
+    
+    {% include 'includes/sidebar_monitora.html' %}
+
+    <!-- ══════════════════════════════════════════
+         MAIN CONTENT
+    ══════════════════════════════════════════ -->
+    <div class="main-content">
+
+        <div class="header-section d-flex justify-content-between align-items-center">
+            <div>
+                <h1>Dashboard Monitora</h1>
+                <p>Bienvenida, <strong>{{ usuario_nombre|default:"Monitora" }}</strong> —
+                   <i class="bi bi-calendar3 me-1"></i>{{ fecha_actual|date:"d/m/Y" }}
+                </p>
+            </div>
+            <a href="{% url 'notificaciones' %}" class="btn btn-outline-secondary position-relative">
+                <i class="bi bi-bell"></i>
+                {% if notif_pendientes > 0 %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    {{ notif_pendientes }}
+                </span>
+                {% endif %}
+            </a>
+        </div>
+
+        <div class="p-4">
+
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-3">
+                    {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Banner estado de lista -->
+            {% if lista_confirmada %}
+            <div class="alert alert-success d-flex align-items-center gap-3 mb-4">
+                <i class="bi bi-check-circle-fill fs-4"></i>
+                <div>
+                    <strong>Lista confirmada.</strong>
+                    El conductor ya puede iniciar el recorrido.
+                    {% if hora_confirmacion_lista %}
+                    <span class="text-muted small ms-2">{{ hora_confirmacion_lista|date:"H:i" }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-warning d-flex align-items-center gap-3 mb-4">
+                <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+                <div>
+                    <strong>Lista pendiente.</strong>
+                    Llama lista y registra novedades para habilitar al conductor.
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="row g-4">
+
+                <!-- ── Lista de estudiantes ── -->
+                <div class="col-12 col-lg-8">
+                    <div class="info-card p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-bold mb-0">
+                                <i class="bi bi-people me-2 text-primary"></i>Lista de Estudiantes
+                            </h5>
+                            {% if not lista_confirmada %}
+                            <form method="POST" action="{% url 'confirmar_lista' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-check2-all me-2"></i>Confirmar Lista
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="badge bg-success p-2 fs-6">
+                                <i class="bi bi-check-circle me-1"></i>Lista Confirmada
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        {% if estudiantes %}
+                            {% for est in estudiantes %}
+                            <div class="estudiante-item mb-3">
+                                <div class="d-flex justify-content-between align-items-start gap-3">
+                                    <div class="d-flex gap-3 flex-grow-1">
+                                        <!-- Avatar iniciales -->
+                                        <div class="rounded-circle bg-warning bg-opacity-20 d-flex align-items-center justify-content-center flex-shrink-0 fw-bold text-warning"
+                                             style="width:46px;height:46px;font-size:.9rem;">
+                                            {{ est.nombre|slice:":1" }}{{ est.apellido|slice:":1" }}
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <p class="fw-semibold mb-1">{{ est.nombre }} {{ est.apellido }}</p>
+                                            <p class="text-muted small mb-1">
+                                                {{ est.grado|default:"Sin grado" }}
+                                                {% if est.institucion %} — {{ est.institucion }}{% endif %}
+                                            </p>
+                                            <p class="text-muted small mb-0">
+                                                <i class="bi bi-geo-alt me-1"></i>{{ est.direccion|default:"Sin dirección" }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <!-- Acciones -->
+                                    <div class="d-flex flex-column gap-2 flex-shrink-0">
+                                        <form method="POST" action="{% url 'registrar_novedad' est.documento %}">
+                                            {% csrf_token %}
+                                            <div class="d-flex gap-1">
+                                                <button type="submit" name="estado" value="PRESENTE"
+                                                        class="btn btn-sm btn-success" title="Presente">
+                                                    <i class="bi bi-check-lg"></i>
+                                                </button>
+                                                <button type="submit" name="estado" value="AUSENTE"
+                                                        class="btn btn-sm btn-danger" title="Ausente">
+                                                    <i class="bi bi-x-lg"></i>
+                                                </button>
+                                                <button type="submit" name="estado" value="RECOGIDO_PADRE"
+                                                        class="btn btn-sm btn-warning" title="Recogido por padre">
+                                                    <i class="bi bi-person-check"></i>
+                                                </button>
+                                                <button type="submit" name="estado" value="ENFERMO"
+                                                        class="btn btn-sm btn-secondary" title="Enfermo">
+                                                    <i class="bi bi-thermometer"></i>
+                                                </button>
+                                            </div>
+                                        </form>
+                                        <form method="POST" action="{% url 'solicitar_autorizacion_medica' est.documento %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-info w-100">
+                                                <i class="bi bi-heart-pulse me-1"></i>Datos médicos
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-5 text-muted">
+                                <i class="bi bi-people fs-1 d-block mb-2"></i>
+                                <p class="mb-0">No hay estudiantes asignados a este recorrido.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- ── Panel lateral ── -->
+                <div class="col-12 col-lg-4 d-flex flex-column gap-4">
+
+                    <!-- Registrar novedad general -->
+                    <div class="info-card p-4">
+                        <h6 class="fw-bold mb-3">
+                            <i class="bi bi-megaphone me-2 text-warning"></i>Registrar Novedad
+                        </h6>
+                        <form method="POST" action="{% url 'registrar_novedad_general' %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <select class="form-select form-select-sm" name="tipo_novedad" required>
+                                    <option value="">Tipo de novedad</option>
+                                    <option value="RETRASO">Retraso en ruta</option>
+                                    <option value="ACCIDENTE">Incidente vial</option>
+                                    <option value="ESTUDIANTE_NO_ENCONTRADO">Estudiante no encontrado</option>
+                                    <option value="OTRO">Otro</option>
+                                </select>
+
+                               <select class="form-select form-select-sm" name="tipo_novedad" required>
+                                    <option value="">Tipo de novedad</option>
+                                    <option value="RETRASO">Retraso en ruta</option>
+                                    <option value="ACCIDENTE">Accidente de tránsito</option>
+                                    <option value="AUSENCIA_EST">Ausencia de estudiante</option>
+                                    <option value="FALLA_MECANICA">Falla mecánica</option>
+                                    <option value="CLIMA">Condiciones climáticas</option>
+                                    <option value="OTRO">Otro</option>
+                                </select> 
+                            </div>
+                            <div class="mb-3">
+                                <textarea class="form-control form-control-sm" name="descripcion"
+                                          rows="3" placeholder="Describa la novedad…" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-warning btn-sm w-100">
+                                <i class="bi bi-send me-2"></i>Enviar Novedad
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Autorizaciones médicas pendientes -->
+                    <div class="info-card p-4 flex-grow-1">
+                        <h6 class="fw-bold mb-3">
+                            <i class="bi bi-shield-check me-2 text-info"></i>Autorizaciones Médicas
+                        </h6>
+                        {% if autorizaciones_pendientes %}
+                            {% for aut in autorizaciones_pendientes %}
+                            <div class="p-2 rounded mb-2" style="background:#f0f9ff; border:1px solid #bae6fd;">
+                                <p class="small fw-semibold mb-1">{{ aut.estudiante }}</p>
+                                <p class="small text-muted mb-1">
+                                    Estado: <span class="badge bg-warning text-dark">{{ aut.estado }}</span>
+                                </p>
+                                <p class="small text-muted mb-0">{{ aut.fecha|date:"H:i" }}</p>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted small text-center py-2">
+                                <i class="bi bi-check-circle-fill text-success me-1"></i>
+                                Sin autorizaciones pendientes
+                            </p>
+                        {% endif %}
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    setTimeout(() => {
+        document.querySelectorAll('.alert-dismissible').forEach(a => {
+            try { new bootstrap.Alert(a).close(); } catch(e) {}
+        });
+    }, 5000);
+</script>
+</body>
+</html>

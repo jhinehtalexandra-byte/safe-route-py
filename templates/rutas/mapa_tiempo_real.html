@@ -1,0 +1,351 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa en Tiempo Real - RutaEscolar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f1f5f9; overflow-x: hidden; }
+        .app-container { display: flex; min-height: 100vh; }
+
+        /* ── Sidebar ── */
+        .sidebar { width: 260px; background: linear-gradient(135deg,#1e293b,#334155); color: white; position: fixed; height: 100vh; overflow-y: auto; z-index: 1000; display: flex; flex-direction: column; }
+        .logo-section { padding: 1.25rem 1rem; background: rgba(0,0,0,.2); border-bottom: 1px solid rgba(255,255,255,.08); flex-shrink: 0; }
+        .logo-icon { width: 38px; height: 38px; background: #f59e0b; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .logo-text h1 { font-size: 1rem; font-weight: 700; margin-bottom: .1rem; }
+        .logo-text p  { font-size: .68rem; color: #94a3b8; margin: 0; }
+        .nav-menu { padding: .5rem 0; flex: 1; overflow-y: auto; }
+        .nav-section-label { font-size: .62rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #64748b; padding: .85rem 1.25rem .35rem; }
+        .nav-item-custom { display: flex; align-items: center; gap: .75rem; padding: .65rem 1.25rem; color: #cbd5e1; text-decoration: none; transition: all .2s; font-size: .855rem; position: relative; border: none; background: none; width: 100%; }
+        .nav-item-custom:hover { background: rgba(245,158,11,.1); color: white; padding-left: 1.5rem; }
+        .nav-item-custom.active { background: #f59e0b; color: white; font-weight: 600; }
+        .nav-item-custom.active::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:white; }
+        .nav-item-custom i { font-size: 1rem; flex-shrink: 0; width: 18px; text-align: center; }
+        .sidebar-footer { padding: .875rem 1.25rem; border-top: 1px solid rgba(255,255,255,.08); background: rgba(0,0,0,.2); flex-shrink: 0; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: #f59e0b; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem; flex-shrink: 0; }
+        .user-name { font-size: .82rem; font-weight: 600; color: white; margin: 0; }
+        .user-role { font-size: .7rem; color: #94a3b8; margin: 0; }
+
+        /* ── Main ── */
+        .main-content { margin-left: 260px; flex: 1; display: flex; flex-direction: column; }
+        .header-section { background: white; padding: 1rem 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,.08); flex-shrink: 0; }
+
+        /* ── Layout mapa ── */
+        .mapa-layout { display: flex; flex: 1; gap: 0; height: calc(100vh - 72px); }
+        #mapa { flex: 1; min-height: 400px; z-index: 1; }
+        .panel-lateral { width: 340px; background: white; border-left: 1px solid #e5e7eb; display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0; }
+
+        /* ── Panel lateral ── */
+        .panel-header { padding: 1rem; border-bottom: 1px solid #f1f5f9; flex-shrink: 0; }
+        .panel-body { flex: 1; overflow-y: auto; padding: 0; }
+
+        /* ── Selector de ruta ── */
+        .ruta-selector { padding: .75rem 1rem; border-bottom: 1px solid #f1f5f9; background: #f8fafc; }
+
+        /* ── Info recorrido ── */
+        .info-recorrido { padding: .875rem 1rem; border-bottom: 1px solid #f1f5f9; }
+        .info-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: .35rem; font-size: .82rem; }
+        .info-label { color: #6b7280; }
+        .info-value { font-weight: 600; color: #1f2937; }
+
+        /* ── Estado badge ── */
+        .estado-en-curso   { background: #dcfce7; color: #14532d; }
+        .estado-pendiente  { background: #fef3c7; color: #92400e; }
+        .estado-finalizado { background: #e0f2fe; color: #0c4a6e; }
+        .estado-badge { display: inline-flex; align-items: center; gap: .3rem; padding: .25rem .6rem; border-radius: 2rem; font-size: .75rem; font-weight: 700; }
+
+        /* ── Paradas ── */
+        .parada-item { display: flex; gap: .75rem; align-items: flex-start; padding: .75rem 1rem; border-bottom: 1px solid #f8fafc; cursor: pointer; transition: background .15s; }
+        .parada-item:hover { background: #f8fafc; }
+        .parada-item.activa { background: #eff6ff; border-left: 3px solid #3b82f6; }
+        .parada-num { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .72rem; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+        .parada-num.completada { background: #10b981; color: white; }
+        .parada-num.pendiente  { background: #e5e7eb; color: #6b7280; }
+        .parada-nombre { font-size: .82rem; font-weight: 600; color: #1f2937; }
+        .parada-dir    { font-size: .72rem; color: #6b7280; margin-top: .1rem; }
+        .parada-hora   { font-size: .7rem; color: #10b981; margin-top: .1rem; }
+
+        /* ── Pulso en tiempo real ── */
+        .pulso-vivo { display: inline-flex; align-items: center; gap: .4rem; }
+        .dot-vivo { width: 8px; height: 8px; border-radius: 50%; background: #10b981; animation: pulso 1.5s infinite; }
+        @keyframes pulso { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.4)} }
+
+        /* ── Sin recorrido ── */
+        .sin-recorrido { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 2rem; text-align: center; color: #6b7280; }
+
+        @media (max-width: 992px) {
+            .sidebar { margin-left: -260px; }
+            .main-content { margin-left: 0; }
+            .mapa-layout { flex-direction: column; height: auto; }
+            .panel-lateral { width: 100%; border-left: none; border-top: 1px solid #e5e7eb; max-height: 50vh; }
+            #mapa { height: 50vh; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+
+    <!-- SIDEBAR -->
+    {% include 'includes/sidebar_admin.html' %}
+    {% include 'includes/sidebar_colegio.html' %} 
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="header-section d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="fw-bold mb-0"><i class="bi bi-broadcast me-2 text-success"></i>Mapa en Tiempo Real</h5>
+                <p class="text-muted small mb-0">
+                    {% if recorrido_activo %}
+                        Ruta: <strong>{{ recorrido_activo.ruta.nombre }}</strong> —
+                        Conductor: <strong>{{ recorrido_activo.conductor.nombre|default:"—" }}</strong>
+                    {% else %}
+                        Seguimiento GPS en vivo del transporte escolar
+                    {% endif %}
+                </p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                {% if recorrido_activo %}
+                <span class="pulso-vivo">
+                    <span class="dot-vivo"></span>
+                    <span class="small text-success fw-semibold">En vivo</span>
+                </span>
+                {% endif %}
+                <span class="text-muted small" id="ultima_actualiz">
+                    {% if ultima_actualiz %}Últ. actualización: {{ ultima_actualiz|date:"H:i:s" }}{% endif %}
+                </span>
+            </div>
+        </div>
+
+        <div class="mapa-layout">
+            <!-- Mapa Leaflet -->
+            <div id="mapa"></div>
+
+            <!-- Panel lateral -->
+            <div class="panel-lateral">
+
+                <!-- Selector de recorrido (Admin/Colegio) -->
+                {% if rutas_en_curso and usuario_rol in 'ADMIN,COLEGIO' %}
+                <div class="ruta-selector">
+                    <label class="form-label small fw-semibold mb-1">Seleccionar Recorrido</label>
+                    <select class="form-select form-select-sm" id="selectorRecorrido"
+                            onchange="location.href='{% url 'mapa_tiempo_real' %}?recorrido='+this.value">
+                        {% for r in rutas_en_curso %}
+                        <option value="{{ r.id }}" {% if recorrido_activo and r.id == recorrido_activo.id %}selected{% endif %}>
+                            {{ r.ruta.nombre }} — {{ r.conductor.nombre|default:"Sin conductor" }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+
+                {% if recorrido_activo %}
+                <!-- Info recorrido -->
+                <div class="info-recorrido">
+                    <div class="info-row">
+                        <span class="info-label">Estado</span>
+                        <span class="estado-badge estado-en-curso">
+                            <span class="dot-vivo" style="width:7px;height:7px;"></span>
+                            {{ recorrido_activo.get_estado_display }}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Ruta</span>
+                        <span class="info-value">{{ recorrido_activo.ruta.nombre }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Conductor</span>
+                        <span class="info-value">{{ recorrido_activo.conductor.nombre|default:"—" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Inicio</span>
+                        <span class="info-value">
+                            {% if recorrido_activo.hora_inicio_real %}
+                                {{ recorrido_activo.hora_inicio_real|date:"H:i" }}
+                            {% else %}—{% endif %}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Ubicación GPS</span>
+                        <span class="info-value small" id="gps_display">
+                            {% if ubicacion_lat %}{{ ubicacion_lat }}, {{ ubicacion_lng }}
+                            {% else %}<span class="text-muted">Sin señal</span>{% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Paradas -->
+                <div class="panel-header">
+                    <p class="fw-bold mb-0 small"><i class="bi bi-geo-alt me-1 text-warning"></i>Paradas del Recorrido</p>
+                </div>
+                <div class="panel-body" id="listaParadas">
+                    <!-- Se renderiza desde JS con los datos JSON -->
+                </div>
+
+                {% else %}
+                <!-- Sin recorrido activo -->
+                <div class="sin-recorrido">
+                    <i class="bi bi-broadcast fs-1 mb-3 text-muted"></i>
+                    <h6 class="fw-semibold">Sin recorrido activo</h6>
+                    <p class="small">
+                        {% if usuario_rol == 'PADRE' %}
+                            No hay un recorrido activo para la ruta de tu hijo en este momento.
+                        {% else %}
+                            No hay recorridos en curso en este momento.
+                        {% endif %}
+                    </p>
+                    <p class="small text-muted">La página se actualizará automáticamente.</p>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    const RECORRIDO_ID  = {{ recorrido_activo.id|default:"null" }};
+    const PARADAS_DATA  = {{ paradas_json|safe }};
+    const LAT_INICIAL   = {{ ubicacion_lat|default:"4.7110" }};
+    const LNG_INICIAL   = {{ ubicacion_lng|default:"-74.0721" }};
+    const HAY_RECORRIDO = {{ recorrido_activo|yesno:"true,false" }};
+
+    /* ── Inicializar mapa ── */
+    const mapa = L.map('mapa').setView([LAT_INICIAL, LNG_INICIAL], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(mapa);
+
+    /* ── Íconos personalizados ── */
+    const iconoBus = L.divIcon({
+        html: '<div style="background:#3b82f6;color:white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;box-shadow:0 2px 8px rgba(0,0,0,.3);border:2px solid white;">🚌</div>',
+        className: '', iconSize: [36, 36], iconAnchor: [18, 18]
+    });
+    const iconoParadaOk = L.divIcon({
+        html: '<div style="background:#10b981;color:white;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.2);"></div>',
+        className: '', iconSize: [22, 22], iconAnchor: [11, 11]
+    });
+    const iconoParadaPend = L.divIcon({
+        html: '<div style="background:#f59e0b;color:white;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.2);"></div>',
+        className: '', iconSize: [22, 22], iconAnchor: [11, 11]
+    });
+
+    let markerBus    = null;
+    let markersParadas = [];
+
+    /* ── Pintar paradas ── */
+    function pintarParadas(paradas) {
+        markersParadas.forEach(m => mapa.removeLayer(m));
+        markersParadas = [];
+
+        const lista = document.getElementById('listaParadas');
+        if (lista) lista.innerHTML = '';
+
+        const bounds = [];
+
+        paradas.forEach((p, idx) => {
+            const lat = parseFloat(p['parada__latitud']);
+            const lng = parseFloat(p['parada__longitud']);
+            const completada = p.estado === 'COMPLETADA';
+
+            if (lat && lng) {
+                const icono = completada ? iconoParadaOk : iconoParadaPend;
+                const marker = L.marker([lat, lng], { icon: icono })
+                    .addTo(mapa)
+                    .bindPopup(`
+                        <strong>${p['parada__nombre']}</strong><br>
+                        <small>${p['parada__direccion']}</small><br>
+                        <span style="color:${completada ? '#10b981' : '#f59e0b'};font-weight:600;">
+                            ${completada ? '✅ Completada' : '⏳ Pendiente'}
+                        </span>
+                        ${p.hora_llegada ? `<br><small>Llegada: ${new Date(p.hora_llegada).toLocaleTimeString('es-CO', {hour:'2-digit',minute:'2-digit'})}</small>` : ''}
+                    `);
+                markersParadas.push(marker);
+                bounds.push([lat, lng]);
+            }
+
+            /* Ítem en panel lateral */
+            if (lista) {
+                const div = document.createElement('div');
+                div.className = 'parada-item' + (idx === 0 && !completada ? ' activa' : '');
+                div.innerHTML = `
+                    <div class="parada-num ${completada ? 'completada' : 'pendiente'}">${p['parada__orden']}</div>
+                    <div>
+                        <div class="parada-nombre">${p['parada__nombre']}</div>
+                        <div class="parada-dir"><i class="bi bi-geo-alt me-1"></i>${p['parada__direccion']}</div>
+                        ${p.hora_llegada
+                            ? `<div class="parada-hora"><i class="bi bi-clock me-1"></i>${new Date(p.hora_llegada).toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}</div>`
+                            : ''}
+                    </div>`;
+                if (lat && lng) {
+                    div.addEventListener('click', () => mapa.setView([lat, lng], 16));
+                }
+                lista.appendChild(div);
+            }
+        });
+
+        return bounds;
+    }
+
+    /* ── Pintar bus ── */
+    function actualizarBus(lat, lng) {
+        if (!lat || !lng) return;
+        if (markerBus) {
+            markerBus.setLatLng([lat, lng]);
+        } else {
+            markerBus = L.marker([lat, lng], { icon: iconoBus, zIndexOffset: 1000 })
+                .addTo(mapa)
+                .bindPopup('<strong>🚌 Bus en camino</strong>');
+        }
+        document.getElementById('gps_display') &&
+            (document.getElementById('gps_display').textContent = `${lat}, ${lng}`);
+    }
+
+    /* ── Render inicial ── */
+    if (PARADAS_DATA.length > 0) {
+        const bounds = pintarParadas(PARADAS_DATA);
+        if (bounds.length > 1) mapa.fitBounds(bounds, { padding: [40, 40] });
+    }
+
+    if (HAY_RECORRIDO && LAT_INICIAL !== 4.711 && LNG_INICIAL !== -74.0721) {
+        actualizarBus(LAT_INICIAL, LNG_INICIAL);
+    }
+
+    /* ── Polling cada 5s ── */
+    function polling() {
+        if (!RECORRIDO_ID) return;
+        fetch(`/ubicacion/${RECORRIDO_ID}/`)
+            .then(r => r.json())
+            .then(data => {
+                if (!data.ok) return;
+
+                actualizarBus(data.lat, data.lng);
+
+                if (data.paradas) {
+                    pintarParadas(data.paradas);
+                }
+
+                if (data.actualizado) {
+                    const t = new Date(data.actualizado).toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+                    const el = document.getElementById('ultima_actualiz');
+                    if (el) el.textContent = 'Últ. actualización: ' + t;
+                }
+
+                if (data.estado === 'FINALIZADO') {
+                    clearInterval(pollingInterval);
+                }
+            })
+            .catch(() => {});
+    }
+
+    const pollingInterval = HAY_RECORRIDO ? setInterval(polling, 5000) : null;
+</script>
+</body>
+</html>

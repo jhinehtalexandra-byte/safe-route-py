@@ -16,6 +16,8 @@
             overflow-x: hidden;
         }
         .app-container { display: flex; min-height: 100vh; }
+
+        /* ── Sidebar ── */
         .sidebar {
             width: 260px;
             background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
@@ -24,30 +26,41 @@
             height: 100vh;
             overflow-y: auto;
             z-index: 1000;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            box-shadow: 2px 0 10px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
         }
         .logo-section {
-            padding: 1.5rem 1.25rem;
+            padding: 1.25rem 1rem;
             background-color: rgba(0,0,0,0.2);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            flex-shrink: 0;
         }
         .logo-icon {
-            width: 40px; height: 40px;
+            width: 38px; height: 38px;
             background-color: #f59e0b;
             border-radius: 8px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             box-shadow: 0 4px 12px rgba(245,158,11,0.3);
         }
-        .logo-text h1 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.125rem; }
-        .logo-text p  { font-size: 0.7rem; color: #cbd5e1; margin: 0; }
-        .nav-menu { padding: 1rem 0; }
+        .logo-text h1 { font-size: 1rem; font-weight: 700; margin-bottom: 0.1rem; }
+        .logo-text p  { font-size: 0.68rem; color: #94a3b8; margin: 0; }
+
+        /* ── Nav ── */
+        .nav-menu { padding: 0.5rem 0; flex: 1; overflow-y: auto; }
+        .nav-section-label {
+            font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.1em; color: #64748b;
+            padding: 0.85rem 1.25rem 0.35rem;
+        }
         .nav-item-custom {
             display: flex; align-items: center; gap: 0.75rem;
-            padding: 0.75rem 1.25rem;
+            padding: 0.65rem 1.25rem;
             color: #cbd5e1; text-decoration: none;
             transition: all 0.2s; cursor: pointer;
-            font-size: 0.9rem; position: relative;
+            font-size: 0.855rem; position: relative;
+            border: none; background: none; width: 100%;
         }
         .nav-item-custom:hover {
             background-color: rgba(245,158,11,0.1);
@@ -58,43 +71,51 @@
         }
         .nav-item-custom.active::before {
             content: ''; position: absolute;
-            left: 0; top: 0; bottom: 0; width: 4px;
+            left: 0; top: 0; bottom: 0; width: 3px;
             background-color: white;
         }
+        .nav-item-custom i { font-size: 1rem; flex-shrink: 0; width: 18px; text-align: center; }
+
         .sidebar-footer {
-            padding: 1rem 1.25rem;
-            border-top: 1px solid rgba(255,255,255,0.1);
+            padding: 0.875rem 1.25rem;
+            border-top: 1px solid rgba(255,255,255,0.08);
             background-color: rgba(0,0,0,0.2);
-            position: absolute; bottom: 0; width: 100%;
+            flex-shrink: 0;
         }
         .user-avatar {
-            width: 40px; height: 40px; border-radius: 50%;
+            width: 36px; height: 36px; border-radius: 50%;
             background-color: #f59e0b;
             display: flex; align-items: center; justify-content: center;
-            color: white; font-size: 1.25rem;
+            color: white; font-size: 1.1rem; flex-shrink: 0;
         }
-        .user-name  { font-size: 0.875rem; font-weight: 600; color: white; margin: 0; }
-        .user-role  { font-size: 0.75rem; color: #cbd5e1; margin: 0; }
+        .user-name { font-size: 0.82rem; font-weight: 600; color: white; margin: 0; }
+        .user-role { font-size: 0.7rem; color: #94a3b8; margin: 0; }
+
+        /* ── Main ── */
         .main-content { margin-left: 260px; flex: 1; min-height: 100vh; background-color: #f1f5f9; }
         .header-section {
-            background: white; padding: 1.5rem 2rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            background: white; padding: 1.25rem 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
             position: sticky; top: 0; z-index: 100;
         }
-        .header-section h1 { font-size: 1.75rem; font-weight: bold; color: #1f2937; margin-bottom: 0.25rem; }
-        .header-section p  { font-size: 0.875rem; color: #6b7280; margin: 0; }
+        .header-section h1 { font-size: 1.5rem; font-weight: bold; color: #1f2937; margin-bottom: 0.2rem; }
+        .header-section p  { font-size: 0.82rem; color: #6b7280; margin: 0; }
+
+        /* ── Stat cards ── */
         .stat-card {
             background: white; border-radius: 0.75rem; padding: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
             transition: all 0.3s; border: 1px solid #e5e7eb;
         }
         .stat-card:hover { transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
         .stat-icon { width: 48px; height: 48px; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; }
         .stat-number { font-size: 2.25rem; font-weight: bold; color: #1f2937; line-height: 1; }
         .stat-label  { font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem; }
+
+        /* ── Info cards ── */
         .info-card {
             background: white; border-radius: 0.75rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
             height: 100%; border: 1px solid #e5e7eb;
         }
         .activity-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 0.4rem; flex-shrink: 0; }
@@ -102,23 +123,27 @@
             background-color: #f8fafc; border-radius: 0.5rem; padding: 1rem;
             transition: all 0.2s; cursor: pointer; border: 1px solid #e5e7eb;
         }
-        .route-card:hover { background-color: #f1f5f9; transform: translateX(5px); border-color: #f59e0b; }
+        .route-card:hover { background-color: #f1f5f9; transform: translateX(4px); border-color: #f59e0b; }
         .chart-container { position: relative; height: 300px; width: 100%; }
+
+        /* ── Quick actions ── */
         .quick-action-card {
-            background: white; border-radius: 0.75rem; padding: 1.25rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: all 0.3s;
+            background: white; border-radius: 0.75rem; padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: all 0.3s;
             cursor: pointer; text-align: center; border: 1px solid #e5e7eb;
             text-decoration: none; color: inherit; display: block;
         }
         .quick-action-card:hover {
-            transform: translateY(-4px); box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-            background-color: #f8fafc; color: inherit;
+            transform: translateY(-4px); box-shadow: 0 6px 12px rgba(0,0,0,0.12);
+            color: inherit;
         }
         .quick-action-icon {
-            width: 56px; height: 56px; border-radius: 50%;
+            width: 48px; height: 48px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 0.75rem; font-size: 1.5rem;
+            margin: 0 auto 0.6rem; font-size: 1.3rem;
         }
+
+        /* ── Banner ── */
         .optimization-banner {
             background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
             border-radius: 0.75rem; padding: 2rem; color: white;
@@ -127,108 +152,60 @@
         }
         .optimization-icon {
             position: absolute; right: 2rem; top: 50%;
-            transform: translateY(-50%); opacity: 0.15; font-size: 8rem;
+            transform: translateY(-50%); opacity: 0.12; font-size: 8rem;
         }
+
+        /* ── Conductores/monitoras mini-stat ── */
+        .mini-stat {
+            background: white; border-radius: 0.5rem; padding: 1rem;
+            border: 1px solid #e5e7eb; text-align: center;
+        }
+        .mini-stat .number { font-size: 1.5rem; font-weight: 700; }
+        .mini-stat .label  { font-size: 0.75rem; color: #6b7280; }
+
         @media (max-width: 992px) {
             .sidebar { margin-left: -260px; }
             .main-content { margin-left: 0; }
-            .stat-number { font-size: 1.75rem; }
         }
     </style>
 </head>
 <body>
 <div class="app-container">
 
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-        <div class="logo-section d-flex align-items-center gap-2">
-            <div class="logo-icon">
-                <i class="bi bi-bus-front"></i>
-            </div>
-            <div class="logo-text">
-                <h1>RutaEscolar</h1>
-                <p>Panel Administrador</p>
-            </div>
-        </div>
+    <!-- ══════════════════════════════════════════
+         SIDEBAR — ROL: ADMIN
+    ══════════════════════════════════════════ -->
+    {% include 'includes/sidebar_admin.html' %}
 
-        <nav class="nav-menu">
-            <a class="nav-item-custom active" href="{% url 'dashboard_admin' %}">
-                <i class="bi bi-grid"></i><span>Dashboard</span>
-            </a>
-            <a class="nav-item-custom" href="{% url 'estudiantes' %}">
-                <i class="bi bi-people"></i><span>Estudiantes</span>
-            </a>
-            <a class="nav-item-custom" href="{% url 'usuarios' %}">
-                <i class="bi bi-person-gear"></i><span>Gestión Usuarios</span>
-            </a>
-            <a class="nav-item-custom" href="{% url 'mapa_conductor' %}">
-                <i class="bi bi-map"></i><span>Mapa Conductor</span>
-            </a>
-            <a class="nav-item-custom" href="{% url 'pagos' %}">
-                <i class="bi bi-credit-card"></i><span>Control Pagos</span>
-            </a>
-            <a class="nav-item-custom" href="{% url 'reportes' %}">
-                <i class="bi bi-file-text"></i><span>Reportes</span>
-            </a>
-            <a class="nav-item-custom" href="{% url 'perfil' %}">
-                <i class="bi bi-person"></i><span>Mi Perfil</span>
-            </a>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div class="d-flex align-items-center gap-2">
-                <div class="user-avatar">
-                    <i class="bi bi-person-circle"></i>
-                </div>
-                <div class="flex-fill">
-                    <p class="user-name">{{ usuario_nombre|default:"Administrador" }}</p>
-                    <p class="user-role">ADMIN</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MAIN CONTENT -->
+    <!-- ══════════════════════════════════════════
+         MAIN CONTENT
+    ══════════════════════════════════════════ -->
     <div class="main-content">
 
         <!-- Header -->
-        <div class="header-section">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1>Dashboard Administrador</h1>
-                    <p>Vista general del sistema RutaEscolar</p>
-                </div>
-                <div class="d-flex gap-2 align-items-center">
-                    <span class="text-muted small me-3">
-                        <i class="bi bi-calendar3 me-1"></i>
-                        {{ fecha_actual|date:"d/m/Y" }}
-                    </span>
-                    <form method="POST" action="{% url 'logout' %}" class="d-inline">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger">
-                            <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
-                        </button>
-                    </form>
-                </div>
+        <div class="header-section d-flex justify-content-between align-items-center">
+            <div>
+                <h1>Dashboard Administrador</h1>
+                <p>Vista general del sistema RutaEscolar</p>
             </div>
+            <span class="text-muted small">
+                <i class="bi bi-calendar3 me-1"></i>{{ fecha_actual|date:"d/m/Y" }}
+            </span>
         </div>
 
-        <!-- Contenido -->
         <div class="p-4">
 
             {% if messages %}
                 {% for message in messages %}
-                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-3" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-3">
+                    {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
                 {% endfor %}
             {% endif %}
 
-            <!-- Tarjetas estadísticas -->
+            <!-- ── Fila 1: KPIs principales ── -->
             <div class="row g-3 mb-4">
-
-                <div class="col-12 col-md-6 col-xl-3">
+                <div class="col-6 col-xl-3">
                     <div class="stat-card">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div class="stat-icon bg-primary bg-opacity-10">
@@ -237,52 +214,43 @@
                             <span class="badge bg-success">Activos</span>
                         </div>
                         <div class="stat-number">{{ total_estudiantes|default:"0" }}</div>
-                        <div class="stat-label">Estudiantes Activos</div>
-                        <div class="mt-3">
-                            <a href="{% url 'estudiantes' %}" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-eye me-1"></i> Ver Todos
-                            </a>
-                        </div>
+                        <div class="stat-label">Estudiantes</div>
+                        <a href="{% url 'estudiantes' %}" class="btn btn-sm btn-outline-primary mt-3">
+                            <i class="bi bi-eye me-1"></i>Ver todos
+                        </a>
                     </div>
                 </div>
-
-                <div class="col-12 col-md-6 col-xl-3">
+                <div class="col-6 col-xl-3">
                     <div class="stat-card">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div class="stat-icon bg-success bg-opacity-10">
-                                <i class="bi bi-geo-alt text-success fs-4"></i>
+                                <i class="bi bi-sign-turn-right text-success fs-4"></i>
                             </div>
                             <span class="badge bg-info">{{ total_rutas|default:"0" }}</span>
                         </div>
                         <div class="stat-number">{{ total_rutas|default:"0" }}</div>
                         <div class="stat-label">Rutas Activas</div>
-                        <div class="mt-3">
-                            <a href="{% url 'mapa_conductor' %}" class="btn btn-sm btn-outline-success">
-                                <i class="bi bi-map me-1"></i> Ver Rutas
-                            </a>
-                        </div>
+                        <a href="{% url 'lista_rutas' %}" class="btn btn-sm btn-outline-success mt-3">
+                            <i class="bi bi-map me-1"></i>Ver rutas
+                        </a>
                     </div>
                 </div>
-
-                <div class="col-12 col-md-6 col-xl-3">
+                <div class="col-6 col-xl-3">
                     <div class="stat-card">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div class="stat-icon bg-warning bg-opacity-10">
-                                <i class="bi bi-currency-dollar text-warning fs-4"></i>
+                                <i class="bi bi-cash-coin text-warning fs-4"></i>
                             </div>
-                            <span class="badge bg-success">Pagados</span>
+                            <span class="badge bg-success">Mes</span>
                         </div>
                         <div class="stat-number">{{ ingresos_mes|default:"0" }}</div>
                         <div class="stat-label">Pagos Realizados</div>
-                        <div class="mt-3">
-                            <a href="{% url 'pagos' %}" class="btn btn-sm btn-outline-warning">
-                                <i class="bi bi-cash-stack me-1"></i> Ver Pagos
-                            </a>
-                        </div>
+                        <a href="{% url 'pagos' %}" class="btn btn-sm btn-outline-warning mt-3">
+                            <i class="bi bi-cash-stack me-1"></i>Ver pagos
+                        </a>
                     </div>
                 </div>
-
-                <div class="col-12 col-md-6 col-xl-3">
+                <div class="col-6 col-xl-3">
                     <div class="stat-card">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div class="stat-icon bg-danger bg-opacity-10">
@@ -292,66 +260,81 @@
                         </div>
                         <div class="stat-number">{{ pagos_pendientes|default:"0" }}</div>
                         <div class="stat-label">Pagos Pendientes</div>
-                        <div class="mt-3">
-                            <a href="{% url 'reportes' %}" class="btn btn-sm btn-outline-danger">
-                                <i class="bi bi-bell me-1"></i> Ver Alertas
-                            </a>
-                        </div>
+                        <a href="{% url 'reportes' %}" class="btn btn-sm btn-outline-danger mt-3">
+                            <i class="bi bi-bell me-1"></i>Ver alertas
+                        </a>
                     </div>
                 </div>
-
             </div>
 
-            <!-- Actividad reciente y próximas rutas -->
-            <div class="row g-4 mb-4">
+            <!-- ── Fila 2: Conductores, Monitoras, Colegios ── -->
+            <div class="row g-3 mb-4">
+                <div class="col-4">
+                    <div class="mini-stat">
+                        <div class="number text-primary">{{ total_conductores|default:"0" }}</div>
+                        <div class="label"><i class="bi bi-person-badge me-1"></i>Conductores</div>
+                        <a href="{% url 'conductores' %}" class="btn btn-sm btn-outline-primary mt-2 w-100">Ver</a>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="mini-stat">
+                        <div class="number" style="color:#be185d;">{{ total_monitoras|default:"0" }}</div>
+                        <div class="label"><i class="bi bi-person-heart me-1"></i>Monitoras</div>
+                        <a href="{% url 'monitoras' %}" class="btn btn-sm mt-2 w-100" style="border-color:#be185d;color:#be185d;">Ver</a>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="mini-stat">
+                        <div class="number text-success">{{ total_colegios|default:"0" }}</div>
+                        <div class="label"><i class="bi bi-building me-1"></i>Colegios</div>
+                        <a href="{% url 'colegios' %}" class="btn btn-sm btn-outline-success mt-2 w-100">Ver</a>
+                    </div>
+                </div>
+            </div>
 
+            <!-- ── Fila 3: Actividad + Próximas rutas ── -->
+            <div class="row g-4 mb-4">
                 <div class="col-12 col-lg-6">
                     <div class="info-card p-4">
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h3 class="h5 fw-bold mb-0">Actividad Reciente</h3>
-                            <button class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-arrow-clockwise"></i>
-                            </button>
+                            <h3 class="h5 fw-bold mb-0">
+                                <i class="bi bi-activity me-2 text-primary"></i>Actividad Reciente
+                            </h3>
+                            <a href="{% url 'notificaciones' %}" class="btn btn-sm btn-outline-secondary">
+                                Ver todas
+                            </a>
                         </div>
                         <div class="d-flex flex-column gap-3">
                             {% if actividades %}
                                 {% for actividad in actividades %}
                                 <div class="d-flex gap-3">
-                                    <div class="activity-dot bg-primary"></div>
-                                    <div class="flex-fill">
+                                    <div class="activity-dot bg-primary mt-1"></div>
+                                    <div>
                                         <p class="mb-1 small fw-medium">{{ actividad.descripcion }}</p>
-                                        <p class="mb-0 text-muted" style="font-size:0.75rem;">{{ actividad.tiempo }}</p>
+                                        <p class="mb-0 text-muted" style="font-size:.72rem;">{{ actividad.tiempo }}</p>
                                     </div>
                                 </div>
                                 {% endfor %}
                             {% else %}
                                 <div class="d-flex gap-3">
-                                    <div class="activity-dot bg-primary"></div>
-                                    <div class="flex-fill">
-                                        <p class="mb-1 small fw-medium">Nuevo estudiante registrado</p>
-                                        <p class="mb-0 text-muted" style="font-size:0.75rem;">Hace 5 minutos</p>
-                                    </div>
+                                    <div class="activity-dot bg-primary mt-1"></div>
+                                    <div><p class="mb-1 small fw-medium">Nuevo estudiante registrado</p>
+                                    <p class="mb-0 text-muted" style="font-size:.72rem;">Hace 5 minutos</p></div>
                                 </div>
                                 <div class="d-flex gap-3">
-                                    <div class="activity-dot bg-success"></div>
-                                    <div class="flex-fill">
-                                        <p class="mb-1 small fw-medium">Pago confirmado - Ruta Norte</p>
-                                        <p class="mb-0 text-muted" style="font-size:0.75rem;">Hace 15 minutos</p>
-                                    </div>
+                                    <div class="activity-dot bg-success mt-1"></div>
+                                    <div><p class="mb-1 small fw-medium">Pago confirmado — Ruta Norte</p>
+                                    <p class="mb-0 text-muted" style="font-size:.72rem;">Hace 15 minutos</p></div>
                                 </div>
                                 <div class="d-flex gap-3">
-                                    <div class="activity-dot bg-warning"></div>
-                                    <div class="flex-fill">
-                                        <p class="mb-1 small fw-medium">Ruta modificada - Ruta Sur</p>
-                                        <p class="mb-0 text-muted" style="font-size:0.75rem;">Hace 30 minutos</p>
-                                    </div>
+                                    <div class="activity-dot bg-warning mt-1"></div>
+                                    <div><p class="mb-1 small fw-medium">Ruta modificada — Ruta Sur</p>
+                                    <p class="mb-0 text-muted" style="font-size:.72rem;">Hace 30 minutos</p></div>
                                 </div>
                                 <div class="d-flex gap-3">
-                                    <div class="activity-dot bg-info"></div>
-                                    <div class="flex-fill">
-                                        <p class="mb-1 small fw-medium">Conductor conectado - Carlos R.</p>
-                                        <p class="mb-0 text-muted" style="font-size:0.75rem;">Hace 1 hora</p>
-                                    </div>
+                                    <div class="activity-dot bg-info mt-1"></div>
+                                    <div><p class="mb-1 small fw-medium">Conductor conectado — Carlos R.</p>
+                                    <p class="mb-0 text-muted" style="font-size:.72rem;">Hace 1 hora</p></div>
                                 </div>
                             {% endif %}
                         </div>
@@ -361,18 +344,18 @@
                 <div class="col-12 col-lg-6">
                     <div class="info-card p-4">
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h3 class="h5 fw-bold mb-0">Próximas Rutas</h3>
-                            <a href="{% url 'mapa_conductor' %}" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-plus-circle me-1"></i> Ver Todas
-                            </a>
+                            <h3 class="h5 fw-bold mb-0">
+                                <i class="bi bi-clock me-2 text-success"></i>Próximas Rutas
+                            </h3>
+                            <a href="{% url 'lista_rutas' %}" class="btn btn-sm btn-outline-success">Ver todas</a>
                         </div>
                         <div class="d-flex flex-column gap-3">
                             {% if proximas_rutas %}
                                 {% for ruta in proximas_rutas %}
                                 <div class="route-card">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
                                         <h4 class="h6 fw-semibold mb-0">{{ ruta.nombre }}</h4>
-                                        <span class="fw-bold text-primary">{{ ruta.hora_inicio }}</span>
+                                        <span class="fw-bold text-primary small">{{ ruta.hora_inicio }}</span>
                                     </div>
                                     <div class="d-flex justify-content-between small text-muted">
                                         <span>{{ ruta.turno }}</span>
@@ -382,27 +365,27 @@
                                 {% endfor %}
                             {% else %}
                                 <div class="route-card">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <h4 class="h6 fw-semibold mb-0">Ruta Norte - Mañana</h4>
-                                        <span class="fw-bold text-primary">6:30 AM</span>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <h4 class="h6 fw-semibold mb-0">Ruta Norte — Mañana</h4>
+                                        <span class="fw-bold text-primary small">6:30 AM</span>
                                     </div>
                                     <div class="d-flex justify-content-between small text-muted">
                                         <span>25 estudiantes</span><span>Carlos Rodríguez</span>
                                     </div>
                                 </div>
                                 <div class="route-card">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <h4 class="h6 fw-semibold mb-0">Ruta Sur - Mañana</h4>
-                                        <span class="fw-bold text-primary">7:00 AM</span>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <h4 class="h6 fw-semibold mb-0">Ruta Sur — Mañana</h4>
+                                        <span class="fw-bold text-primary small">7:00 AM</span>
                                     </div>
                                     <div class="d-flex justify-content-between small text-muted">
                                         <span>18 estudiantes</span><span>María López</span>
                                     </div>
                                 </div>
                                 <div class="route-card">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <h4 class="h6 fw-semibold mb-0">Ruta Este - Tarde</h4>
-                                        <span class="fw-bold text-warning">2:30 PM</span>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <h4 class="h6 fw-semibold mb-0">Ruta Este — Tarde</h4>
+                                        <span class="fw-bold text-warning small">2:30 PM</span>
                                     </div>
                                     <div class="d-flex justify-content-between small text-muted">
                                         <span>22 estudiantes</span><span>Pedro Gómez</span>
@@ -412,15 +395,15 @@
                         </div>
                     </div>
                 </div>
-
             </div>
 
-            <!-- Gráfico y acciones rápidas -->
+            <!-- ── Fila 4: Gráfico + Acciones rápidas ── -->
             <div class="row g-4 mb-4">
-
                 <div class="col-12 col-lg-8">
                     <div class="info-card p-4">
-                        <h3 class="h5 fw-bold mb-4">Distribución de Estudiantes por Ruta</h3>
+                        <h3 class="h5 fw-bold mb-4">
+                            <i class="bi bi-pie-chart me-2 text-warning"></i>Distribución de Estudiantes por Ruta
+                        </h3>
                         <div class="chart-container">
                             <canvas id="studentsByRouteChart"></canvas>
                         </div>
@@ -429,22 +412,32 @@
 
                 <div class="col-12 col-lg-4">
                     <div class="info-card p-4">
-                        <h3 class="h5 fw-bold mb-4">Acciones Rápidas</h3>
-                        <div class="row g-3">
+                        <h3 class="h5 fw-bold mb-4">
+                            <i class="bi bi-lightning-charge me-2 text-warning"></i>Acciones Rápidas
+                        </h3>
+                        <div class="row g-2">
                             <div class="col-6">
                                 <a href="{% url 'estudiantes' %}" class="quick-action-card">
                                     <div class="quick-action-icon bg-primary bg-opacity-10">
-                                        <i class="bi bi-person-plus text-primary"></i>
+                                        <i class="bi bi-people text-primary"></i>
                                     </div>
-                                    <h6 class="fw-semibold mb-0 small">Estudiantes</h6>
+                                    <p class="fw-semibold mb-0 small">Estudiantes</p>
                                 </a>
                             </div>
                             <div class="col-6">
-                                <a href="{% url 'usuarios_nuevo' %}" class="quick-action-card">
-                                    <div class="quick-action-icon bg-success bg-opacity-10">
-                                        <i class="bi bi-person-add text-success"></i>
+                                <a href="{% url 'conductores' %}" class="quick-action-card">
+                                    <div class="quick-action-icon bg-info bg-opacity-10">
+                                        <i class="bi bi-person-badge text-info"></i>
                                     </div>
-                                    <h6 class="fw-semibold mb-0 small">Nuevo Usuario</h6>
+                                    <p class="fw-semibold mb-0 small">Conductores</p>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="{% url 'monitoras' %}" class="quick-action-card">
+                                    <div class="quick-action-icon" style="background:#fce7f3;">
+                                        <i class="bi bi-person-heart" style="color:#be185d;"></i>
+                                    </div>
+                                    <p class="fw-semibold mb-0 small">Monitoras</p>
                                 </a>
                             </div>
                             <div class="col-6">
@@ -452,35 +445,53 @@
                                     <div class="quick-action-icon bg-warning bg-opacity-10">
                                         <i class="bi bi-cash-coin text-warning"></i>
                                     </div>
-                                    <h6 class="fw-semibold mb-0 small">Pagos</h6>
+                                    <p class="fw-semibold mb-0 small">Pagos</p>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="{% url 'colegios' %}" class="quick-action-card">
+                                    <div class="quick-action-icon bg-success bg-opacity-10">
+                                        <i class="bi bi-building text-success"></i>
+                                    </div>
+                                    <p class="fw-semibold mb-0 small">Colegios</p>
                                 </a>
                             </div>
                             <div class="col-6">
                                 <a href="{% url 'reportes' %}" class="quick-action-card">
-                                    <div class="quick-action-icon bg-info bg-opacity-10">
-                                        <i class="bi bi-file-earmark-text text-info"></i>
+                                    <div class="quick-action-icon bg-danger bg-opacity-10">
+                                        <i class="bi bi-bar-chart-line text-danger"></i>
                                     </div>
-                                    <h6 class="fw-semibold mb-0 small">Reportes</h6>
+                                    <p class="fw-semibold mb-0 small">Reportes</p>
                                 </a>
+                                <!-- En el dashboard admin, sección de herramientas o acciones rápidas -->
+                                <form method="POST" action="{% url 'resetear_lista' %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{% url 'dashboard_admin' %}">
+                                    <button type="submit" class="btn btn-outline-warning btn-sm"
+                                            onclick="return confirm('¿Resetear la lista confirmada del recorrido de hoy?')">
+                                        <i class="bi bi-arrow-counterclockwise me-1"></i>Resetear Lista Monitora
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>
                 </div>
-
             </div>
 
-            <!-- Banner optimización -->
+            <!-- ── Banner optimización ── -->
             <div class="optimization-banner">
                 <div class="position-relative" style="z-index:1;">
-                    <h3 class="h4 fw-bold mb-3">Optimización de Rutas</h3>
-                    <p class="mb-4 opacity-90">
+                    <h3 class="h4 fw-bold mb-2">
+                        <i class="bi bi-graph-up-arrow me-2"></i>Optimización de Rutas
+                    </h3>
+                    <p class="mb-3 opacity-90 small">
                         El sistema puede optimizar automáticamente las rutas para ahorrar tiempo y combustible.
                     </p>
-                    <button class="btn btn-light text-warning fw-semibold px-4 shadow">
-                        <i class="bi bi-lightning-charge me-2"></i> Optimizar Ahora
-                    </button>
+                    <a href="{% url 'rutas_gestion' %}" class="btn btn-light text-warning fw-semibold px-4 shadow-sm">
+                        <i class="bi bi-lightning-charge me-2"></i>Gestionar Rutas
+                    </a>
                 </div>
-                <i class="bi bi-graph-up-arrow optimization-icon"></i>
+                <i class="bi bi-bus-front optimization-icon"></i>
             </div>
 
         </div>
@@ -500,7 +511,7 @@
                 labels: labelsGrafico,
                 datasets: [{
                     data: valoresGrafico,
-                    backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6'],
+                    backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899'],
                     borderWidth: 0
                 }]
             },
@@ -508,21 +519,23 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: { padding: 15, font: { size: 12 } }
-                    },
+                    legend: { position: 'bottom', labels: { padding: 15, font: { size: 11 } } },
                     tooltip: {
                         callbacks: {
-                            label: function (context) {
-                                return context.label + ': ' + context.parsed + ' estudiantes';
-                            }
+                            label: ctx => ctx.label + ': ' + ctx.parsed + ' estudiantes'
                         }
                     }
                 }
             }
         });
     });
+
+    /* Auto-ocultar alertas */
+    setTimeout(() => {
+        document.querySelectorAll('.alert').forEach(a => {
+            try { new bootstrap.Alert(a).close(); } catch(e) {}
+        });
+    }, 5000);
 </script>
 </body>
 </html>

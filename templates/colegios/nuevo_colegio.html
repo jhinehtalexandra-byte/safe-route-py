@@ -1,0 +1,469 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if es_nuevo %}Nuevo Colegio{% else %}Editar Colegio{% endif %} - RutaEscolar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f1f5f9; }
+        .app-container { display: flex; min-height: 100vh; }
+        .sidebar { width: 260px; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; position: fixed; height: 100vh; overflow-y: auto; z-index: 1000; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+        .logo-section { padding: 1.5rem 1.25rem; background-color: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .logo-icon { width: 40px; height: 40px; background-color: #f59e0b; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
+        .logo-text h1 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.125rem; }
+        .logo-text p { font-size: 0.7rem; color: #cbd5e1; margin: 0; }
+        .nav-menu { padding: 1rem 0; }
+        .nav-item-custom { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.25rem; color: #cbd5e1; text-decoration: none; transition: all 0.2s; font-size: 0.9rem; position: relative; }
+        .nav-item-custom:hover { background-color: rgba(245,158,11,0.1); color: white; padding-left: 1.5rem; }
+        .nav-item-custom.active { background-color: #f59e0b; color: white; font-weight: 600; }
+        .nav-item-custom.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background-color: white; }
+        .sidebar-footer { padding: 1rem 1.25rem; border-top: 1px solid rgba(255,255,255,0.1); background-color: rgba(0,0,0,0.2); position: absolute; bottom: 0; width: 100%; }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
+        .main-content { margin-left: 260px; flex: 1; min-height: 100vh; }
+        .header-section { background: white; padding: 1.25rem 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+        .form-container { background: white; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; }
+        .section-header { background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%); color: white; padding: 0.9rem 1.5rem; border-radius: 0.75rem 0.75rem 0 0; }
+        .form-section { padding: 1.5rem; border-bottom: 1px solid #f1f5f9; }
+        .form-section:last-of-type { border-bottom: none; }
+        .form-section-title { font-size: 0.95rem; font-weight: 700; color: #1f2937; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid #f59e0b; }
+        .form-section-title i { color: #f59e0b; }
+        .form-label { font-size: 0.82rem; font-weight: 600; color: #374151; margin-bottom: 0.35rem; }
+        .form-control, .form-select { font-size: 0.85rem; }
+        .required { color: #ef4444; }
+        .logo-preview { width: 80px; height: 80px; border-radius: 12px; border: 2px dashed #e5e7eb; display: flex; align-items: center; justify-content: center; background: #f8fafc; overflow: hidden; }
+        .credentials-box { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border-radius: 0.5rem; padding: 1rem 1.25rem; color: white; }
+        .credentials-box .label { font-size: 0.72rem; color: #94a3b8; margin-bottom: 0.2rem; }
+        .credentials-box .value { font-size: 0.9rem; font-weight: 600; }
+        @media (max-width: 992px) { .sidebar { margin-left: -260px; } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+<div class="app-container">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="logo-section d-flex align-items-center gap-2">
+            <div class="logo-icon"><i class="bi bi-bus-front text-white"></i></div>
+            <div class="logo-text"><h1>RutaEscolar</h1><p>Panel Administrador</p></div>
+        </div>
+        <nav class="nav-menu">
+            <a class="nav-item-custom" href="{% url 'dashboard_admin' %}"><i class="bi bi-grid"></i><span>Dashboard</span></a>
+            <a class="nav-item-custom" href="{% url 'estudiantes' %}"><i class="bi bi-people"></i><span>Estudiantes</span></a>
+            <a class="nav-item-custom" href="{% url 'usuarios' %}"><i class="bi bi-person-gear"></i><span>Gestión Usuarios</span></a>
+            <a class="nav-item-custom active" href="{% url 'colegios' %}"><i class="bi bi-building"></i><span>Colegios</span></a>
+            <a class="nav-item-custom" href="{% url 'mapa_conductor' %}"><i class="bi bi-map"></i><span>Mapa Conductor</span></a>
+            <a class="nav-item-custom" href="{% url 'pagos' %}"><i class="bi bi-credit-card"></i><span>Control Pagos</span></a>
+            <a class="nav-item-custom" href="{% url 'reportes' %}"><i class="bi bi-file-text"></i><span>Reportes</span></a>
+            <a class="nav-item-custom" href="{% url 'perfil' %}"><i class="bi bi-person"></i><span>Mi Perfil</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="d-flex align-items-center gap-2">
+                <div class="user-avatar"><i class="bi bi-person-circle text-white"></i></div>
+                <div class="flex-fill">
+                    <p style="font-size:.875rem;font-weight:600;color:white;margin:0">{{ usuario_nombre|default:"Administrador" }}</p>
+                    <p style="font-size:.75rem;color:#cbd5e1;margin:0">ADMIN</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main-content">
+        <div class="header-section">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <h1 class="fw-bold fs-5 text-dark mb-0">
+                        <i class="bi bi-building text-warning me-2"></i>
+                        {% if es_nuevo %}Registrar Nuevo Colegio{% else %}Editar Colegio{% endif %}
+                    </h1>
+                    <div class="d-flex align-items-center gap-2 mt-1">
+                        <a href="{% url 'colegios' %}" class="text-primary text-decoration-none" style="font-size:.8rem;">
+                            <i class="bi bi-arrow-left me-1"></i>Volver a la lista
+                        </a>
+                        <span class="text-muted" style="font-size:.8rem;">|</span>
+                        <span class="text-muted" style="font-size:.8rem;"><i class="bi bi-calendar3 me-1"></i>{{ fecha_actual|date:"d/m/Y" }}</span>
+                    </div>
+                </div>
+                <form method="POST" action="{% url 'logout' %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-box-arrow-right me-1"></i>Cerrar Sesión</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="p-3">
+            {% if messages %}{% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-3 py-2 small">
+                <i class="bi bi-info-circle me-1"></i>{{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>{% endfor %}{% endif %}
+
+            <div class="form-container">
+                <div class="section-header d-flex align-items-center gap-3">
+                    <div style="width:44px;height:44px;background:rgba(255,255,255,0.2);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+                        <i class="bi bi-building fs-4"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0">
+                            {% if es_nuevo %}Datos del nuevo colegio{% else %}Editando: {{ colegio.nombre_institucion }}{% endif %}
+                        </h5>
+                        <small class="opacity-75">Solo el Administrador puede registrar colegios en el sistema</small>
+                    </div>
+                </div>
+
+                {% if es_nuevo %}
+                <form method="POST" action="{% url 'colegios_nuevo' %}" id="colegioForm" enctype="multipart/form-data" novalidate>
+                {% else %}
+                <form method="POST" action="{% url 'colegios_editar' colegio.nit %}" id="colegioForm" enctype="multipart/form-data" novalidate>
+                {% endif %}
+                {% csrf_token %}
+
+                <!-- ══ SECCIÓN 1 — Identificación ══ -->
+                <div class="form-section">
+                    <div class="form-section-title"><i class="bi bi-building"></i> Identificación de la Institución</div>
+                    <div class="row g-3">
+
+                        <div class="col-md-4">
+                            <label class="form-label">NIT <span class="required">*</span></label>
+                            {% if es_nuevo %}
+                            <input type="text" class="form-control form-control-sm" name="nit"
+                                   required maxlength="20" placeholder="Ej: 900123456-1"
+                                   value="{{ nit_previo|default:'' }}" id="nit">
+                            {% else %}
+                            <input type="text" class="form-control form-control-sm bg-light" value="{{ colegio.nit }}" readonly>
+                            <small class="text-muted">El NIT no se puede modificar</small>
+                            {% endif %}
+                            <div class="invalid-feedback">El NIT es requerido.</div>
+                        </div>
+
+                        <div class="col-md-8">
+                            <label class="form-label">Nombre de la Institución <span class="required">*</span></label>
+                            <input type="text" class="form-control form-control-sm" name="nombre_institucion"
+                                   required maxlength="200" placeholder="Ej: Colegio San Agustín"
+                                   value="{% if colegio %}{{ colegio.nombre_institucion }}{% else %}{{ nombre_institucion_previo|default:'' }}{% endif %}">
+                            <div class="invalid-feedback">El nombre es requerido.</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Tipo de Institución <span class="required">*</span></label>
+                            <select class="form-select form-select-sm" name="tipo_institucion" required>
+                                <option value="">-- Seleccione --</option>
+                                {% with ti=colegio.tipo_institucion|default:tipo_institucion_previo|default:'' %}
+                                <option value="PUBLICA"   {% if ti == 'PUBLICA'   %}selected{% endif %}>Pública</option>
+                                <option value="PRIVADA"   {% if ti == 'PRIVADA'   %}selected{% endif %}>Privada</option>
+                                <option value="CONCESION" {% if ti == 'CONCESION' %}selected{% endif %}>Concesión</option>
+                                <option value="TECNICA"   {% if ti == 'TECNICA'   %}selected{% endif %}>Técnica</option>
+                                {% endwith %}
+                            </select>
+                            <div class="invalid-feedback">Seleccione el tipo.</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Código DANE</label>
+                            <input type="text" class="form-control form-control-sm" name="codigo_dane"
+                                   maxlength="20" placeholder="Ej: 111001012345"
+                                   value="{% if colegio %}{{ colegio.codigo_dane|default:'' }}{% else %}{{ codigo_dane_previo|default:'' }}{% endif %}">
+                            <small class="text-muted" style="font-size:.72rem;">Opcional</small>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Logo</label>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="logo-preview" id="logoPreview">
+                                    {% if colegio and colegio.logo %}
+                                    <img src="{{ colegio.logo.url }}" alt="Logo">
+                                    {% else %}
+                                    <i class="bi bi-building text-muted fs-3"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <input type="file" class="form-control form-control-sm" name="logo" accept="image/*" id="logoInput">
+                                    <small class="text-muted" style="font-size:.72rem;">PNG, JPG. Máx 2 MB</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══ SECCIÓN 2 — Ubicación ══ -->
+                <div class="form-section">
+                    <div class="form-section-title"><i class="bi bi-geo-alt"></i> Ubicación y Contacto</div>
+                    <div class="row g-3">
+
+                        <div class="col-md-8">
+                            <label class="form-label">Dirección <span class="required">*</span></label>
+                            <input type="text" class="form-control form-control-sm" name="direccion"
+                                   required maxlength="300" placeholder="Ej: Calle 45 # 23-10"
+                                   value="{% if colegio %}{{ colegio.direccion }}{% else %}{{ direccion_previo|default:'' }}{% endif %}">
+                            <div class="invalid-feedback">La dirección es requerida.</div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Ciudad <span class="required">*</span></label>
+                            <input type="text" class="form-control form-control-sm" name="ciudad"
+                                   required maxlength="100" placeholder="Ej: Bogotá"
+                                   value="{% if colegio %}{{ colegio.ciudad }}{% else %}{{ ciudad_previo|default:'' }}{% endif %}">
+                            <div class="invalid-feedback">La ciudad es requerida.</div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Departamento</label>
+                            <input type="text" class="form-control form-control-sm" name="departamento"
+                                   maxlength="100" placeholder="Ej: Cundinamarca"
+                                   value="{% if colegio %}{{ colegio.departamento|default:'' }}{% else %}{{ departamento_previo|default:'' }}{% endif %}">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Teléfono Institucional <span class="required">*</span></label>
+                            <input type="tel" class="form-control form-control-sm" name="telefono"
+                                   required maxlength="20" placeholder="+57 1 234 5678" id="telefonoInst"
+                                   value="{% if colegio %}{{ colegio.telefono }}{% else %}{{ telefono_previo|default:'' }}{% endif %}">
+                            <div class="invalid-feedback">El teléfono es requerido.</div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Email Institucional <span class="required">*</span></label>
+                            <input type="email" class="form-control form-control-sm" name="email_institucional"
+                                   required maxlength="200" placeholder="info@colegio.edu.co"
+                                   value="{% if colegio %}{{ colegio.email_institucional }}{% else %}{{ email_institucional_previo|default:'' }}{% endif %}">
+                            <div class="invalid-feedback">Ingrese un email válido.</div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Sitio Web</label>
+                            <input type="url" class="form-control form-control-sm" name="sitio_web"
+                                   maxlength="200" placeholder="https://www.colegio.edu.co"
+                                   value="{% if colegio %}{{ colegio.sitio_web|default:'' }}{% else %}{{ sitio_web_previo|default:'' }}{% endif %}">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══ SECCIÓN 3 — Rector ══ -->
+                <div class="form-section">
+                    <div class="form-section-title"><i class="bi bi-person-badge"></i> Representante Legal / Rector</div>
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre del Rector <span class="required">*</span></label>
+                            <input type="text" class="form-control form-control-sm" name="nombre_rector"
+                                   required maxlength="200" placeholder="Nombre completo"
+                                   value="{% if colegio %}{{ colegio.nombre_rector }}{% else %}{{ nombre_rector_previo|default:'' }}{% endif %}">
+                            <div class="invalid-feedback">El nombre del rector es requerido.</div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Teléfono del Rector</label>
+                            <input type="tel" class="form-control form-control-sm" name="telefono_rector"
+                                   maxlength="20" placeholder="+57 300 123 4567"
+                                   value="{% if colegio %}{{ colegio.telefono_rector|default:'' }}{% else %}{{ telefono_rector_previo|default:'' }}{% endif %}">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Email del Rector</label>
+                            <input type="email" class="form-control form-control-sm" name="email_rector"
+                                   maxlength="200" placeholder="rector@colegio.edu.co"
+                                   value="{% if colegio %}{{ colegio.email_rector|default:'' }}{% else %}{{ email_rector_previo|default:'' }}{% endif %}">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══ SECCIÓN 4 — Credenciales ══ -->
+                <div class="form-section">
+                    <div class="form-section-title"><i class="bi bi-shield-lock"></i> Credenciales de Acceso al Sistema</div>
+
+                    {% if not es_nuevo %}
+                    <div class="credentials-box mb-3">
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <p class="label mb-0">Usuario actual</p>
+                                <p class="value mb-0">{{ colegio.usuario.user_name|default:"—" }}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p class="label mb-0">Email de acceso</p>
+                                <p class="value mb-0">{{ colegio.usuario.email|default:"—" }}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p class="label mb-0">Estado</p>
+                                <p class="value mb-0">
+                                    {% if colegio.usuario.activo %}<span class="badge bg-success">Activo</span>
+                                    {% else %}<span class="badge bg-danger">Inactivo</span>{% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Nombre de Usuario <span class="required">*</span></label>
+                            {% if es_nuevo %}
+                            <input type="text" class="form-control form-control-sm" name="user_name"
+                                   required minlength="4" maxlength="50" pattern="[a-zA-Z0-9_]+"
+                                   placeholder="Ej: colegio_sanagustin"
+                                   value="{{ user_name_previo|default:'' }}" id="userName">
+                            <small class="text-muted" style="font-size:.72rem;">Solo letras, números y guion bajo</small>
+                            {% else %}
+                            <input type="text" class="form-control form-control-sm bg-light" value="{{ colegio.usuario.user_name }}" readonly>
+                            <small class="text-muted" style="font-size:.72rem;">El usuario no se puede modificar</small>
+                            {% endif %}
+                            <div class="invalid-feedback">Mínimo 4 caracteres.</div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Contraseña{% if es_nuevo %} <span class="required">*</span>{% endif %}</label>
+                            <div class="input-group input-group-sm">
+                                <input type="password" class="form-control" name="password" id="password"
+                                       minlength="6" maxlength="100"
+                                       {% if es_nuevo %}required{% endif %}
+                                       placeholder="Mínimo 6 caracteres">
+                                <button type="button" class="btn btn-outline-secondary" onclick="togglePass('password','iconPass')">
+                                    <i class="bi bi-eye" id="iconPass"></i>
+                                </button>
+                            </div>
+                            {% if not es_nuevo %}
+                            <small class="text-muted" style="font-size:.72rem;">Deje en blanco para mantener la actual</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Confirmar Contraseña{% if es_nuevo %} <span class="required">*</span>{% endif %}</label>
+                            <div class="input-group input-group-sm">
+                                <input type="password" class="form-control" id="confirmPass"
+                                       minlength="6" maxlength="100"
+                                       {% if es_nuevo %}required{% endif %}
+                                       placeholder="Repita la contraseña">
+                                <button type="button" class="btn btn-outline-secondary" onclick="togglePass('confirmPass','iconConfirm')">
+                                    <i class="bi bi-eye" id="iconConfirm"></i>
+                                </button>
+                            </div>
+                            <small id="passMatch" class="text-muted" style="font-size:.72rem;"></small>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Estado <span class="required">*</span></label>
+                            <div class="d-flex gap-3 mt-1">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="activo" id="activoTrue" value="true"
+                                           {% if not colegio or colegio.usuario.activo %}checked{% endif %} required>
+                                    <label class="form-check-label small" for="activoTrue">Activo</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="activo" id="activoFalse" value="false"
+                                           {% if colegio and not colegio.usuario.activo %}checked{% endif %}>
+                                    <label class="form-check-label small" for="activoFalse">Inactivo</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══ SECCIÓN 5 — Configuración operativa ══ -->
+                <div class="form-section">
+                    <div class="form-section-title"><i class="bi bi-gear"></i> Configuración Operativa</div>
+                    <div class="row g-3">
+
+                        <div class="col-md-3">
+                            <label class="form-label">Max. Rutas</label>
+                            <input type="number" class="form-control form-control-sm" name="max_rutas"
+                                   min="1" max="100"
+                                   value="{% if colegio %}{{ colegio.max_rutas }}{% else %}10{% endif %}">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Max. Conductores</label>
+                            <input type="number" class="form-control form-control-sm" name="max_conductores"
+                                   min="1" max="500"
+                                   value="{% if colegio %}{{ colegio.max_conductores }}{% else %}20{% endif %}">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Max. Estudiantes</label>
+                            <input type="number" class="form-control form-control-sm" name="max_estudiantes"
+                                   min="1" max="5000"
+                                   value="{% if colegio %}{{ colegio.max_estudiantes }}{% else %}500{% endif %}">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Plan</label>
+                            <select class="form-select form-select-sm" name="plan">
+                                {% with pl=colegio.plan|default:'' %}
+                                <option value="BASICO"    {% if pl == 'BASICO'    or not pl %}selected{% endif %}>Básico</option>
+                                <option value="ESTANDAR"  {% if pl == 'ESTANDAR'  %}selected{% endif %}>Estándar</option>
+                                <option value="PREMIUM"   {% if pl == 'PREMIUM'   %}selected{% endif %}>Premium</option>
+                                <option value="ILIMITADO" {% if pl == 'ILIMITADO' %}selected{% endif %}>Ilimitado</option>
+                                {% endwith %}
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">Observaciones</label>
+                            <textarea class="form-control form-control-sm" name="observaciones" rows="2" maxlength="500"
+                                      placeholder="Notas internas...">{% if colegio %}{{ colegio.observaciones|default:'' }}{% endif %}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones -->
+                <div class="d-flex gap-2 justify-content-end p-3 border-top bg-light" style="border-radius:0 0 0.75rem 0.75rem;">
+                    <a href="{% url 'colegios' %}" class="btn btn-secondary btn-sm">
+                        <i class="bi bi-x-circle me-1"></i>Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-warning btn-sm fw-semibold" id="submitBtn">
+                        <i class="bi bi-save me-1"></i>
+                        {% if es_nuevo %}Registrar Colegio{% else %}Guardar Cambios{% endif %}
+                    </button>
+                </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function togglePass(inputId, iconId) {
+    const f = document.getElementById(inputId);
+    const i = document.getElementById(iconId);
+    if (f.type === 'password') { f.type = 'text'; i.classList.replace('bi-eye','bi-eye-slash'); }
+    else { f.type = 'password'; i.classList.replace('bi-eye-slash','bi-eye'); }
+}
+
+function checkPasswords() {
+    const p  = document.getElementById('password').value;
+    const c  = document.getElementById('confirmPass').value;
+    const el = document.getElementById('passMatch');
+    const cf = document.getElementById('confirmPass');
+    if (!p && !c) { el.textContent = ''; return true; }
+    if (p === c) { el.textContent = '✓ Coinciden'; el.className = 'text-success'; cf.setCustomValidity(''); return true; }
+    el.textContent = '✗ No coinciden'; el.className = 'text-danger'; cf.setCustomValidity('no-match'); return false;
+}
+document.getElementById('password')?.addEventListener('input', checkPasswords);
+document.getElementById('confirmPass')?.addEventListener('input', checkPasswords);
+
+document.getElementById('logoInput')?.addEventListener('change', function() {
+    const file = this.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => { document.getElementById('logoPreview').innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;">`; };
+    reader.readAsDataURL(file);
+});
+
+document.getElementById('colegioForm').addEventListener('submit', function(e) {
+    const passOk = checkPasswords();
+    if (!this.checkValidity() || !passOk) { e.preventDefault(); e.stopPropagation(); }
+    else { const btn = document.getElementById('submitBtn'); btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Guardando...'; btn.disabled = true; }
+    this.classList.add('was-validated');
+});
+
+document.getElementById('telefonoInst')?.addEventListener('input', function() { this.value = this.value.replace(/[^0-9+\-\s()]/g,''); });
+
+setTimeout(() => {
+    document.querySelectorAll('.alert-dismissible').forEach(a => { try { bootstrap.Alert.getOrCreateInstance(a).close(); } catch(e){} });
+}, 5000);
+</script>
+</body>
+</html>

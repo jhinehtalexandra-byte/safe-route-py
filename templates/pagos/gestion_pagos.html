@@ -1,0 +1,333 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Pagos - RutaEscolar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f1f5f9; overflow-x: hidden; }
+        .app-container { display: flex; min-height: 100vh; }
+
+        /* ══ Sidebar unificado ══ */
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white; position: fixed; height: 100vh;
+            overflow-y: auto; z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.15);
+            display: flex; flex-direction: column;
+        }
+        .logo-section { padding: 1.25rem 1rem; background-color: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; }
+        .logo-icon { width: 38px; height: 38px; background-color: #f59e0b; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 4px 12px rgba(245,158,11,0.3); }
+        .logo-text h1 { font-size: 1rem; font-weight: 700; margin-bottom: 0.1rem; }
+        .logo-text p  { font-size: 0.68rem; color: #94a3b8; margin: 0; }
+        .nav-menu { padding: 0.5rem 0; flex: 1; overflow-y: auto; }
+        .nav-section-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; padding: 0.85rem 1.25rem 0.35rem; }
+        .nav-item-custom { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 1.25rem; color: #cbd5e1; text-decoration: none; transition: all 0.2s; font-size: 0.855rem; position: relative; border: none; background: none; width: 100%; }
+        .nav-item-custom:hover { background-color: rgba(245,158,11,0.1); color: white; padding-left: 1.5rem; }
+        .nav-item-custom.active { background-color: #f59e0b; color: white; font-weight: 600; }
+        .nav-item-custom.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background-color: white; }
+        .nav-item-custom i { font-size: 1rem; flex-shrink: 0; width: 18px; text-align: center; }
+        .sidebar-footer { padding: 0.875rem 1.25rem; border-top: 1px solid rgba(255,255,255,0.08); background-color: rgba(0,0,0,0.2); flex-shrink: 0; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background-color: #f59e0b; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem; flex-shrink: 0; }
+        .user-name { font-size: 0.82rem; font-weight: 600; color: white; margin: 0; }
+        .user-role { font-size: 0.7rem; color: #94a3b8; margin: 0; }
+
+        /* ══ Main ══ */
+        .main-content { margin-left: 260px; flex: 1; min-height: 100vh; background-color: #f1f5f9; }
+        .header-section { background: white; padding: 1.25rem 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; }
+
+        /* ══ Stat cards ══ */
+        .stat-card { background: white; border-radius: 0.75rem; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid #e5e7eb; }
+
+        /* ══ Filtros ══ */
+        .filter-card { border: 1px solid #dee2e6; border-radius: 0.5rem; overflow: hidden; }
+        .filter-card-header { background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: white; padding: 0.75rem 1rem; font-weight: 600; font-size: 0.875rem; }
+        .filter-card-body { padding: 1rem; background: white; }
+
+        /* ══ Tabla ══ */
+        .table-container { background: white; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid #e5e7eb; }
+        .table th { background-color: #f9fafb; font-weight: 600; font-size: 0.8rem; color: #374151; border-bottom: 2px solid #e5e7eb; }
+        .table td { font-size: 0.85rem; vertical-align: middle; }
+        .btn-action { padding: 0.25rem 0.55rem; font-size: 0.8rem; border-radius: 6px; }
+
+        /* ══ Badges ══ */
+        .badge-pagado    { background:#dcfce7; color:#14532d; font-size:.72rem; padding:.25rem .6rem; border-radius:1rem; font-weight:700; }
+        .badge-pendiente { background:#fef3c7; color:#92400e; font-size:.72rem; padding:.25rem .6rem; border-radius:1rem; font-weight:700; }
+        .badge-vencido   { background:#fee2e2; color:#7f1d1d; font-size:.72rem; padding:.25rem .6rem; border-radius:1rem; font-weight:700; }
+
+        @media (max-width: 992px) { .sidebar { margin-left: -260px; } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+<div class="app-container">
+
+    <!-- ══════════════════════════════════════════
+         SIDEBAR — Admin o Colegio
+    ══════════════════════════════════════════ -->
+    {% include 'includes/sidebar_admin.html' %}
+    {% include 'includes/sidebar_colegio.html' %}
+
+    <!-- ══════════════════════════════════════════
+         MAIN CONTENT
+    ══════════════════════════════════════════ -->
+    <div class="main-content">
+        <div class="header-section d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="fw-bold fs-4 text-dark mb-1">
+                    <i class="bi bi-credit-card me-2 text-info"></i>Control de Pagos
+                </h1>
+                <p class="text-muted mb-0 small">Historial completo de pagos — todos los estudiantes</p>
+            </div>
+            <span class="text-muted small">
+                <i class="bi bi-calendar3 me-1"></i>{{ fecha_actual|date:"d/m/Y" }}
+            </span>
+        </div>
+
+        <div class="p-4">
+
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-3">
+                    {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+            {% if error %}
+            <div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i>{{ error }}</div>
+            {% endif %}
+
+            <!-- ── KPIs ── -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-3">
+                    <div class="stat-card border-start border-4 border-warning">
+                        <p class="text-muted small mb-1"><i class="bi bi-clock me-1"></i>Pendientes</p>
+                        <h3 class="fw-bold text-warning mb-0">{{ pagos_pendientes|default:"0" }}</h3>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-card border-start border-4 border-success">
+                        <p class="text-muted small mb-1"><i class="bi bi-check-circle me-1"></i>Pagados</p>
+                        <h3 class="fw-bold text-success mb-0">{{ pagos_realizados|default:"0" }}</h3>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-card border-start border-4 border-danger">
+                        <p class="text-muted small mb-1"><i class="bi bi-x-circle me-1"></i>Vencidos</p>
+                        <h3 class="fw-bold text-danger mb-0">{{ pagos_vencidos|default:"0" }}</h3>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-card border-start border-4 border-primary">
+                        <p class="text-muted small mb-1"><i class="bi bi-cash-coin me-1"></i>Total Recaudado</p>
+                        <h3 class="fw-bold text-primary mb-0">${{ total_pagado|default:"0" }}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Búsqueda Multicriterio ── -->
+            <h5 class="fw-bold mb-3"><i class="bi bi-search me-2 text-info"></i>Búsqueda Multicriterio</h5>
+            <form method="GET" action="{% url 'pagos' %}">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="filter-card">
+                            <div class="filter-card-header"><i class="bi bi-check-circle me-2"></i>Estado del Pago</div>
+                            <div class="filter-card-body">
+                                <select class="form-select" name="estado">
+                                    <option value="">Todos los estados</option>
+                                    <option value="PAGADO"    {% if estado == 'PAGADO' %}selected{% endif %}>Pagado</option>
+                                    <option value="PENDIENTE" {% if estado == 'PENDIENTE' %}selected{% endif %}>Pendiente</option>
+                                    <option value="VENCIDO"   {% if estado == 'VENCIDO' %}selected{% endif %}>Vencido</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="filter-card">
+                            <div class="filter-card-header"><i class="bi bi-credit-card me-2"></i>Método de Pago</div>
+                            <div class="filter-card-body">
+                                <select class="form-select" name="metodo">
+                                    <option value="">Todos los métodos</option>
+                                    <option value="EFECTIVO"         {% if metodo == 'EFECTIVO' %}selected{% endif %}>Efectivo</option>
+                                    <option value="TRANSFERENCIA"    {% if metodo == 'TRANSFERENCIA' %}selected{% endif %}>Transferencia</option>
+                                    <option value="TARJETA_CREDITO"  {% if metodo == 'TARJETA_CREDITO' %}selected{% endif %}>Tarjeta Crédito</option>
+                                    <option value="TARJETA_DEBITO"   {% if metodo == 'TARJETA_DEBITO' %}selected{% endif %}>Tarjeta Débito</option>
+                                    <option value="PSE"              {% if metodo == 'PSE' %}selected{% endif %}>PSE</option>
+                                    <option value="NEQUI"            {% if metodo == 'NEQUI' %}selected{% endif %}>Nequi</option>
+                                    <option value="DAVIPLATA"        {% if metodo == 'DAVIPLATA' %}selected{% endif %}>Daviplata</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="filter-card">
+                            <div class="filter-card-header"><i class="bi bi-calendar me-2"></i>Rango de Fechas</div>
+                            <div class="filter-card-body">
+                                <label class="form-label small mb-1">Desde</label>
+                                <input type="date" class="form-control form-control-sm mb-2" name="fecha_desde" value="{{ fecha_desde|default:'' }}">
+                                <label class="form-label small mb-1">Hasta</label>
+                                <input type="date" class="form-control form-control-sm" name="fecha_hasta" value="{{ fecha_hasta|default:'' }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="filter-card">
+                            <div class="filter-card-header"><i class="bi bi-lightning-charge me-2"></i>Acciones</div>
+                            <div class="filter-card-body d-flex flex-wrap gap-2">
+                                <button type="submit" class="btn btn-info text-white">
+                                    <i class="bi bi-search me-1"></i>Buscar
+                                </button>
+                                <a href="{% url 'pagos' %}" class="btn btn-secondary">
+                                    <i class="bi bi-x-circle me-1"></i>Limpiar Filtros
+                                </a>
+                                <a href="{% url 'pagos_pdf' %}?estado={{ estado|default:'' }}&metodo={{ metodo|default:'' }}&fecha_desde={{ fecha_desde|default:'' }}&fecha_hasta={{ fecha_hasta|default:'' }}"
+                                   class="btn btn-danger" target="_blank">
+                                    <i class="bi bi-file-pdf me-1"></i>Descargar PDF
+                                </a>
+                                <a href="{% url 'pagos_excel' %}?estado={{ estado|default:'' }}&metodo={{ metodo|default:'' }}&fecha_desde={{ fecha_desde|default:'' }}&fecha_hasta={{ fecha_hasta|default:'' }}"
+                                   class="btn btn-success">
+                                    <i class="bi bi-file-earmark-excel me-1"></i>Descargar Excel
+                                </a>
+                                <a href="{% url 'crear_pago' %}" class="btn btn-warning fw-semibold">
+                                    <i class="bi bi-plus-circle me-1"></i>Crear Pago
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <!-- ── Tabla de pagos ── -->
+            <div class="table-container">
+                <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom flex-wrap gap-2">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-credit-card text-info me-2"></i>Historial de Pagos
+                    </h5>
+                    <span class="badge bg-info">{{ pagos|length }} registros</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-3">Código</th>
+                                <th class="px-4 py-3">Estudiante</th>
+                                <th class="px-4 py-3">Monto</th>
+                                <th class="px-4 py-3">Mes / Año</th>
+                                <th class="px-4 py-3">Fecha Pago</th>
+                                <th class="px-4 py-3">Método</th>
+                                <th class="px-4 py-3">Estado</th>
+                                <th class="px-4 py-3 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if not pagos %}
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-5">
+                                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                    No hay pagos con los filtros seleccionados.
+                                </td>
+                            </tr>
+                            {% else %}
+                            {% for pago in pagos %}
+                            <tr>
+                                <td class="px-4 py-3 fw-semibold small">{{ pago.codigo }}</td>
+                                <td class="px-4 py-3">{{ pago.documento_estudiante_id|default:"—" }}</td>
+                                <td class="px-4 py-3 fw-bold">${{ pago.monto }}</td>
+                                <td class="px-4 py-3">
+                                    <span class="fw-semibold">{{ pago.mes|default:"—" }}</span>
+                                    <span class="text-muted small ms-1">{{ pago.anio|default:"" }}</span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    {% if pago.fecha_pago %}{{ pago.fecha_pago|date:"d/m/Y" }}{% else %}<span class="text-muted">—</span>{% endif %}
+                                </td>
+                                <td class="px-4 py-3">
+                                    {% if pago.metodo_pago %}
+                                    <span class="badge bg-light text-dark border">{{ pago.metodo_pago }}</span>
+                                    {% else %}<span class="text-muted">—</span>{% endif %}
+                                </td>
+                                <td class="px-4 py-3">
+                                    {% if pago.estado == 'PAGADO' %}
+                                        <span class="badge-pagado"><i class="bi bi-check-circle me-1"></i>Pagado</span>
+                                    {% elif pago.estado == 'PENDIENTE' %}
+                                        <span class="badge-pendiente"><i class="bi bi-clock me-1"></i>Pendiente</span>
+                                    {% else %}
+                                        <span class="badge-vencido"><i class="bi bi-exclamation-triangle me-1"></i>Vencido</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    <!-- Ver detalle -->
+                                    <button class="btn btn-info btn-action text-white me-1" title="Ver detalle"
+                                            data-codigo="{{ pago.codigo }}"
+                                            data-monto="{{ pago.monto }}"
+                                            data-mes="{{ pago.mes|default:'' }}"
+                                            data-anio="{{ pago.anio|default:'' }}"
+                                            data-fecha="{{ pago.fecha_pago|date:'d/m/Y'|default:'' }}"
+                                            data-metodo="{{ pago.metodo_pago|default:'' }}"
+                                            data-estado="{{ pago.estado }}"
+                                            data-concepto="{{ pago.concepto|default:'' }}"
+                                            onclick="verDetallePago(this)">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    {# Control de Pagos es solo lectura — los pagos los realizan los padres #}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ══ Modal Ver Detalle ══ -->
+<div class="modal fade" id="viewModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;">
+                <h5 class="modal-title fw-bold"><i class="bi bi-receipt me-2"></i>Detalle del Pago</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="viewContent"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function verDetallePago(btn) {
+    const d = btn.dataset;
+    const badges = {
+        PAGADO:    '<span class="badge-pagado"><i class="bi bi-check-circle me-1"></i>Pagado</span>',
+        PENDIENTE: '<span class="badge-pendiente"><i class="bi bi-clock me-1"></i>Pendiente</span>',
+        VENCIDO:   '<span class="badge-vencido"><i class="bi bi-exclamation-triangle me-1"></i>Vencido</span>',
+    };
+    document.getElementById('viewContent').innerHTML = `
+        <div class="row g-3 p-1">
+            <div class="col-6"><p class="text-muted small mb-1">Código</p><p class="fw-semibold">${d.codigo}</p></div>
+            <div class="col-6"><p class="text-muted small mb-1">Estado</p>${badges[d.estado] || d.estado}</div>
+            <div class="col-6"><p class="text-muted small mb-1">Período</p><p class="fw-semibold">${d.mes} ${d.anio}</p></div>
+            <div class="col-6"><p class="text-muted small mb-1">Monto</p><p class="fw-bold fs-5 text-info">$${d.monto}</p></div>
+            <div class="col-6"><p class="text-muted small mb-1">Fecha de Pago</p><p class="fw-semibold">${d.fecha || '—'}</p></div>
+            <div class="col-6"><p class="text-muted small mb-1">Método</p><p class="fw-semibold">${d.metodo || '—'}</p></div>
+            ${d.concepto ? `<div class="col-12"><p class="text-muted small mb-1">Concepto</p><p class="fw-semibold">${d.concepto}</p></div>` : ''}
+        </div>`;
+    new bootstrap.Modal(document.getElementById('viewModal')).show();
+}
+setTimeout(() => {
+    document.querySelectorAll('.alert-dismissible').forEach(a => {
+        try { new bootstrap.Alert(a).close(); } catch(e) {}
+    });
+}, 5000);
+</script>
+</body>
+</html>

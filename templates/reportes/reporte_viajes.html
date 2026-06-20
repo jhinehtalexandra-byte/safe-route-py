@@ -1,0 +1,264 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte de Viajes - RutaEscolar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f1f5f9; }
+        .app-container { display: flex; min-height: 100vh; }
+
+        /* ── Sidebar ── */
+        .sidebar { width: 260px; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; position: fixed; height: 100vh; overflow-y: auto; z-index: 1000; box-shadow: 2px 0 10px rgba(0,0,0,0.15); display: flex; flex-direction: column; }
+        .logo-section { padding: 1.25rem 1rem; background-color: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; }
+        .logo-icon { width: 38px; height: 38px; background-color: #f59e0b; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 4px 12px rgba(245,158,11,0.3); }
+        .logo-text h1 { font-size: 1rem; font-weight: 700; margin-bottom: 0.1rem; }
+        .logo-text p { font-size: 0.68rem; color: #94a3b8; margin: 0; }
+        .nav-menu { padding: 0.5rem 0; flex: 1; overflow-y: auto; }
+        .nav-section-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; padding: 0.85rem 1.25rem 0.35rem; }
+        .nav-item-custom { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 1.25rem; color: #cbd5e1; text-decoration: none; transition: all 0.2s; font-size: 0.855rem; position: relative; border: none; background: none; width: 100%; cursor: pointer; }
+        .nav-item-custom:hover { background-color: rgba(245,158,11,0.1); color: white; padding-left: 1.5rem; }
+        .nav-item-custom.active { background-color: #f59e0b; color: white; font-weight: 600; }
+        .nav-item-custom.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background-color: white; }
+        .nav-item-custom i { font-size: 1rem; flex-shrink: 0; width: 18px; text-align: center; }
+        .sidebar-footer { padding: 0.875rem 1.25rem; border-top: 1px solid rgba(255,255,255,0.08); background-color: rgba(0,0,0,0.2); flex-shrink: 0; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background-color: #f59e0b; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem; flex-shrink: 0; }
+        .user-name { font-size: 0.82rem; font-weight: 600; color: white; margin: 0; }
+        .user-role { font-size: 0.7rem; color: #94a3b8; margin: 0; }
+
+        /* ── Main ── */
+        .main-content { margin-left: 260px; flex: 1; min-height: 100vh; background-color: #f1f5f9; }
+
+        /* ── Reporte ── */
+        .report-wrapper {
+            max-width: 1100px;
+            margin: 2rem auto;
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .screen-header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white; padding: 1.25rem 2rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .report-header {
+            text-align: center; padding: 1.5rem 2rem 1rem;
+            border-bottom: 3px solid #f59e0b;
+        }
+        .report-header h1 { color: #1e293b; font-size: 1.4rem; margin: 0 0 5px 0; }
+        .report-header p  { color: #64748b; margin: 3px 0; font-size: 0.9rem; }
+        .info-box {
+            background-color: #f8fafc; padding: 1rem 2rem;
+            border-left: 4px solid #3b82f6; margin: 1rem 2rem; border-radius: 5px;
+        }
+        .info-box p { margin: 3px 0; font-size: 0.85rem; }
+        .filter-section { padding: 1rem 2rem; background: #f8fafc; border-bottom: 1px solid #e5e7eb; }
+        .table-wrapper { padding: 0 2rem 1.5rem; }
+        .report-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .report-table th { background-color: #1e293b; color: white; padding: 10px 8px; text-align: left; font-weight: 600; }
+        .report-table td { padding: 8px; border-bottom: 1px solid #e2e8f0; }
+        .report-table tr:nth-child(even) { background-color: #f8fafc; }
+        .report-table tr:hover { background-color: #f1f5f9; }
+        .report-table tfoot tr { font-weight: bold; background-color: #f1f5f9 !important; border-top: 2px solid #1e293b; }
+        .estado-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+        .estado-finalizado { background-color: #dcfce7; color: #166534; }
+        .estado-en-curso   { background-color: #fef3c7; color: #92400e; }
+        .estado-cancelado  { background-color: #fee2e2; color: #991b1b; }
+        .estado-pendiente  { background-color: #f1f5f9; color: #475569; }
+        .report-footer { padding: 1rem 2rem; border-top: 1px solid #e2e8f0; text-align: center; font-size: 0.8rem; color: #64748b; }
+
+        @media print {
+            .sidebar, .screen-header, .filter-section, .no-print { display: none !important; }
+            .main-content { margin-left: 0 !important; }
+            body { background: white; }
+            .report-wrapper { box-shadow: none; margin: 0; border-radius: 0; }
+        }
+        @media (max-width: 992px) { .sidebar { margin-left: -260px; } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+<div class="app-container">
+
+    <!-- SIDEBAR según rol -->
+    {% if usuario_rol == 'ADMIN' %}
+        {% include 'includes/sidebar_admin.html' %}
+    {% elif usuario_rol == 'COLEGIO' %}
+        {% include 'includes/sidebar_colegio.html' %}
+    {% endif %}
+
+    <div class="main-content">
+        <div class="report-wrapper">
+
+            <!-- Header de pantalla (no se imprime) -->
+            <div class="screen-header no-print">
+                <div>
+                    <h2 class="h5 mb-0"><i class="bi bi-file-text me-2"></i>Reporte de Viajes</h2>
+                    <small class="opacity-75">RutaEscolar — Sistema de Gestión</small>
+                </div>
+                <div class="d-flex gap-2">
+                    <button onclick="window.print()" class="btn btn-warning btn-sm">
+                        <i class="bi bi-printer me-1"></i> Imprimir / PDF
+                    </button>
+                    <a href="{% if usuario_rol == 'ADMIN' %}{% url 'dashboard_admin' %}{% else %}{% url 'dashboard_colegio' %}{% endif %}"
+                       class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-arrow-left me-1"></i> Volver
+                    </a>
+                </div>
+            </div>
+
+            <!-- Filtros (no se imprimen) -->
+<div class="filter-section no-print">
+    <form method="GET" action="{% url 'reporte_viajes' %}" class="row g-3 align-items-end">
+
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold">
+                <i class="bi bi-search text-primary me-1"></i>Búsqueda por Ruta
+            </label>
+            <input type="text" name="busqueda" class="form-control form-control-sm"
+                   placeholder="Nombre de ruta..." value="{{ busqueda|default:'' }}">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold">
+                <i class="bi bi-calendar-check me-1"></i>Desde
+            </label>
+            <input type="date" name="desde" class="form-control form-control-sm"
+                   value="{{ desde|default:'' }}">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold">
+                <i class="bi bi-calendar-x me-1"></i>Hasta
+            </label>
+            <input type="date" name="hasta" class="form-control form-control-sm"
+                   value="{{ hasta|default:'' }}">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold">
+                <i class="bi bi-check-circle me-1"></i>Estado
+            </label>
+            <select name="estado" class="form-select form-select-sm">
+                <option value="">Todos</option>
+                <option value="PENDIENTE"  {% if estado == 'PENDIENTE' %}selected{% endif %}>Pendiente</option>
+                <option value="EN_CURSO"   {% if estado == 'EN_CURSO' %}selected{% endif %}>En curso</option>
+                <option value="FINALIZADO" {% if estado == 'FINALIZADO' %}selected{% endif %}>Finalizado</option>
+                <option value="CANCELADO"  {% if estado == 'CANCELADO' %}selected{% endif %}>Cancelado</option>
+            </select>
+        </div>
+        <div class="col-md-3 d-flex gap-2 flex-wrap">
+            <button type="submit" class="btn btn-primary btn-sm">
+                <i class="bi bi-search me-1"></i> Buscar
+            </button>
+            <a href="{% url 'reporte_viajes' %}" class="btn btn-secondary btn-sm">
+                <i class="bi bi-arrow-clockwise me-1"></i> Limpiar
+            </a>
+            <a href="{% url 'reporte_viajes_pdf' %}?desde={{ desde|default:'' }}&hasta={{ hasta|default:'' }}&estado={{ estado|default:'' }}&busqueda={{ busqueda|default:'' }}"
+               class="btn btn-danger btn-sm" target="_blank">
+                <i class="bi bi-file-pdf me-1"></i> PDF
+            </a>
+            <a href="{% url 'reporte_viajes_excel' %}?desde={{ desde|default:'' }}&hasta={{ hasta|default:'' }}&estado={{ estado|default:'' }}&busqueda={{ busqueda|default:'' }}"
+               class="btn btn-success btn-sm">
+                <i class="bi bi-file-earmark-excel me-1"></i> Excel
+            </a>
+        </div>
+
+    </form>
+</div>
+            <!-- Header del reporte -->
+            <div class="report-header">
+                <h1>🚌 RutaEscolar — Reporte de Viajes</h1>
+                <p>Sistema de Gestión de Transporte Escolar</p>
+            </div>
+
+            <!-- Info del reporte -->
+            <div class="info-box">
+                <p><strong>Fecha de Generación:</strong> {{ fecha_generacion|date:"d/m/Y H:i" }}</p>
+                {% if request.GET.desde %}
+                <p>
+                    <strong>Periodo:</strong> Desde {{ request.GET.desde }}
+                    {% if request.GET.hasta %}hasta {{ request.GET.hasta }}{% endif %}
+                </p>
+                {% else %}
+                <p><strong>Periodo:</strong> Todos los registros</p>
+                {% endif %}
+                <p><strong>Total de Registros:</strong> {{ reportes|length }} viajes</p>
+            </div>
+
+            <!-- Tabla -->
+            <div class="table-wrapper">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th style="width:10%;">Fecha</th>
+                            <th style="width:20%;">Ruta</th>
+                            <th style="width:17%;">Conductor</th>
+                            <th style="width:8%;">Inicio</th>
+                            <th style="width:8%;">Fin</th>
+                            <th style="width:10%;">Duración</th>
+                            <th style="width:8%; text-align:center;">Paradas</th>
+                            <th style="width:9%; text-align:right;">Distancia</th>
+                            <th style="width:10%;">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if reportes %}
+                            {% for reporte in reportes %}
+                            <tr>
+                                <td>{{ reporte.fecha|date:"d/m/Y" }}</td>
+                                <td>{{ reporte.ruta_nombre|default:"—" }}</td>
+                                <td>{{ reporte.conductor_nombre|default:"—" }}</td>
+                                <td>{{ reporte.hora_inicio|default:"—" }}</td>
+                                <td>{{ reporte.hora_fin|default:"—" }}</td>
+                                <td>{{ reporte.duracion|default:"—" }}</td>
+                                <td style="text-align:center;">{{ reporte.cantidad_estudiantes|default:"0" }}</td>
+                                <td style="text-align:right;">{{ reporte.distancia|default:"—" }}</td>
+                                <td>
+                                    {% if reporte.estado == 'FINALIZADO' %}
+                                    <span class="estado-badge estado-finalizado">✓ Finalizado</span>
+                                    {% elif reporte.estado == 'EN_CURSO' %}
+                                    <span class="estado-badge estado-en-curso">🔄 En curso</span>
+                                    {% elif reporte.estado == 'CANCELADO' %}
+                                    <span class="estado-badge estado-cancelado">✗ Cancelado</span>
+                                    {% else %}
+                                    <span class="estado-badge estado-pendiente">{{ reporte.estado|default:"Pendiente" }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="9" class="text-center text-muted py-4">
+                                    <i class="bi bi-inbox d-block fs-2 mb-2"></i>
+                                    No hay viajes registrados con los filtros seleccionados.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                    {% if reportes %}
+                    <tfoot>
+                        <tr>
+                            <td colspan="6" style="text-align:right; padding-right:12px;">TOTAL REGISTROS:</td>
+                            <td colspan="3" style="padding-left:8px;">{{ reportes|length }} viajes</td>
+                        </tr>
+                    </tfoot>
+                    {% endif %}
+                </table>
+            </div>
+
+            <!-- Footer -->
+            <div class="report-footer">
+                <p>RutaEscolar © 2026 | Sistema de Gestión de Transporte Escolar</p>
+                <p>Documento generado automáticamente | {{ fecha_generacion|date:"d/m/Y H:i:s" }}</p>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

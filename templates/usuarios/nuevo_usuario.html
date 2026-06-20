@@ -1,0 +1,383 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if es_nuevo %}Nuevo Usuario{% else %}Editar Usuario{% endif %} - RutaEscolar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f1f5f9; overflow-x: hidden; }
+        .app-container { display: flex; min-height: 100vh; }
+        .sidebar { width: 260px; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; position: fixed; height: 100vh; overflow-y: auto; z-index: 1000; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+        .logo-section { padding: 1.5rem 1.25rem; background-color: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .logo-icon { width: 40px; height: 40px; background-color: #f59e0b; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; box-shadow: 0 4px 12px rgba(245,158,11,0.3); }
+        .logo-text h1 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.125rem; }
+        .logo-text p  { font-size: 0.7rem; color: #cbd5e1; margin: 0; }
+        .nav-menu { padding: 1rem 0; }
+        .nav-item-custom { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.25rem; color: #cbd5e1; text-decoration: none; transition: all 0.2s; font-size: 0.9rem; position: relative; }
+        .nav-item-custom:hover { background-color: rgba(245,158,11,0.1); color: white; padding-left: 1.5rem; }
+        .nav-item-custom.active { background-color: #f59e0b; color: white; font-weight: 600; }
+        .nav-item-custom.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background-color: white; }
+        .sidebar-footer { padding: 1rem 1.25rem; border-top: 1px solid rgba(255,255,255,0.1); background-color: rgba(0,0,0,0.2); position: absolute; bottom: 0; width: 100%; }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: #f59e0b; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem; }
+        .main-content { margin-left: 260px; flex: 1; min-height: 100vh; }
+        .header-section { background: white; padding: 1.5rem 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+        .form-container { background: white; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; padding: 2rem; }
+        .form-section { margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid #e5e7eb; }
+        .form-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .form-section-title { font-size: 1.1rem; font-weight: 600; color: #1f2937; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+        .form-section-title i { color: #f59e0b; }
+        .rol-info { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 0.75rem 1rem; font-size: 0.8rem; color: #64748b; display: none; margin-top: 0.5rem; }
+        .rol-info.visible { display: block; }
+        @media (max-width: 992px) { .sidebar { margin-left: -260px; } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+<div class="app-container">
+
+    <!-- SIDEBAR ADMIN -->
+    <div class="sidebar">
+        <div class="logo-section d-flex align-items-center gap-2">
+            <div class="logo-icon"><i class="bi bi-bus-front"></i></div>
+            <div class="logo-text"><h1>RutaEscolar</h1><p>Panel Administrador</p></div>
+        </div>
+        <nav class="nav-menu">
+            <a class="nav-item-custom" href="{% url 'dashboard_admin' %}"><i class="bi bi-grid"></i><span>Dashboard</span></a>
+            <a class="nav-item-custom" href="{% url 'estudiantes' %}"><i class="bi bi-people"></i><span>Estudiantes</span></a>
+            <a class="nav-item-custom active" href="{% url 'usuarios' %}"><i class="bi bi-person-gear"></i><span>Gestión Usuarios</span></a>
+            <a class="nav-item-custom" href="{% url 'colegios' %}"><i class="bi bi-building"></i><span>Colegios</span></a>
+            <a class="nav-item-custom" href="{% url 'mapa_conductor' %}"><i class="bi bi-map"></i><span>Mapa Conductor</span></a>
+            <a class="nav-item-custom" href="{% url 'pagos' %}"><i class="bi bi-credit-card"></i><span>Control Pagos</span></a>
+            <a class="nav-item-custom" href="{% url 'reportes' %}"><i class="bi bi-file-text"></i><span>Reportes</span></a>
+            <a class="nav-item-custom" href="{% url 'perfil' %}"><i class="bi bi-person"></i><span>Mi Perfil</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="d-flex align-items-center gap-2">
+                <div class="user-avatar"><i class="bi bi-person-circle"></i></div>
+                <div class="flex-fill">
+                    <p style="font-size:.875rem;font-weight:600;color:white;margin:0">{{ usuario_nombre|default:"Administrador" }}</p>
+                    <p style="font-size:.75rem;color:#cbd5e1;margin:0">{{ usuario_rol|default:"ADMIN" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="header-section">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="fw-bold fs-4 text-dark mb-1">
+                        <i class="bi bi-person-plus text-primary me-2"></i>
+                        {% if es_nuevo %}Crear Nuevo Usuario{% else %}Editar Usuario{% endif %}
+                    </h1>
+                    <p class="text-muted mb-1 small">
+                        {% if es_nuevo %}
+                        Complete el formulario. El usuario recibirá sus credenciales por correo.
+                        {% else %}
+                        Modifique los campos necesarios y guarde los cambios.
+                        {% endif %}
+                    </p>
+                    <a href="{% url 'usuarios' %}" class="text-primary text-decoration-none small">
+                        <i class="bi bi-arrow-left me-1"></i>Volver a la lista
+                    </a>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                    <span class="text-muted small me-3">
+                        <i class="bi bi-calendar3 me-1"></i>{{ fecha_actual|date:"d/m/Y" }}
+                    </span>
+                    <form method="POST" action="{% url 'logout' %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4">
+
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-3">
+                    {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="form-container">
+
+                {% if es_nuevo %}
+                <form method="POST" action="{% url 'usuarios_nuevo' %}" id="userForm" novalidate>
+                {% else %}
+                <form method="POST" action="{% url 'usuarios_editar' usuario.cedula %}" id="userForm" novalidate>
+                {% endif %}
+                    {% csrf_token %}
+
+                    <!-- SECCIÓN 1: Información Básica -->
+                    <div class="form-section">
+                        <h5 class="form-section-title">
+                            <i class="bi bi-person-badge"></i> Información Básica
+                        </h5>
+                        <div class="row g-3">
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Cédula <span class="text-danger">*</span></label>
+                                {% if es_nuevo %}
+                                <input type="text" class="form-control" name="cedula"
+                                       required maxlength="20" id="cedula" placeholder="Número de documento">
+                                {% else %}
+                                <input type="text" class="form-control bg-light" value="{{ usuario.cedula }}" readonly>
+                                <small class="text-muted">La cédula no se puede modificar</small>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Tipo de Documento <span class="text-danger">*</span></label>
+                                <select class="form-select" name="tipo_documento" required>
+                                    <option value="">-- Seleccione --</option>
+                                    <option value="CEDULA_CIUDADANIA"           {% if usuario.tipo_documento == 'CEDULA_CIUDADANIA' %}selected{% endif %}>Cédula de Ciudadanía</option>
+                                    <option value="CEDULA_EXTRANJERIA"          {% if usuario.tipo_documento == 'CEDULA_EXTRANJERIA' %}selected{% endif %}>Cédula de Extranjería</option>
+                                    <option value="PASAPORTE"                   {% if usuario.tipo_documento == 'PASAPORTE' %}selected{% endif %}>Pasaporte</option>
+                                    <option value="TARJETA_IDENTIDAD"           {% if usuario.tipo_documento == 'TARJETA_IDENTIDAD' %}selected{% endif %}>Tarjeta de Identidad</option>
+                                    <option value="PERMISO_PROTECCION_TEMPORAL" {% if usuario.tipo_documento == 'PERMISO_PROTECCION_TEMPORAL' %}selected{% endif %}>PPT</option>
+                                    <option value="NIT"                         {% if u.tipo_documento == 'NIT' %}selected{% endif %}>NIT</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Nombre de Usuario <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="user_name"
+                                       value="{{ usuario.user_name|default:'' }}"
+                                       required minlength="4" maxlength="50"
+                                       pattern="[a-zA-Z0-9_]+" id="userName"
+                                       placeholder="Ej: conductor_perez">
+                                <small class="text-muted">Solo letras, números y guion bajo (_)</small>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Nombre Completo <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="nombre"
+                                       value="{{ usuario.nombre|default:'' }}"
+                                       required minlength="3" maxlength="100">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Correo Electrónico <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" name="email"
+                                       value="{{ usuario.email|default:'' }}"
+                                       required id="email">
+                                <div class="invalid-feedback" id="emailFeedback">Ingrese un correo válido.</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Teléfono</label>
+                                <input type="tel" class="form-control" name="telefono"
+                                       value="{{ usuario.telefono|default:'' }}"
+                                       maxlength="20" placeholder="+57 300 123 4567" id="telefono">
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN 2: Rol y Acceso -->
+                    <div class="form-section">
+                        <h5 class="form-section-title">
+                            <i class="bi bi-shield-lock"></i> Rol y Seguridad
+                        </h5>
+                        <div class="row g-3">
+
+                            <!-- ROL — todos los roles disponibles para el Admin -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Rol <span class="text-danger">*</span></label>
+                                <select class="form-select" name="rol" id="rolSelect" required>
+                                    <option value="">-- Seleccione un rol --</option>
+                                    <option value="ADMIN"     {% if usuario.rol == 'ADMIN' %}selected{% endif %}>
+                                        Administrador
+                                    </option>
+                                    <option value="COLEGIO"   {% if usuario.rol == 'COLEGIO' %}selected{% endif %}>
+                                        Colegio / Institución
+                                    </option>
+                                    <option value="CONDUCTOR" {% if usuario.rol == 'CONDUCTOR' %}selected{% endif %}>
+                                        Conductor
+                                    </option>
+                                    <option value="MONITORA"  {% if usuario.rol == 'MONITORA' %}selected{% endif %}>
+                                        Monitora
+                                    </option>
+                                    <option value="PADRE"     {% if usuario.rol == 'PADRE' %}selected{% endif %}>
+                                        Padre de Familia
+                                    </option>
+                                </select>
+                                <!-- Descripción dinámica del rol -->
+                                <div class="rol-info" id="rolInfo"></div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Estado <span class="text-danger">*</span></label>
+                                <div class="d-flex gap-3 mt-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="activo"
+                                               id="activoTrue" value="true"
+                                               {% if not usuario or usuario.activo %}checked{% endif %} required>
+                                        <label class="form-check-label" for="activoTrue">
+                                            <i class="bi bi-check-circle text-success me-1"></i>Activo
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="activo"
+                                               id="activoFalse" value="false"
+                                               {% if usuario and not usuario.activo %}checked{% endif %}>
+                                        <label class="form-check-label" for="activoFalse">
+                                            <i class="bi bi-x-circle text-danger me-1"></i>Inactivo
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">
+                                    Contraseña{% if es_nuevo %} <span class="text-danger">*</span>{% endif %}
+                                </label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" name="password"
+                                           id="password" minlength="4" maxlength="100"
+                                           {% if es_nuevo %}required{% endif %}
+                                           placeholder="Mínimo 4 caracteres">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('password')">
+                                        <i class="bi bi-eye" id="password-icon"></i>
+                                    </button>
+                                </div>
+                                {% if not es_nuevo %}
+                                <small class="text-muted">Deje en blanco para mantener la contraseña actual</small>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">
+                                    Confirmar Contraseña{% if es_nuevo %} <span class="text-danger">*</span>{% endif %}
+                                </label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="confirmPassword"
+                                           minlength="4" maxlength="100"
+                                           {% if es_nuevo %}required{% endif %}
+                                           placeholder="Repita la contraseña">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('confirmPassword')">
+                                        <i class="bi bi-eye" id="confirmPassword-icon"></i>
+                                    </button>
+                                </div>
+                                <small id="passMatch" class="text-muted"></small>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a href="{% url 'usuarios' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="bi bi-save me-2"></i>
+                            {% if es_nuevo %}Crear Usuario{% else %}Guardar Cambios{% endif %}
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // ── Descripción dinámica del rol ──────────────────────────
+    const ROL_INFO = {
+        ADMIN:     '⚠️ Acceso total al sistema. Solo crear si es estrictamente necesario.',
+        COLEGIO:   '🏫 Gestiona estudiantes, conductores y monitoras de su institución.',
+        CONDUCTOR: '🚌 Ve sus rutas asignadas y el mapa de tráfico. No accede a información de otros conductores.',
+        MONITORA:  '👩‍🏫 Llama lista, registra novedades y solicita autorización de datos médicos.',
+        PADRE:     '👨‍👩‍👧 Normalmente se crea automáticamente al registrar un estudiante. Recibe invitación por correo.',
+    };
+
+    const rolSelect = document.getElementById('rolSelect');
+    const rolInfo   = document.getElementById('rolInfo');
+
+    function actualizarRolInfo() {
+        const v = rolSelect.value;
+        if (v && ROL_INFO[v]) {
+            rolInfo.textContent = ROL_INFO[v];
+            rolInfo.classList.add('visible');
+        } else {
+            rolInfo.classList.remove('visible');
+        }
+    }
+
+    rolSelect.addEventListener('change', actualizarRolInfo);
+    actualizarRolInfo(); // ejecutar al cargar si hay valor preseleccionado
+
+    // ── Ver/ocultar contraseña ────────────────────────────────
+    function togglePassword(id) {
+        const f = document.getElementById(id);
+        const i = document.getElementById(id + '-icon');
+        if (f.type === 'password') { f.type = 'text'; i.classList.replace('bi-eye','bi-eye-slash'); }
+        else { f.type = 'password'; i.classList.replace('bi-eye-slash','bi-eye'); }
+    }
+
+    // ── Validar contraseñas ───────────────────────────────────
+    function validatePasswords() {
+        const p  = document.getElementById('password').value;
+        const c  = document.getElementById('confirmPassword').value;
+        const m  = document.getElementById('passMatch');
+        const cf = document.getElementById('confirmPassword');
+        if (!p && !c) return true;
+        if (p === c) {
+            m.textContent = '✓ Las contraseñas coinciden'; m.className = 'text-success small';
+            cf.setCustomValidity(''); return true;
+        }
+        m.textContent = '✗ Las contraseñas no coinciden'; m.className = 'text-danger small';
+        cf.setCustomValidity('no-match'); return false;
+    }
+
+    document.getElementById('password')?.addEventListener('input', validatePasswords);
+    document.getElementById('confirmPassword')?.addEventListener('input', validatePasswords);
+
+    // ── Validar email ─────────────────────────────────────────
+    function validateEmail() {
+        const f  = document.getElementById('email');
+        const fb = document.getElementById('emailFeedback');
+        const v  = f.value.trim();
+        const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+        if (!v || !ok) { f.setCustomValidity('inv'); return false; }
+        f.setCustomValidity(''); return true;
+    }
+    document.getElementById('email')?.addEventListener('blur', validateEmail);
+
+    // ── Filtros de input ──────────────────────────────────────
+    document.getElementById('telefono')?.addEventListener('input', function(){ this.value = this.value.replace(/[^0-9+\-\s()]/g,''); });
+    document.getElementById('userName')?.addEventListener('input', function(){ this.value = this.value.replace(/[^a-zA-Z0-9_]/g,''); });
+
+    // ── Envío ─────────────────────────────────────────────────
+    document.getElementById('userForm').addEventListener('submit', function(e) {
+        const emailOk = validateEmail();
+        const passOk  = validatePasswords();
+        if (!this.checkValidity() || !emailOk || !passOk) {
+            e.preventDefault(); e.stopPropagation();
+            this.classList.add('was-validated');
+            return;
+        }
+        this.classList.add('was-validated');
+        const btn = document.getElementById('submitBtn');
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+        btn.disabled = true;
+    });
+
+    setTimeout(() => {
+        document.querySelectorAll('.alert').forEach(a => { try { new bootstrap.Alert(a).close(); } catch(e){} });
+    }, 5000);
+</script>
+</body>
+</html>

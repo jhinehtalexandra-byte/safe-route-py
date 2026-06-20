@@ -1,0 +1,367 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - RutaEscolar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f1f5f9; overflow-x: hidden; }
+    .app-container { display: flex; min-height: 100vh; }
+    /* ── Sidebar unificado ── */
+    .sidebar { width: 260px; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; position: fixed; height: 100vh; overflow-y: auto; z-index: 1000; box-shadow: 2px 0 10px rgba(0,0,0,0.15); display: flex; flex-direction: column; }
+    .logo-section { padding: 1.25rem 1rem; background-color: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; }
+    .logo-icon { width: 38px; height: 38px; background-color: #f59e0b; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 4px 12px rgba(245,158,11,0.3); }
+    .logo-text h1 { font-size: 1rem; font-weight: 700; margin-bottom: 0.1rem; }
+    .logo-text p { font-size: 0.68rem; color: #94a3b8; margin: 0; }
+    .nav-menu { padding: 0.5rem 0; flex: 1; overflow-y: auto; }
+    .nav-section-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; padding: 0.85rem 1.25rem 0.35rem; }
+    .nav-item-custom { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 1.25rem; color: #cbd5e1; text-decoration: none; transition: all 0.2s; font-size: 0.855rem; position: relative; border: none; background: none; width: 100%; cursor: pointer; }
+    .nav-item-custom:hover { background-color: rgba(245,158,11,0.1); color: white; padding-left: 1.5rem; }
+    .nav-item-custom.active { background-color: #f59e0b; color: white; font-weight: 600; }
+    .nav-item-custom.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background-color: white; }
+    .nav-item-custom i { font-size: 1rem; flex-shrink: 0; width: 18px; text-align: center; }
+    .sidebar-footer { padding: 0.875rem 1.25rem; border-top: 1px solid rgba(255,255,255,0.08); background-color: rgba(0,0,0,0.2); flex-shrink: 0; }
+    .user-avatar { width: 36px; height: 36px; border-radius: 50%; background-color: #f59e0b; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem; flex-shrink: 0; }
+    .user-name { font-size: 0.82rem; font-weight: 600; color: white; margin: 0; }
+    .user-role { font-size: 0.7rem; color: #94a3b8; margin: 0; }
+    /* ── Lo demás se queda igual ── */
+    .main-content { margin-left: 260px; flex: 1; min-height: 100vh; background-color: #f1f5f9; }
+    .header-section { background: white; padding: 1.5rem 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+    .header-section h1 { font-size: 1.75rem; font-weight: bold; color: #1f2937; margin-bottom: 0.25rem; }
+    .header-section p  { font-size: 0.875rem; color: #6b7280; margin: 0; }
+    .info-card { background: white; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; height: 100%; }
+    .profile-img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #f59e0b; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .stat-item { background: white; border-radius: 0.75rem; padding: 1.5rem; text-align: center; border: 1px solid #e5e7eb; transition: all 0.3s; }
+    .stat-item:hover { transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
+    .stat-number { font-size: 2rem; font-weight: 800; color: #f59e0b; line-height: 1; }
+    .stat-label  { font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem; }
+    .info-item { display: flex; justify-content: space-between; padding: 1rem 0; border-bottom: 1px solid #e5e7eb; }
+    .info-item:last-child { border-bottom: none; }
+    .info-label { font-weight: 600; color: #1f2937; }
+    .info-value { color: #6b7280; text-align: right; }
+    @media (max-width: 992px) { .sidebar { margin-left: -260px; } .main-content { margin-left: 0; } }
+</style>
+</head>
+<body>
+<div class="app-container">
+
+    <!-- SIDEBAR — cambia según el rol del usuario -->
+    {% if usuario_rol == 'ADMIN' %}
+        {% include 'includes/sidebar_admin.html' %}
+    {% elif usuario_rol == 'COLEGIO' %}
+        {% include 'includes/sidebar_colegio.html' %}
+    {% elif usuario_rol == 'CONDUCTOR' %}
+        {% include 'includes/sidebar_conductor.html' %}
+    {% elif usuario_rol == 'MONITORA' %}
+        {% include 'includes/sidebar_monitora.html' %}
+    {% elif usuario_rol == 'PADRE' %}
+        {% include 'includes/sidebar_padre.html' %}
+    {% endif %}
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="header-section">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1>Mi Perfil</h1>
+                    <p>Gestiona tu información personal y preferencias</p>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                    <span class="text-muted small me-3">
+                        <i class="bi bi-calendar3 me-1"></i>{{ fecha_actual|date:"d/m/Y" }}
+                    </span>
+                    <form method="POST" action="{% url 'logout' %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4">
+
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-3">
+                    <i class="bi bi-{% if message.tags == 'error' %}exclamation-circle{% else %}check-circle{% endif %} me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="row g-4">
+
+                <!-- Columna Izquierda -->
+                <div class="col-lg-8">
+                    <div class="info-card p-4 mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-bold mb-0"><i class="bi bi-person me-2 text-primary"></i>Información Personal</h5>
+                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                                <i class="bi bi-pencil me-1"></i> Editar
+                            </button>
+                        </div>
+
+                        <div class="row align-items-center">
+                            <div class="col-md-3 text-center mb-3 mb-md-0">
+                                <img src="https://ui-avatars.com/api/?name={{ usuario.nombre|default:'Usuario'|urlencode }}&background=f59e0b&color=fff&size=120"
+                                     class="profile-img" alt="Foto de perfil">
+                            </div>
+                            <div class="col-md-9">
+                                <h3 class="fw-bold mb-2">{{ usuario.nombre|default:"Usuario" }}</h3>
+                                <span class="badge bg-primary mb-3">{{ usuario_rol|default:"ROL" }}</span>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Usuario</div>
+                                        <div class="fw-semibold">{{ usuario.user_name|default:"No disponible" }}</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Email</div>
+                                        <div class="fw-semibold">{{ usuario.email|default:"No disponible" }}</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Teléfono</div>
+                                        <div class="fw-semibold">{{ usuario.telefono|default:"No disponible" }}</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small">Estado</div>
+                                        <div>
+                                            {% if usuario.activo %}<span class="badge bg-success">Activo</span>
+                                            {% else %}<span class="badge bg-danger">Inactivo</span>{% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-4">
+                            <div class="col-md-3">
+                                <div class="stat-item">
+                                    <div class="stat-number">{{ total_estudiantes|default:"0" }}</div>
+                                    <div class="stat-label">Estudiantes</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-item">
+                                    <div class="stat-number">{{ total_pagos|default:"0" }}</div>
+                                    <div class="stat-label">Pagos</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-item">
+                                    <div class="stat-number">0</div>
+                                    <div class="stat-label">Alertas</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-item">
+                                    <div class="stat-number">{{ dias_activo|default:"0" }}</div>
+                                    <div class="stat-label">Días Activo</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="info-card p-4">
+                                <h6 class="fw-bold mb-3"><i class="bi bi-envelope me-2 text-success"></i>Información de Contacto</h6>
+                                <div class="info-item">
+                                    <span class="info-label">Email</span>
+                                    <span class="info-value">{{ usuario.email|default:"No registrado" }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Teléfono</span>
+                                    <span class="info-value">{{ usuario.telefono|default:"No registrado" }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Usuario</span>
+                                    <span class="info-value">{{ usuario.user_name|default:"—" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-card p-4">
+                                <h6 class="fw-bold mb-3"><i class="bi bi-shield-check me-2 text-warning"></i>Información de Cuenta</h6>
+                                <div class="info-item">
+                                    <span class="info-label">Rol</span>
+                                    <span class="info-value">{{ usuario_rol|default:"—" }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Estado</span>
+                                    <span class="info-value">
+                                        {% if usuario.activo %}<span class="badge bg-success">Activo</span>
+                                        {% else %}<span class="badge bg-danger">Inactivo</span>{% endif %}
+                                    </span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Creado</span>
+                                    <span class="info-value">{{ usuario.fecha_creacion|date:"d/m/Y"|default:"N/A" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha -->
+                <div class="col-lg-4">
+                    <div class="info-card p-4 mb-4">
+                        <h6 class="fw-bold mb-3"><i class="bi bi-lightning-charge me-2 text-primary"></i>Acciones Rápidas</h6>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-primary text-start" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                                <i class="bi bi-shield-lock me-2"></i>Cambiar Contraseña
+                            </button>
+                            {% if usuario_rol == 'PADRE' %}
+                            <a href="{% url 'notificaciones' %}" class="btn btn-outline-info text-start">
+                                <i class="bi bi-bell me-2"></i>Mis Notificaciones
+                            </a>
+                            <a href="{% url 'mapa_conductor' %}" class="btn btn-outline-success text-start">
+                                <i class="bi bi-geo-alt me-2"></i>Ver Recorrido en Vivo
+                            </a>
+                            {% elif usuario_rol == 'ADMIN' %}
+                            <a href="{% url 'reportes' %}" class="btn btn-outline-success text-start">
+                                <i class="bi bi-file-earmark-text me-2"></i>Generar Reporte
+                            </a>
+                            <a href="{% url 'usuarios_nuevo' %}" class="btn btn-outline-warning text-start">
+                                <i class="bi bi-person-plus me-2"></i>Nuevo Usuario
+                            </a>
+                            {% else %}
+                            <a href="{% url 'notificaciones' %}" class="btn btn-outline-info text-start">
+                                <i class="bi bi-bell me-2"></i>Notificaciones
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="info-card p-4">
+                        <h6 class="fw-bold mb-3"><i class="bi bi-shield-check me-2 text-success"></i>Estado de Seguridad</h6>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="small">Seguridad</span>
+                                <span class="fw-bold text-success small">Alto</span>
+                            </div>
+                            <div class="progress" style="height:8px;">
+                                <div class="progress-bar bg-success" style="width:85%"></div>
+                            </div>
+                        </div>
+                        <ul class="list-unstyled small">
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Contraseña segura</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Email verificado</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Cuenta activa</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL EDITAR PERFIL -->
+<div class="modal fade" id="editProfileModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{% url 'perfil' %}">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="actualizar_perfil">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Perfil</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre Completo</label>
+                        <input type="text" class="form-control" name="nombre" value="{{ usuario.nombre|default:'' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="email" value="{{ usuario.email|default:'' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Teléfono</label>
+                        <input type="tel" class="form-control" name="telefono" value="{{ usuario.telefono|default:'' }}">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save me-2"></i>Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CAMBIAR CONTRASEÑA -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{% url 'perfil' %}">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="cambiar_password">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cambiar Contraseña</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Contraseña Actual</label>
+                        <input type="password" class="form-control" name="password_actual" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nueva Contraseña <small class="text-muted">(mínimo 10 caracteres)</small></label>
+                        <input type="password" class="form-control" name="password_nueva" id="newPass" required minlength="10">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Confirmar Contraseña</label>
+                        <input type="password" class="form-control" id="confirmPass" required minlength="10">
+                        <div class="form-text" id="passMatch"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success" id="submitPass" disabled>
+                        <i class="bi bi-shield-check me-2"></i>Cambiar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function validatePasswords() {
+        const np  = document.getElementById('newPass').value;
+        const cp  = document.getElementById('confirmPass').value;
+        const msg = document.getElementById('passMatch');
+        const btn = document.getElementById('submitPass');
+        if (np && cp) {
+            if (np === cp && np.length >= 10) {
+                msg.textContent = '✓ Las contraseñas coinciden';
+                msg.className   = 'form-text text-success';
+                btn.disabled    = false;
+            } else if (np !== cp) {
+                msg.textContent = '✗ Las contraseñas no coinciden';
+                msg.className   = 'form-text text-danger';
+                btn.disabled    = true;
+            } else {
+                msg.textContent = '✗ Mínimo 10 caracteres';
+                msg.className   = 'form-text text-danger';
+                btn.disabled    = true;
+            }
+        }
+    }
+    document.getElementById('newPass')?.addEventListener('input', validatePasswords);
+    document.getElementById('confirmPass')?.addEventListener('input', validatePasswords);
+    setTimeout(() => {
+        document.querySelectorAll('.alert').forEach(a => { try { new bootstrap.Alert(a).close(); } catch(e) {} });
+    }, 5000);
+</script>
+</body>
+</html>

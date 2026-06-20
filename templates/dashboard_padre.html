@@ -1,0 +1,527 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Padre - RutaEscolar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f1f5f9; overflow-x: hidden; }
+        .app-container { display: flex; min-height: 100vh; }
+
+        /* ══ Sidebar ══ */
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white; position: fixed; height: 100vh;
+            overflow-y: auto; z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.15);
+            display: flex; flex-direction: column;
+        }
+        .logo-section { padding: 1.25rem 1rem; background-color: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; }
+        .logo-icon { width: 38px; height: 38px; background-color: #f59e0b; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 4px 12px rgba(245,158,11,0.3); }
+        .logo-text h1 { font-size: 1rem; font-weight: 700; margin-bottom: 0.1rem; }
+        .logo-text p  { font-size: 0.68rem; color: #94a3b8; margin: 0; }
+        .nav-menu { padding: 0.5rem 0; flex: 1; overflow-y: auto; }
+        .nav-section-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; padding: 0.85rem 1.25rem 0.35rem; }
+        .nav-item-custom { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 1.25rem; color: #cbd5e1; text-decoration: none; transition: all 0.2s; font-size: 0.855rem; position: relative; border: none; background: none; width: 100%; }
+        .nav-item-custom:hover { background-color: rgba(245,158,11,0.1); color: white; padding-left: 1.5rem; }
+        .nav-item-custom.active { background-color: #f59e0b; color: white; font-weight: 600; }
+        .nav-item-custom.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background-color: white; }
+        .nav-item-custom i { font-size: 1rem; flex-shrink: 0; width: 18px; text-align: center; }
+        .sidebar-footer { padding: 0.875rem 1.25rem; border-top: 1px solid rgba(255,255,255,0.08); background-color: rgba(0,0,0,0.2); flex-shrink: 0; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background-color: #f59e0b; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem; flex-shrink: 0; }
+        .user-name { font-size: 0.82rem; font-weight: 600; color: white; margin: 0; }
+        .user-role { font-size: 0.7rem; color: #94a3b8; margin: 0; }
+
+        /* ══ Main ══ */
+        .main-content { margin-left: 260px; flex: 1; min-height: 100vh; background-color: #f1f5f9; }
+        .header-section { background: white; padding: 1.25rem 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; }
+        .header-section h1 { font-size: 1.5rem; font-weight: bold; color: #1f2937; margin-bottom: 0.2rem; }
+        .header-section p  { font-size: 0.82rem; color: #6b7280; margin: 0; }
+
+        /* ══ Stat cards ══ */
+        .stat-card { background: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: all 0.3s; border: 1px solid #e5e7eb; }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
+        .stat-icon { width: 48px; height: 48px; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; }
+        .stat-number { font-size: 2rem; font-weight: bold; color: #1f2937; line-height: 1; }
+        .stat-label  { font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem; }
+
+        /* ══ Info card ══ */
+        .info-card { background: white; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid #e5e7eb; }
+
+        /* ══ Banner seguimiento ══ */
+        .tracking-banner { background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%); color: white; border-radius: 0.75rem; padding: 1.75rem; position: relative; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .tracking-banner::before { content: ''; position: absolute; top: -40%; right: -10%; width: 250px; height: 250px; background: rgba(255,255,255,0.08); border-radius: 50%; }
+
+        /* ══ Hijo card ══ */
+        .hijo-card { background: white; border-radius: 0.75rem; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid #e5e7eb; border-left: 4px solid #3b82f6; transition: all 0.2s; }
+        .hijo-card:hover { transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
+
+        /* ══ Pago card ══ */
+        .pago-card { background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 0.5rem; padding: 1rem; border: 1px solid #fbbf24; transition: all 0.2s; }
+        .pago-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.08); }
+
+        /* ══ Ausencia card ══ */
+        .ausencia-card {
+            background: white;
+            border-radius: 0.75rem;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        .ausencia-card-header {
+            background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+            color: white;
+            padding: 1rem 1.5rem;
+        }
+        .ausencia-card-body { padding: 1.5rem; }
+
+        .ausencia-select,
+        .ausencia-textarea {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            padding: 0.65rem 1rem;
+            font-size: 0.875rem;
+            color: #374151;
+            background: white;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        .ausencia-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; }
+        .ausencia-select:focus,
+        .ausencia-textarea:focus { outline: none; border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.15); }
+        .ausencia-textarea { resize: vertical; min-height: 90px; font-family: inherit; }
+        .btn-ausencia {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: #f59e0b;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .btn-ausencia:hover { background: #d97706; transform: translateY(-1px); }
+        .btn-ausencia:active { transform: translateY(0); }
+
+        /* ══ Autorizaciones médicas card ══ */
+        .autorizacion-card {
+            background: white;
+            border-radius: 0.75rem;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        .autorizacion-card-header {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            color: white;
+            padding: 1rem 1.5rem;
+        }
+        .autorizacion-empty {
+            padding: 2rem 1.5rem;
+            text-align: center;
+            color: #9ca3af;
+            font-size: 0.875rem;
+        }
+
+        /* ══ Pulso en vivo ══ */
+        .dot-vivo { width: 8px; height: 8px; border-radius: 50%; background: white; display: inline-block; animation: pulso 1.5s infinite; }
+        @keyframes pulso { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.4)} }
+
+        @media (max-width: 992px) { .sidebar { margin-left: -260px; } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+<div class="app-container">
+
+    {% include 'includes/sidebar_padre.html' %}
+
+    <div class="main-content">
+
+        <!-- ══ Header ══ -->
+        <div class="header-section d-flex justify-content-between align-items-center">
+            <div>
+                <h1>Dashboard Padre de Familia</h1>
+                <p>Bienvenido(a), <strong>{{ usuario_nombre|default:"Padre" }}</strong> —
+                   <i class="bi bi-calendar3 me-1"></i>{{ fecha_actual|date:"d/m/Y" }}
+                </p>
+            </div>
+            <a href="{% url 'notificaciones' %}" class="btn btn-outline-secondary position-relative">
+                <i class="bi bi-bell"></i>
+                {% if notif_pendientes > 0 %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    {{ notif_pendientes }}
+                </span>
+                {% endif %}
+            </a>
+        </div>
+
+        <div class="p-4">
+
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-3">
+                    {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- ── Fila 1: KPIs ── -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-xl-3">
+                    <div class="stat-card">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="stat-icon bg-primary bg-opacity-10">
+                                <i class="bi bi-people text-primary fs-4"></i>
+                            </div>
+                            <span class="badge bg-info">{{ total_hijos|default:"0" }}</span>
+                        </div>
+                        <div class="stat-number">{{ total_hijos|default:"0" }}</div>
+                        <div class="stat-label">Hijos Registrados</div>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-3">
+                    <div class="stat-card">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="stat-icon bg-success bg-opacity-10">
+                                <i class="bi bi-sign-turn-right text-success fs-4"></i>
+                            </div>
+                            <span class="badge bg-success">Activa</span>
+                        </div>
+                        <div class="stat-number" style="font-size:1.4rem;">
+                            {% if ruta_asignada %}{{ ruta_asignada.codigo }}{% else %}—{% endif %}
+                        </div>
+                        <div class="stat-label">Ruta Asignada</div>
+                        <a href="{% url 'mapa_tiempo_real' %}" class="btn btn-sm btn-outline-success mt-3">
+                            <i class="bi bi-broadcast me-1"></i>Ver en vivo
+                        </a>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-3">
+                    <div class="stat-card">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="stat-icon bg-warning bg-opacity-10">
+                                <i class="bi bi-clock text-warning fs-4"></i>
+                            </div>
+                            <span class="badge bg-warning text-dark">Estimado</span>
+                        </div>
+                        <div class="stat-number" style="font-size:1.4rem;">
+                            {% if ruta_asignada and ruta_asignada.hora_fin %}
+                                {{ ruta_asignada.hora_fin }}
+                            {% else %}—{% endif %}
+                        </div>
+                        <div class="stat-label">Hora Estimada Llegada</div>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-3">
+                    <div class="stat-card">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="stat-icon bg-danger bg-opacity-10">
+                                <i class="bi bi-exclamation-triangle text-danger fs-4"></i>
+                            </div>
+                            <span class="badge bg-danger">{{ pagos_pendientes|default:"0" }}</span>
+                        </div>
+                        <div class="stat-number">{{ pagos_pendientes|default:"0" }}</div>
+                        <div class="stat-label">Pagos Pendientes</div>
+                        <a href="{% url 'pagos_en_linea' %}" class="btn btn-sm btn-outline-danger mt-3">
+                            <i class="bi bi-cash me-1"></i>Pagar ahora
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Fila 2: Banner seguimiento ── -->
+            <div class="tracking-banner mb-4">
+                <div class="row align-items-center position-relative" style="z-index:1;">
+                    <div class="col-md-7">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="dot-vivo"></span>
+                            <span class="fw-semibold" style="font-size:.85rem;">Seguimiento en Tiempo Real</span>
+                        </div>
+                        <h4 class="fw-bold mb-1">
+                            <i class="bi bi-bus-front me-2"></i>
+                            {% if ruta_asignada %}{{ ruta_asignada.nombre }}{% else %}Sin ruta asignada{% endif %}
+                        </h4>
+                        {% if ruta_asignada %}
+                        <p class="mb-1 opacity-90 small">
+                            <i class="bi bi-person me-1"></i>
+                            Conductor: {{ ruta_asignada.conductor_cedula.nombre|default:"Sin asignar" }}
+                        </p>
+                        <p class="mb-0 opacity-90 small">
+                            <i class="bi bi-clock me-1"></i>
+                            Horario: {{ ruta_asignada.hora_inicio|default:"—" }} — {{ ruta_asignada.hora_fin|default:"—" }}
+                        </p>
+                        {% else %}
+                        <p class="mb-0 opacity-75 small">No hay un recorrido activo en este momento.</p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-5 text-md-end mt-3 mt-md-0">
+                        <a href="{% url 'mapa_tiempo_real' %}" class="btn btn-light text-warning fw-semibold">
+                            <i class="bi bi-broadcast me-2"></i>Ver Mapa en Tiempo Real
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Fila 3: Hijos + Pagos pendientes ── -->
+            <div class="row g-4 mb-4">
+
+                <!-- Mis hijos -->
+                <div class="col-12 col-lg-7">
+                    <div class="info-card p-4">
+                        <h5 class="fw-bold mb-4">
+                            <i class="bi bi-people me-2 text-primary"></i>Mis Hijos
+                        </h5>
+                        {% if hijos %}
+                            {% for hijo in hijos %}
+                            <div class="hijo-card mb-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="d-flex gap-3">
+                                        <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center flex-shrink-0 fw-bold text-primary"
+                                             style="width:48px;height:48px;font-size:.9rem;">
+                                            {{ hijo.nombre|slice:":1" }}{{ hijo.apellido|slice:":1" }}
+                                        </div>
+                                        <div>
+                                            <p class="fw-semibold mb-1">{{ hijo.nombre }} {{ hijo.apellido }}</p>
+                                            <p class="text-muted small mb-1"><i class="bi bi-mortarboard me-1"></i>{{ hijo.grado|default:"Sin grado" }}</p>
+                                            <p class="text-muted small mb-1"><i class="bi bi-building me-1"></i>{{ hijo.institucion|default:"Sin institución" }}</p>
+                                            <p class="text-muted small mb-0">
+                                                <i class="bi bi-sign-turn-right me-1"></i>
+                                                {% if hijo.codigo_ruta %}{{ hijo.codigo_ruta.nombre }}{% else %}Sin ruta{% endif %}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-success">Activo</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="hijo-card mb-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="d-flex gap-3">
+                                        <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center flex-shrink-0 fw-bold text-primary"
+                                             style="width:48px;height:48px;">JR</div>
+                                        <div>
+                                            <p class="fw-semibold mb-1">Juan Rodríguez</p>
+                                            <p class="text-muted small mb-1"><i class="bi bi-mortarboard me-1"></i>5° Primaria</p>
+                                            <p class="text-muted small mb-0"><i class="bi bi-sign-turn-right me-1"></i>Ruta Norte — Mañana</p>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-warning text-dark">En ruta</span>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Pagos pendientes -->
+                <div class="col-12 col-lg-5">
+                    <div class="info-card p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-bold mb-0">
+                                <i class="bi bi-credit-card me-2 text-warning"></i>Pagos Pendientes
+                            </h5>
+                            <a href="{% url 'pagos_en_linea' %}" class="btn btn-sm btn-outline-warning">Ver todos</a>
+                        </div>
+                        {% if pagos_lista %}
+                            {% for pago in pagos_lista %}
+                            <div class="pago-card mb-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <p class="fw-semibold mb-0 small">Pago {{ pago.mes|default:"—" }}</p>
+                                        <p class="text-muted mb-0" style="font-size:.72rem;">{{ pago.documento_estudiante_id }}</p>
+                                    </div>
+                                    <span class="badge bg-warning text-dark">{{ pago.estado }}</span>
+                                </div>
+                                <p class="fw-bold mb-1" style="font-size:1.25rem;">${{ pago.monto }}</p>
+                                {% if pago.fecha_vencimiento %}
+                                <p class="small text-muted mb-2">Vence: {{ pago.fecha_vencimiento|date:"d/m/Y" }}</p>
+                                {% endif %}
+                                <a href="{% url 'pagos_en_linea' %}" class="btn btn-dark btn-sm w-100">
+                                    <i class="bi bi-credit-card me-1"></i>Pagar Ahora
+                                </a>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-3">
+                                <i class="bi bi-check-circle-fill text-success fs-2 d-block mb-2"></i>
+                                <p class="text-muted small mb-3">¡Todos los pagos al día!</p>
+                            </div>
+                        {% endif %}
+                        <a href="{% url 'pagos_en_linea' %}" class="btn btn-outline-primary btn-sm w-100 mt-2">
+                            <i class="bi bi-list me-1"></i>Ver Historial Completo
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Fila 4: Notificaciones recientes ── -->
+            <div class="info-card p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-bell me-2 text-primary"></i>Notificaciones Recientes
+                    </h5>
+                    <a href="{% url 'notificaciones' %}" class="btn btn-sm btn-outline-primary">Ver todas</a>
+                </div>
+                {% if notificaciones_recientes %}
+                    <div class="d-flex flex-column gap-2">
+                        {% for notif in notificaciones_recientes %}
+                        <div class="d-flex gap-3 p-3 rounded" style="background:#f8fafc; border:1px solid #e5e7eb;">
+                            <div class="flex-shrink-0 mt-1">
+                                {% if notif.tipo == 'ABORDAJE' %}
+                                    <i class="bi bi-bus-front text-success fs-5"></i>
+                                {% elif notif.tipo == 'LLEGADA_COLEGIO' or notif.tipo == 'LLEGADA_CASA' %}
+                                    <i class="bi bi-house-check text-primary fs-5"></i>
+                                {% elif notif.tipo == 'PAGO_PENDIENTE' %}
+                                    <i class="bi bi-exclamation-triangle text-warning fs-5"></i>
+                                {% elif notif.tipo == 'AUTORIZACION_MEDICA' %}
+                                    <i class="bi bi-heart-pulse text-danger fs-5"></i>
+                                {% else %}
+                                    <i class="bi bi-bell text-secondary fs-5"></i>
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1">
+                                <p class="mb-0 small fw-semibold">{{ notif.mensaje }}</p>
+                                <p class="mb-0 text-muted" style="font-size:.72rem;">{{ notif.fecha_envio|date:"d/m/Y H:i" }}</p>
+                            </div>
+                            {% if notif.tipo == 'AUTORIZACION_MEDICA' and notif.requiere_accion %}
+                            <div class="flex-shrink-0">
+                                <a href="{% url 'responder_autorizacion' notif.id %}" class="btn btn-sm btn-outline-danger">Responder</a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-bell-slash fs-2 d-block mb-2"></i>
+                        <p class="small mb-0">No hay notificaciones recientes.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- ── Fila 5: Notificar Ausencia + Autorizaciones Médicas ── -->
+            <div class="row g-4">
+
+                <!-- Notificar Ausencia -->
+                <div class="col-12 col-lg-6">
+                    <div class="ausencia-card">
+                        <div class="ausencia-card-header d-flex align-items-center gap-2">
+                            <i class="bi bi-megaphone fs-5"></i>
+                            <div>
+                                <h5 class="fw-bold mb-0">Notificar Ausencia de un Hijo</h5>
+                                <small class="opacity-75">El conductor y la monitora serán notificados automáticamente</small>
+                            </div>
+                        </div>
+                        <div class="ausencia-card-body">
+                            <form method="POST" action="{% url 'reportar_ausencia' %}">
+                                {% csrf_token %}
+                                <div class="d-flex flex-column gap-3">
+                                    <div>
+                                        <label class="form-label fw-semibold small mb-1">
+                                            Hijo/a <span class="text-danger">*</span>
+                                        </label>
+                                        <select class="ausencia-select" name="documento_estudiante" required>
+                                            <option value="">Seleccionar hijo/a...</option>
+                                            {% for hijo in hijos %}
+                                            <option value="{{ hijo.documento }}">{{ hijo.nombre }} {{ hijo.apellido }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="form-label fw-semibold small mb-1">
+                                            Fecha de ausencia <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="date" class="ausencia-select" name="fecha" required
+                                               min="{{ fecha_actual|date:'Y-m-d' }}"
+                                               style="background-image:none;">
+                                    </div>
+                                    <div>
+                                        <label class="form-label fw-semibold small mb-1">
+                                            Razón <span class="text-muted fw-normal">(opcional)</span>
+                                        </label>
+                                        <textarea class="ausencia-textarea" name="razon"
+                                                  placeholder="Ej: Cita médica, enfermedad, viaje familiar..."
+                                                  maxlength="300"></textarea>
+                                    </div>
+                                    <div class="alert alert-info small mb-0 py-2">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        La monitora y el conductor serán notificados automáticamente al confirmar.
+                                    </div>
+                                    <button type="submit" class="btn-ausencia">
+                                        <i class="bi bi-send"></i> Confirmar Ausencia
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Autorizaciones Médicas -->
+                <div class="col-12 col-lg-6">
+                    <div class="autorizacion-card">
+                        <div class="autorizacion-card-header d-flex align-items-center gap-2">
+                            <i class="bi bi-shield-check fs-5"></i>
+                            <div>
+                                <h5 class="fw-bold mb-0">Autorizaciones Médicas</h5>
+                                <small class="opacity-75">Solicitudes pendientes de respuesta</small>
+                            </div>
+                        </div>
+                        {% if autorizaciones_pendientes %}
+                            <div class="p-3 d-flex flex-column gap-2">
+                                {% for autorizacion in autorizaciones_pendientes %}
+                                <div class="d-flex gap-3 p-3 rounded" style="background:#fef2f2; border:1px solid #fecaca;">
+                                    <div class="flex-shrink-0 mt-1">
+                                        <i class="bi bi-heart-pulse text-danger fs-5"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <p class="mb-0 small fw-semibold">{{ autorizacion.mensaje }}</p>
+                                        <p class="mb-0 text-muted" style="font-size:.72rem;">
+                                            {{ autorizacion.fecha_envio|date:"d/m/Y H:i" }}
+                                        </p>
+                                    </div>
+                                    <div class="flex-shrink-0">
+                                        <a href="{% url 'responder_autorizacion' autorizacion.id %}"
+                                           class="btn btn-sm btn-outline-danger">Responder</a>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="autorizacion-empty">
+                                <i class="bi bi-shield-check text-success fs-2 d-block mb-2"></i>
+                                Sin autorizaciones pendientes
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+            <!-- /Fila 5 -->
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    setTimeout(() => {
+        document.querySelectorAll('.alert-dismissible').forEach(a => {
+            try { new bootstrap.Alert(a).close(); } catch(e) {}
+        });
+    }, 5000);
+</script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Política de Privacidad - RutaEscolar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        .doc-header { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; padding: 2.5rem 0; }
+        .doc-body { background: white; border-radius: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 2.5rem; margin: 2rem 0; }
+        h2 { color: #1e293b; font-size: 1.2rem; font-weight: 700; margin-top: 2rem; margin-bottom: 0.75rem; border-left: 4px solid #f59e0b; padding-left: 0.75rem; }
+        p, li { color: #374151; line-height: 1.7; font-size: 0.95rem; }
+        .back-btn { background-color: #f59e0b; color: white; border: none; padding: 0.6rem 1.5rem; border-radius: 50px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.3s; }
+        .back-btn:hover { background-color: #e67e22; color: white; transform: translateY(-2px); }
+        .update-badge { background-color: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.8rem; font-weight: 600; }
+        .highlight-box { background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 0.5rem; padding: 1rem 1.25rem; margin: 1rem 0; }
+    </style>
+</head>
+<body>
+    <div class="doc-header">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div style="width:48px;height:48px;background:#f59e0b;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">
+                        <i class="bi bi-shield-lock text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="mb-0 fw-bold fs-4">Política de Privacidad</h1>
+                        <p class="mb-0 opacity-75 small">RutaEscolar — Sistema de Gestión de Transporte</p>
+                    </div>
+                </div>
+                <a href="{% url 'registrarse' %}" class="back-btn">
+                    <i class="bi bi-arrow-left"></i> Volver al Registro
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="doc-body">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <span class="update-badge"><i class="bi bi-calendar3 me-1"></i>Última actualización: Abril 2026</span>
+            </div>
+
+            <div class="highlight-box">
+                <p class="mb-0"><i class="bi bi-info-circle text-warning me-2"></i>
+                En RutaEscolar nos comprometemos a proteger la privacidad de todos nuestros usuarios, con especial atención a la información de los menores de edad. Esta política explica qué datos recopilamos, cómo los usamos y qué derechos tiene usted sobre ellos.</p>
+            </div>
+
+            <h2>1. Responsable del Tratamiento</h2>
+            <p>RutaEscolar, con domicilio en Calle 100 #15-20, Bogotá, Colombia, es responsable del tratamiento de los datos personales recopilados a través de esta plataforma. Contacto: <a href="mailto:privacidad@rutaescolar.com" style="color:#f59e0b;">privacidad@rutaescolar.com</a></p>
+
+            <h2>2. Datos que Recopilamos</h2>
+            <p>Recopilamos la siguiente información:</p>
+            <ul>
+                <li><strong>Datos de registro:</strong> nombre completo, número de documento, correo electrónico, teléfono y rol en el sistema.</li>
+                <li><strong>Datos de estudiantes:</strong> nombre, documento, fecha de nacimiento, grado, institución, tipo de sangre, información médica relevante y contactos de emergencia.</li>
+                <li><strong>Datos de uso:</strong> rutas asignadas, historial de pagos, registros de acceso y actividad en la plataforma.</li>
+                <li><strong>Datos de ubicación:</strong> coordenadas GPS del conductor durante las rutas activas.</li>
+            </ul>
+
+            <h2>3. Finalidad del Tratamiento</h2>
+            <p>Los datos recopilados se utilizan para:</p>
+            <ul>
+                <li>Gestionar y optimizar las rutas de transporte escolar.</li>
+                <li>Permitir el seguimiento en tiempo real por parte de los padres de familia.</li>
+                <li>Procesar pagos del servicio de transporte.</li>
+                <li>Enviar notificaciones sobre el estado de las rutas.</li>
+                <li>Cumplir obligaciones legales y de seguridad.</li>
+                <li>Mejorar la calidad del servicio mediante análisis estadístico.</li>
+            </ul>
+
+            <h2>4. Protección de Datos de Menores</h2>
+            <div class="highlight-box">
+                <p class="mb-0"><i class="bi bi-shield-check text-success me-2"></i>
+                La información de los estudiantes menores de edad es tratada con el máximo nivel de seguridad. Solo los padres o tutores legales autorizados pueden acceder a estos datos. No compartimos información de menores con terceros salvo por obligación legal.</p>
+            </div>
+
+            <h2>5. Base Legal del Tratamiento</h2>
+            <p>El tratamiento de sus datos se realiza con base en:</p>
+            <ul>
+                <li>Su consentimiento explícito al aceptar esta política.</li>
+                <li>La ejecución del contrato de servicio de transporte escolar.</li>
+                <li>El cumplimiento de obligaciones legales aplicables en Colombia.</li>
+                <li>Intereses legítimos relacionados con la seguridad de los estudiantes.</li>
+            </ul>
+
+            <h2>6. Compartición de Datos</h2>
+            <p>No vendemos ni cedemos sus datos personales a terceros. Podemos compartirlos únicamente con:</p>
+            <ul>
+                <li>La institución educativa a la que pertenece el estudiante.</li>
+                <li>El conductor asignado a la ruta, en la medida necesaria para el servicio.</li>
+                <li>Autoridades competentes cuando así lo exija la ley.</li>
+            </ul>
+
+            <h2>7. Seguridad de los Datos</h2>
+            <p>Implementamos medidas técnicas y organizativas para proteger sus datos, incluyendo cifrado de contraseñas, acceso controlado por roles, auditoría de accesos y copias de seguridad periódicas.</p>
+
+            <h2>8. Sus Derechos</h2>
+            <p>Conforme a la Ley 1581 de 2012 (Habeas Data), usted tiene derecho a:</p>
+            <ul>
+                <li><strong>Acceder</strong> a sus datos personales almacenados.</li>
+                <li><strong>Rectificar</strong> datos inexactos o incompletos.</li>
+                <li><strong>Suprimir</strong> sus datos cuando ya no sean necesarios.</li>
+                <li><strong>Revocar</strong> el consentimiento otorgado.</li>
+                <li><strong>Presentar quejas</strong> ante la Superintendencia de Industria y Comercio.</li>
+            </ul>
+            <p>Para ejercer estos derechos, contáctenos en: <a href="mailto:privacidad@rutaescolar.com" style="color:#f59e0b;">privacidad@rutaescolar.com</a></p>
+
+            <h2>9. Retención de Datos</h2>
+            <p>Conservamos sus datos mientras la cuenta esté activa y por el período adicional requerido por la ley colombiana. Los datos de menores de edad se eliminan a solicitud del padre/tutor o cuando el estudiante deja de usar el servicio.</p>
+
+            <h2>10. Cambios a esta Política</h2>
+            <p>Podemos actualizar esta política periódicamente. Le notificaremos cualquier cambio importante por correo electrónico o mediante aviso en la plataforma.</p>
+
+            <div class="mt-4 pt-3 border-top text-center">
+                <a href="{% url 'registrarse' %}" class="back-btn">
+                    <i class="bi bi-arrow-left me-2"></i>Volver al Registro
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
