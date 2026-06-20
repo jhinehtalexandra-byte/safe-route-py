@@ -816,11 +816,10 @@ def usuarios_eliminar(request, cedula):
         return redirect('usuarios')
 
     try:
-        usuario_del        = Usuario.objects.get(cedula=cedula)
-        nombre             = usuario_del.nombre
-        usuario_del.activo = False
-        usuario_del.save()
-        messages.success(request, f'Usuario {nombre} desactivado exitosamente.')
+        usuario_del = Usuario.objects.get(cedula=cedula)
+        nombre      = usuario_del.nombre
+        usuario_del.delete()
+        messages.success(request, f'Usuario {nombre} eliminado exitosamente.')
     except Usuario.DoesNotExist:
         messages.error(request, 'Usuario no encontrado.')
     except Exception as e:
