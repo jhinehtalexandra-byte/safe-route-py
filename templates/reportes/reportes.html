@@ -45,7 +45,7 @@
     <!-- SIDEBAR — mismo que dashboard_admin -->
 {% if usuario_rol == 'ADMIN' %}
     {% include 'includes/sidebar_admin.html' %}
-{% elif usuario_rol == 'COLEGIO' %}
+{% else %}
     {% include 'includes/sidebar_colegio.html' %}
 {% endif %}
 

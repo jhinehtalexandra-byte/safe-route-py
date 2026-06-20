@@ -64,8 +64,11 @@
 <div class="app-container">
 
     <!-- SIDEBAR -->
-     {% include 'includes/sidebar_admin.html' %}
-    {% include 'includes/sidebar_colegio.html' %}
+    {% if usuario_rol == 'ADMIN' %}
+        {% include 'includes/sidebar_admin.html' %}
+    {% else %}
+        {% include 'includes/sidebar_colegio.html' %}
+    {% endif %}
 
     <!-- MAIN CONTENT -->
     <div class="main-content">

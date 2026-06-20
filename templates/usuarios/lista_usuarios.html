@@ -286,12 +286,15 @@
             MONITORA:  '<span class="badge bg-info text-dark">Monitora</span>',
             PADRE:     '<span class="badge bg-success">Padre de Familia</span>',
         };
+    }  // cierre de verUsuario
+
     function confirmarEliminarUsuario(url, nombre) {
         document.getElementById('deleteUsuarioForm').action = url;
         document.getElementById('deleteUsuarioNombre').textContent = nombre;
         new bootstrap.Modal(document.getElementById('deleteUsuarioModal')).show();
-}    
-        const estadoBadge = estado === 'Activo'
+    }
+
+        const estadoBadge= estado === 'Activo'
             ? '<span class="badge bg-success">Activo</span>'
             : '<span class="badge bg-danger">Inactivo</span>';
 

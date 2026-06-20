@@ -69,8 +69,11 @@
     <!-- ══════════════════════════════════════════
          SIDEBAR — Admin o Colegio
     ══════════════════════════════════════════ -->
+    {% if usuario_rol == 'ADMIN' %}
     {% include 'includes/sidebar_admin.html' %}
-    {% include 'includes/sidebar_colegio.html' %}
+    {% else %}
+        {% include 'includes/sidebar_colegio.html' %}
+    {% endif %}
 
     <!-- ══════════════════════════════════════════
          MAIN CONTENT
