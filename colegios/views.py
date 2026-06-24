@@ -241,7 +241,7 @@ def _enviar_correo_bienvenida_colegio(nombre_institucion, nombre_rector,
             to=[email_destino],
         )
         correo.attach_alternative(html, 'text/html')
-        correo.send(fail_silently=False)
+        correo.send(fail_silently=True)
         print(f'✅ Correo bienvenida enviado a {email_destino}')
         return True
 
@@ -382,7 +382,7 @@ def _enviar_correo_nueva_password(nombre_institucion, nombre_rector,
             to=[email_destino],
         )
         correo.attach_alternative(html, 'text/html')
-        correo.send(fail_silently=False)
+        correo.send(fail_silently=True)
         print(f'✅ Correo nueva contraseña enviado a {email_destino}')
         return True
 
@@ -590,9 +590,14 @@ def editar_colegio(request, nit):
 
     try:
         from .models import Colegio
+        # Normalizar NIT: reemplazar guion bajo por guion (por si la URL lo codifica)
+        nit = nit.strip()
         colegio = Colegio.objects.get(nit=nit)
-    except Exception:
-        messages.error(request, 'Colegio no encontrado.')
+    except Colegio.DoesNotExist:
+        messages.error(request, f'Colegio con NIT "{nit}" no encontrado.')
+        return redirect('colegios')
+    except Exception as e:
+        messages.error(request, f'Error al cargar colegio: {str(e)}')
         return redirect('colegios')
 
     if request.method == 'POST':

@@ -145,7 +145,7 @@
                                     <option value="PASAPORTE"                   {% if usuario.tipo_documento == 'PASAPORTE' %}selected{% endif %}>Pasaporte</option>
                                     <option value="TARJETA_IDENTIDAD"           {% if usuario.tipo_documento == 'TARJETA_IDENTIDAD' %}selected{% endif %}>Tarjeta de Identidad</option>
                                     <option value="PERMISO_PROTECCION_TEMPORAL" {% if usuario.tipo_documento == 'PERMISO_PROTECCION_TEMPORAL' %}selected{% endif %}>PPT</option>
-                                    <option value="NIT"                         {% if u.tipo_documento == 'NIT' %}selected{% endif %}>NIT</option>
+                                    <option value="NIT" {% if usuario.tipo_documento == 'NIT' %}selected{% endif %}>NIT</option>
                                 </select>
                             </div>
 
