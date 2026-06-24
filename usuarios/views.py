@@ -791,11 +791,12 @@ def usuarios_editar(request, cedula):
             messages.error(request, f'Error al actualizar: {str(e)}')
 
     return render(request, 'usuarios/nuevo_usuario.html', {
-        'usuario':        usuario_edit,
-        'usuario_nombre': request.session.get('usuario_nombre'),
-        'usuario_rol':    request.session.get('usuario_rol'),
-        'fecha_actual':   date.today(),
-        'es_nuevo':       False,
+        'usuario':         usuario_edit,
+        'tipo_documento':  usuario_edit.tipo_documento,
+        'usuario_nombre':  request.session.get('usuario_nombre'),
+        'usuario_rol':     request.session.get('usuario_rol'),
+        'fecha_actual':    date.today(),
+        'es_nuevo':        False,
     })
 
 
