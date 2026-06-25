@@ -38,6 +38,12 @@
         </a>
 
         <div class="nav-section-label">Rutas</div>
+        <a class="nav-item-custom {% if request.resolver_match.url_name == 'rutas_gestion' %}active{% endif %}"
+           href="{% url 'rutas_gestion' %}">
+            <i class="bi bi-signpost-2"></i><span>Gestión de Rutas</span>
+        </a>    
+
+        <div class="nav-section-label">Rutas</div>
         <a class="nav-item-custom {% if request.resolver_match.url_name == 'lista_rutas' %}active{% endif %}"
            href="{% url 'lista_rutas' %}">
             <i class="bi bi-sign-turn-right"></i><span>Lista de Rutas</span>

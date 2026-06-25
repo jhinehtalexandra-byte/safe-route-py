@@ -295,7 +295,7 @@ def mapa_tiempo_real(request):
             'rutas_activas':  [],
         }
 
-    return render(request, 'monitoreo.html', context)
+    return render(request, 'mapa_tiempo_real.html', context)
 
 
 # ============================================================

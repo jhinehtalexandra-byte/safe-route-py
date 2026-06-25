@@ -293,7 +293,16 @@ def _generar_y_enviar_invitacion(request, acudiente, nombre_hijo):
             to=[acudiente.email],
         )
         correo.attach_alternative(html, 'text/html')
-        correo.send(fail_silently=True)
+        try:
+            import signal
+            def _timeout_handler(signum, frame):
+                raise Exception("SMTP timeout")
+            signal.signal(signal.SIGALRM, _timeout_handler)
+            signal.alarm(8)
+            correo.send(fail_silently=True)
+            signal.alarm(0)
+        except Exception:
+            pass
 
         print(f'✅ Invitación enviada a {acudiente.email}')
         return True

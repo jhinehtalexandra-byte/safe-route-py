@@ -1,5 +1,6 @@
 # colegios/colegios_views.py
 import bcrypt
+import threading
 from datetime import date
 from django.shortcuts import render, redirect
 from django.contrib import messages
