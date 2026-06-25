@@ -293,7 +293,7 @@ def _generar_y_enviar_invitacion(request, acudiente, nombre_hijo):
             to=[acudiente.email],
         )
         correo.attach_alternative(html, 'text/html')
-        correo.send(fail_silently=False)
+        correo.send(fail_silently=True)
 
         print(f'✅ Invitación enviada a {acudiente.email}')
         return True

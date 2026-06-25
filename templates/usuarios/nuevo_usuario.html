@@ -256,14 +256,14 @@
                                 {% endif %}
                             </div>
 
+                            {% if es_nuevo %}
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">
-                                    Confirmar Contraseña{% if es_nuevo %} <span class="text-danger">*</span>{% endif %}
+                                    Confirmar Contraseña <span class="text-danger">*</span>
                                 </label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="confirmPassword"
-                                           minlength="4" maxlength="100"
-                                           {% if es_nuevo %}required{% endif %}
+                                           minlength="4" maxlength="100" required
                                            placeholder="Repita la contraseña">
                                     <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('confirmPassword')">
                                         <i class="bi bi-eye" id="confirmPassword-icon"></i>
@@ -271,6 +271,7 @@
                                 </div>
                                 <small id="passMatch" class="text-muted"></small>
                             </div>
+                            {% endif %}
 
                         </div>
                     </div>
