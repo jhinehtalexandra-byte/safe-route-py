@@ -315,7 +315,7 @@ def datos_widget_wompi(request, codigo_pago):
         'moneda':           moneda,
         'firma_integridad': firma_integridad,
         'wompi_public_key': settings.WOMPI_PUBLIC_KEY,
-        'redirect_url':     request.build_absolute_uri('/pagos/confirmacion-wompi/'),
+        'redirect_url':     request.build_absolute_uri('/pagos/wompi/confirmacion/'),
     })
 
 
