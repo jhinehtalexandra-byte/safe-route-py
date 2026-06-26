@@ -344,6 +344,7 @@ def lista_estudiantes(request):
         context = {
             'estudiantes':          estudiantes,
             'rutas':                rutas,
+            'colegios':             Colegio.objects.filter(activo=True).order_by('nombre_institucion'),
             'total_estudiantes':    Estudiante.objects.count(),
             'estudiantes_activos':  Estudiante.objects.filter(activo=True).count(),
             'estudiantes_sin_ruta': Estudiante.objects.filter(codigo_ruta__isnull=True).count(),
