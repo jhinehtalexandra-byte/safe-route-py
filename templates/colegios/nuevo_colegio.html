@@ -45,31 +45,7 @@
 <div class="app-container">
 
     <!-- SIDEBAR -->
-    <div class="sidebar">
-        <div class="logo-section d-flex align-items-center gap-2">
-            <div class="logo-icon"><i class="bi bi-bus-front text-white"></i></div>
-            <div class="logo-text"><h1>RutaEscolar</h1><p>Panel Administrador</p></div>
-        </div>
-        <nav class="nav-menu">
-            <a class="nav-item-custom" href="{% url 'dashboard_admin' %}"><i class="bi bi-grid"></i><span>Dashboard</span></a>
-            <a class="nav-item-custom" href="{% url 'estudiantes' %}"><i class="bi bi-people"></i><span>Estudiantes</span></a>
-            <a class="nav-item-custom" href="{% url 'usuarios' %}"><i class="bi bi-person-gear"></i><span>Gestión Usuarios</span></a>
-            <a class="nav-item-custom active" href="{% url 'colegios' %}"><i class="bi bi-building"></i><span>Colegios</span></a>
-            <a class="nav-item-custom" href="{% url 'mapa_conductor' %}"><i class="bi bi-map"></i><span>Mapa Conductor</span></a>
-            <a class="nav-item-custom" href="{% url 'pagos' %}"><i class="bi bi-credit-card"></i><span>Control Pagos</span></a>
-            <a class="nav-item-custom" href="{% url 'reportes' %}"><i class="bi bi-file-text"></i><span>Reportes</span></a>
-            <a class="nav-item-custom" href="{% url 'perfil' %}"><i class="bi bi-person"></i><span>Mi Perfil</span></a>
-        </nav>
-        <div class="sidebar-footer">
-            <div class="d-flex align-items-center gap-2">
-                <div class="user-avatar"><i class="bi bi-person-circle text-white"></i></div>
-                <div class="flex-fill">
-                    <p style="font-size:.875rem;font-weight:600;color:white;margin:0">{{ usuario_nombre|default:"Administrador" }}</p>
-                    <p style="font-size:.75rem;color:#cbd5e1;margin:0">ADMIN</p>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% include 'includes/sidebar_admin.html' %}
 
     <!-- MAIN -->
     <div class="main-content">
@@ -302,9 +278,9 @@
                             <label class="form-label">Nombre de Usuario <span class="required">*</span></label>
                             {% if es_nuevo %}
                             <input type="text" class="form-control form-control-sm" name="user_name"
-                                   required minlength="4" maxlength="50" pattern="[a-zA-Z0-9_]+"
-                                   placeholder="Ej: colegio_sanagustin"
-                                   value="{{ user_name_previo|default:'' }}" id="userName">
+                                    required minlength="4" maxlength="50" pattern="[a-zA-Z0-9_]+"
+                                    placeholder="Ej: colegio_sanagustin" autocomplete="off"
+                                    value="{{ user_name_previo|default:'' }}" id="userName">
                             <small class="text-muted" style="font-size:.72rem;">Solo letras, números y guion bajo</small>
                             {% else %}
                             <input type="text" class="form-control form-control-sm bg-light" value="{{ colegio.usuario.user_name }}" readonly>
