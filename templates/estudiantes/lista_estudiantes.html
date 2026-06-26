@@ -738,9 +738,10 @@
     }
 
     function confirmarEliminar(urlEliminar) {
-        document.getElementById('deleteForm').action = urlEliminar;
-        new bootstrap.Modal(document.getElementById('deleteModal')).show();
-    }
+    document.getElementById('deleteForm').action = urlEliminar;
+    var modal = bootstrap.Modal.getOrCreate(document.getElementById('deleteModal'));
+    modal.show();
+}
 
     function toggleAcudienteSecundario() {
         const seccion = document.getElementById('seccionAcudiente2');

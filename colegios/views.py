@@ -695,4 +695,11 @@ def eliminar_colegio(request, nit):
     except Exception as e:
         messages.error(request, f'Error al eliminar: {str(e)}')
 
+    
+        messages.success(request, f'Colegio "{nombre}" eliminado permanentemente.')
+    except Colegio.DoesNotExist:
+        messages.error(request, 'Colegio no encontrado.')
+    except Exception as e:
+        messages.error(request, f'Error al eliminar: {str(e)}')
+
     return redirect('colegios')

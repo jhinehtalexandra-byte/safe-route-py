@@ -51,7 +51,7 @@ def _procesar_acudiente(request, prefijo, nombre_hijo, es_principal):
             # Si no tiene usuario, crear uno nuevo antes de enviar invitación
             if not acudiente.usuario:
                 try:
-                    import secrets
+                    
                     from usuarios.models import Usuario
                     password_auto = 'Padre2026*'
                     usuario_nuevo = Usuario.objects.create(
