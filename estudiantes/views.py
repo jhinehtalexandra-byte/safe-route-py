@@ -7,6 +7,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.http import HttpResponse
 from .models import Estudiante, Acudiente, EstudianteAcudiente
+from colegios.models import Colegio
 
 
 # ============================================================
@@ -52,11 +53,12 @@ def _procesar_acudiente(request, prefijo, nombre_hijo, es_principal):
                 try:
                     import secrets
                     from usuarios.models import Usuario
+                    password_auto = 'Padre2026*'
                     usuario_nuevo = Usuario.objects.create(
                         cedula         = acudiente.documento,
                         tipo_documento = acudiente.tipo_documento,
-                        user_name      = acudiente.email.split('@')[0][:20],
-                        password       = '',
+                        user_name      = acudiente.email.split('@')[0][:20].replace('.', '_').replace('-', '_'),
+                        password       = bcrypt.hashpw(password_auto.encode(), bcrypt.gensalt()).decode(),
                         nombre         = acudiente.nombre,
                         email          = acudiente.email,
                         telefono       = acudiente.telefono or None,
@@ -293,18 +295,11 @@ def _generar_y_enviar_invitacion(request, acudiente, nombre_hijo):
             to=[acudiente.email],
         )
         correo.attach_alternative(html, 'text/html')
+
         try:
-            import signal
-            def _timeout_handler(signum, frame):
-                raise Exception("SMTP timeout")
-            signal.signal(signal.SIGALRM, _timeout_handler)
-            signal.alarm(8)
             correo.send(fail_silently=True)
-            signal.alarm(0)
         except Exception:
             pass
-
-        print(f'✅ Invitación enviada a {acudiente.email}')
         return True
 
     except Exception as e:
@@ -506,10 +501,16 @@ def estudiante_editar(request, documento):
     except Exception:
         rutas = []
 
+    try:
+        colegios = Colegio.objects.filter(activo=True).order_by('nombre_institucion')
+    except Exception:
+        colegios = []
+
     context = {
         'es_nuevo':       False,
         'estudiante':     estudiante,
         'rutas':          rutas,
+        'colegios':       colegios,
         'fecha_actual':   date.today(),
         'usuario_nombre': request.session.get('usuario_nombre'),
         'usuario_rol':    request.session.get('usuario_rol'),

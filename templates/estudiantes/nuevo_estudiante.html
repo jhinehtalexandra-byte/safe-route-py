@@ -198,9 +198,16 @@
 
                         <div class="col-md-4">
                             <label class="form-label">Institución</label>
-                            <input type="text" class="form-control form-control-sm" name="institucion"
-                                   maxlength="100"
-                                   value="{% if estudiante %}{{ estudiante.institucion|default:'' }}{% else %}{{ institucion_previo|default:'' }}{% endif %}">
+                            <select class="form-control form-control-sm" name="institucion">
+                                <option value="">-- Seleccione --</option>
+                                {% for c in colegios %}
+                                <option value="{{ c.nombre_institucion }}"
+                                    {% if estudiante and estudiante.institucion == c.nombre_institucion %}selected
+                                    {% elif institucion_previo == c.nombre_institucion %}selected{% endif %}>
+                                    {{ c.nombre_institucion }}
+                                </option>
+                                {% endfor %}
+                            </select>
                         </div>
 
                         <div class="col-md-4">
