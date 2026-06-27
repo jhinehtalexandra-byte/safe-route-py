@@ -739,7 +739,7 @@
 
     function confirmarEliminar(urlEliminar) {
     document.getElementById('deleteForm').action = urlEliminar;
-    var modal = bootstrap.Modal.getOrCreate(document.getElementById('deleteModal'));
+    var modal = new bootstrap.Modal(document.getElementById('deleteModal'));
     modal.show();
 }
 
