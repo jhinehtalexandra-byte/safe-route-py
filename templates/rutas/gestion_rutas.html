@@ -169,7 +169,8 @@
                             {% else %}
                             <span class="badge-inactivo">Inactiva</span>
                             {% endif %}
-                            <!-- Editar -->
+
+                            <!-- Editar — CORREGIDO: data-monitora agregado y JS usa show.bs.modal -->
                             <button class="btn btn-sm btn-outline-primary js-edit-ruta"
                                     data-bs-toggle="modal" data-bs-target="#editarRutaModal"
                                     data-codigo="{{ ruta.codigo }}"
@@ -180,9 +181,11 @@
                                     data-turno="{{ ruta.turno|default:'' }}"
                                     data-capacidad="{{ ruta.capacidad_maxima|default:'' }}"
                                     data-conductor="{{ ruta.conductor_cedula.cedula|default:'' }}"
+                                    data-monitora="{{ ruta.monitora_cedula.cedula|default:'' }}"
                                     data-activo="{{ ruta.activo|yesno:'true,false' }}">
                                 <i class="bi bi-pencil"></i>
                             </button>
+
                             <!-- Agregar parada -->
                             <button class="btn btn-sm btn-outline-success js-nueva-parada"
                                     data-bs-toggle="modal" data-bs-target="#nuevaParadaModal"
@@ -198,12 +201,16 @@
                     </div>
 
                     <div class="ruta-card-body">
-                        <!-- Info ruta -->
                         <div class="row g-2 mb-3">
                             <div class="col-md-4 small">
                                 <i class="bi bi-person-badge text-primary me-1"></i>
                                 <strong>Conductor:</strong>
                                 {{ ruta.conductor_cedula.nombre|default:"Sin asignar" }}
+                            </div>
+                            <div class="col-md-4 small">
+                                <i class="bi bi-person-heart text-danger me-1"></i>
+                                <strong>Monitora:</strong>
+                                {{ ruta.monitora_cedula.nombre|default:"Sin asignar" }}
                             </div>
                             <div class="col-md-4 small">
                                 <i class="bi bi-people text-success me-1"></i>
@@ -301,7 +308,6 @@
                             <label class="form-label fw-semibold">Capacidad Máxima</label>
                             <input type="number" class="form-control" name="capacidad_maxima" min="1" max="100" placeholder="Ej: 25">
                         </div>
-
                         <div class="col-12"><div class="modal-section-divider">Asignación de Personal</div></div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Conductor</label>
@@ -494,31 +500,34 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    /* ── Editar ruta ── */
-    document.querySelectorAll('.js-edit-ruta').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const d = this.dataset;
-            document.getElementById('edit_codigo').value         = d.codigo;
-            document.getElementById('edit_codigo_display').textContent = d.codigo;
-            document.getElementById('edit_nombre').value         = d.nombre    || '';
-            document.getElementById('edit_desc').value           = d.desc      || '';
-            document.getElementById('edit_inicio').value         = d.inicio    || '';
-            document.getElementById('edit_fin').value            = d.fin       || '';
-            document.getElementById('edit_capacidad').value      = d.capacidad || '';
-            document.getElementById('edit_activo').checked       = d.activo === 'true';
-            setSelect('edit_turno',     d.turno     || '');
-            setSelect('edit_conductor', d.conductor || '');
-            data-monitora="{{ ruta.monitora_cedula.cedula|default:'' }}"
-            setSelect('edit_monitora', d.monitora || '');
-        });
+    /* ── Editar ruta — usa show.bs.modal para que los datos lleguen siempre ── */
+    const editarModal = document.getElementById('editarRutaModal');
+    editarModal.addEventListener('show.bs.modal', function(event) {
+        const btn = event.relatedTarget;
+        if (!btn) return;
+        const d = btn.dataset;
+
+        document.getElementById('edit_codigo').value              = d.codigo    || '';
+        document.getElementById('edit_codigo_display').textContent = d.codigo   || '';
+        document.getElementById('edit_nombre').value              = d.nombre    || '';
+        document.getElementById('edit_desc').value                = d.desc      || '';
+        document.getElementById('edit_inicio').value              = d.inicio    || '';
+        document.getElementById('edit_fin').value                 = d.fin       || '';
+        document.getElementById('edit_capacidad').value           = d.capacidad || '';
+        document.getElementById('edit_activo').checked            = d.activo === 'true';
+
+        setSelect('edit_turno',     d.turno     || '');
+        setSelect('edit_conductor', d.conductor || '');
+        setSelect('edit_monitora',  d.monitora  || '');
     });
 
-    /* ── Nueva parada ── */
-    document.querySelectorAll('.js-nueva-parada').forEach(btn => {
-        btn.addEventListener('click', function() {
-            document.getElementById('parada_ruta_codigo').value       = this.dataset.codigo;
-            document.getElementById('parada_ruta_nombre').textContent = this.dataset.nombre;
-        });
+    /* ── Nueva parada — usa show.bs.modal ── */
+    const paradaModal = document.getElementById('nuevaParadaModal');
+    paradaModal.addEventListener('show.bs.modal', function(event) {
+        const btn = event.relatedTarget;
+        if (!btn) return;
+        document.getElementById('parada_ruta_codigo').value       = btn.dataset.codigo || '';
+        document.getElementById('parada_ruta_nombre').textContent = btn.dataset.nombre || '';
     });
 
     /* ── Confirmar eliminar ── */
