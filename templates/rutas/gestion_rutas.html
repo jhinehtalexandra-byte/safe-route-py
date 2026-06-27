@@ -508,6 +508,8 @@
             document.getElementById('edit_activo').checked       = d.activo === 'true';
             setSelect('edit_turno',     d.turno     || '');
             setSelect('edit_conductor', d.conductor || '');
+            data-monitora="{{ ruta.monitora_cedula.cedula|default:'' }}"
+            setSelect('edit_monitora', d.monitora || '');
         });
     });
 

@@ -145,7 +145,9 @@ def gestion_rutas(request):
                 codigo        = request.POST.get('codigo', '').strip()
                 turno_post    = request.POST.get('turno', '').strip()
                 conductor_ced = request.POST.get('conductor_cedula', '').strip() or None
+                monitora_ced  = request.POST.get('monitora_cedula', '').strip() or None
                 try:
+                    from monitoras.models import Monitora
                     ruta             = Ruta.objects.get(codigo=codigo)
                     ruta.nombre      = request.POST.get('nombre', ruta.nombre).strip()
                     ruta.descripcion = request.POST.get('descripcion', '').strip() or None
@@ -158,6 +160,7 @@ def gestion_rutas(request):
                     ruta.capacidad_maxima = int(capacidad) if capacidad else None
                     ruta.activo      = request.POST.get('activo') == 'on'
                     ruta.conductor_cedula = Usuario.objects.filter(cedula=conductor_ced).first() if conductor_ced else None
+                    ruta.monitora_cedula  = Usuario.objects.filter(cedula=monitora_ced).first() if monitora_ced else None
                     ruta.save()
                     messages.success(request, f'✅ Ruta "{ruta.nombre}" actualizada.')
                 except Ruta.DoesNotExist:

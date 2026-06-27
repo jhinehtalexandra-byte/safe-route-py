@@ -153,4 +153,12 @@ class ParadaRecorrido(models.Model):
     def __str__(self):
         return f"{self.recorrido} | {self.parada.nombre} → {self.estado}"
     
+    monitora_cedula = models.ForeignKey(
+    Usuario,
+    on_delete=models.SET_NULL,
+    null=True, blank=True,
+    related_name='rutas_monitora',
+    db_column='monitora_cedula',
+)
+    
     
