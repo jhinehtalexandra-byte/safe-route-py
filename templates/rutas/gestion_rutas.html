@@ -500,34 +500,52 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    /* ── Editar ruta — usa show.bs.modal para que los datos lleguen siempre ── */
+    /* ── Editar ruta ── */
+    // Guardamos los datos en click (antes de que Bootstrap tome el control)
+    let _editData = {};
+    document.querySelectorAll('.js-edit-ruta').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            _editData = this.dataset;
+        });
+    });
+
+    // Cuando el modal termina de abrirse, aplicamos los datos guardados
     const editarModal = document.getElementById('editarRutaModal');
     editarModal.addEventListener('show.bs.modal', function(event) {
+        // Intentar con relatedTarget primero, si falla usar _editData
         const btn = event.relatedTarget;
-        if (!btn) return;
-        const d = btn.dataset;
+        const d = (btn && btn.dataset && btn.dataset.codigo) ? btn.dataset : _editData;
+        if (!d || !d.codigo) return;
 
-        document.getElementById('edit_codigo').value              = d.codigo    || '';
-        document.getElementById('edit_codigo_display').textContent = d.codigo   || '';
-        document.getElementById('edit_nombre').value              = d.nombre    || '';
-        document.getElementById('edit_desc').value                = d.desc      || '';
-        document.getElementById('edit_inicio').value              = d.inicio    || '';
-        document.getElementById('edit_fin').value                 = d.fin       || '';
-        document.getElementById('edit_capacidad').value           = d.capacidad || '';
-        document.getElementById('edit_activo').checked            = d.activo === 'true';
+        document.getElementById('edit_codigo').value               = d.codigo    || '';
+        document.getElementById('edit_codigo_display').textContent = d.codigo    || '';
+        document.getElementById('edit_nombre').value               = d.nombre    || '';
+        document.getElementById('edit_desc').value                 = d.desc      || '';
+        document.getElementById('edit_inicio').value               = d.inicio    || '';
+        document.getElementById('edit_fin').value                  = d.fin       || '';
+        document.getElementById('edit_capacidad').value            = d.capacidad || '';
+        document.getElementById('edit_activo').checked             = d.activo === 'true';
 
         setSelect('edit_turno',     d.turno     || '');
         setSelect('edit_conductor', d.conductor || '');
         setSelect('edit_monitora',  d.monitora  || '');
     });
 
-    /* ── Nueva parada — usa show.bs.modal ── */
+    /* ── Nueva parada ── */
+    let _paradaData = {};
+    document.querySelectorAll('.js-nueva-parada').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            _paradaData = this.dataset;
+        });
+    });
+
     const paradaModal = document.getElementById('nuevaParadaModal');
     paradaModal.addEventListener('show.bs.modal', function(event) {
         const btn = event.relatedTarget;
-        if (!btn) return;
-        document.getElementById('parada_ruta_codigo').value       = btn.dataset.codigo || '';
-        document.getElementById('parada_ruta_nombre').textContent = btn.dataset.nombre || '';
+        const d = (btn && btn.dataset && btn.dataset.codigo) ? btn.dataset : _paradaData;
+        if (!d) return;
+        document.getElementById('parada_ruta_codigo').value       = d.codigo || '';
+        document.getElementById('parada_ruta_nombre').textContent = d.nombre || '';
     });
 
     /* ── Confirmar eliminar ── */
