@@ -100,7 +100,6 @@ def gestion_rutas(request):
         from usuarios.models import Usuario
         from monitoras.models import Monitora
 
-        # Filtros GET para búsqueda
         busqueda = request.GET.get('busqueda', '').strip()
         turno    = request.GET.get('turno', '').strip()
 
@@ -190,7 +189,7 @@ def gestion_rutas(request):
             elif accion == 'parada_nueva':
                 codigo_ruta = request.POST.get('codigo_ruta', '').strip()
                 try:
-                    ruta        = Ruta.objects.get(codigo=codigo_ruta)
+                    ruta         = Ruta.objects.get(codigo=codigo_ruta)
                     ultimo_orden = Parada.objects.filter(ruta=ruta).count()
                     Parada.objects.create(
                         ruta       = ruta,
@@ -217,7 +216,7 @@ def gestion_rutas(request):
                     messages.error(request, 'Parada no encontrada.')
                 return redirect('rutas_gestion')
 
-        # GET — aplicar filtros de búsqueda
+        # GET
         rutas = Ruta.objects.prefetch_related('paradas').order_by('nombre')
         if busqueda:
             rutas = rutas.filter(nombre__icontains=busqueda)
@@ -268,7 +267,6 @@ def mapa_tiempo_real(request):
 
         if rol in ('ADMIN', 'COLEGIO'):
             ruta_id    = request.GET.get('ruta', '')
-            # Usar el campo correcto: db_column='ruta' → acceder por ruta
             recorridos = Recorrido.objects.filter(
                 fecha=date.today(), estado='EN_CURSO'
             ).select_related('ruta', 'conductor')
@@ -311,7 +309,7 @@ def mapa_tiempo_real(request):
 
 
 # ============================================================
-# MAPA CONDUCTOR  (6.5)
+# MAPA CONDUCTOR
 # ============================================================
 def mapa_conductor(request):
     if not _sesion_activa(request):
@@ -324,7 +322,7 @@ def mapa_conductor(request):
     try:
         cedula = request.session.get('usuario_cedula')
 
-        # Buscar recorrido del día — usar campo 'conductor' (db_column)
+        # Buscar recorrido del día
         recorrido = Recorrido.objects.filter(
             conductor__cedula=cedula,
             fecha=date.today(),
@@ -335,8 +333,8 @@ def mapa_conductor(request):
         paradas_pendientes  = []
 
         if recorrido:
-            ruta_actual       = recorrido.ruta
-            paradas_qs        = (
+            ruta_actual  = recorrido.ruta
+            paradas_qs   = (
                 ParadaRecorrido.objects
                 .filter(recorrido=recorrido)
                 .select_related('parada')
@@ -354,10 +352,8 @@ def mapa_conductor(request):
 
         parada_actual_rec = paradas_pendientes[0] if paradas_pendientes else None
 
-        lista_confirmada = (
-            request.session.get('lista_confirmada', False) or
-            (recorrido and recorrido.lista_confirmada)
-        )
+        # ── FIX: leer lista_confirmada de la BD, no de la sesión ──
+        lista_confirmada = bool(recorrido and recorrido.lista_confirmada)
 
         paradas_mapa = []
         if ruta_actual:
@@ -392,7 +388,7 @@ def mapa_conductor(request):
 
 
 # ============================================================
-# INICIAR RECORRIDO
+# INICIAR RECORRIDO (JSON)
 # ============================================================
 @require_POST
 def iniciar_recorrido(request):
@@ -400,20 +396,27 @@ def iniciar_recorrido(request):
         return JsonResponse({'ok': False, 'error': 'Sin sesión'}, status=403)
 
     try:
-        data     = json.loads(request.body)
-        ruta_id  = data.get('ruta_codigo')
+        data    = json.loads(request.body)
+        ruta_id = data.get('ruta_codigo')
+
+        cedula = request.session.get('usuario_cedula')
+        from usuarios.models import Usuario
+        conductor = Usuario.objects.get(cedula=cedula)
+        ruta      = Ruta.objects.get(codigo=ruta_id)
+
+        # ── FIX: verificar lista_confirmada desde la BD ──
+        recorrido_existente = Recorrido.objects.filter(
+            ruta=ruta, fecha=date.today()
+        ).exclude(estado='CANCELADO').first()
+
         lista_ok = (
+            (recorrido_existente and recorrido_existente.lista_confirmada) or
             request.session.get('lista_confirmada', False) or
             data.get('lista_confirmada', False)
         )
 
         if not lista_ok:
             return JsonResponse({'ok': False, 'error': 'La monitora aún no ha confirmado la lista.'}, status=400)
-
-        cedula = request.session.get('usuario_cedula')
-        from usuarios.models import Usuario
-        conductor = Usuario.objects.get(cedula=cedula)
-        ruta      = Ruta.objects.get(codigo=ruta_id)
 
         recorrido, creado = Recorrido.objects.get_or_create(
             ruta      = ruta,
@@ -478,7 +481,7 @@ def notificar_llegada(request):
             'ok':            True,
             'completadas':   ParadaRecorrido.objects.filter(recorrido_id=recorrido_id, estado='COMPLETADA').count(),
             'pendientes':    ParadaRecorrido.objects.filter(recorrido_id=recorrido_id, estado='PENDIENTE').count(),
-            'siguiente_id':  siguiente.parada_id    if siguiente else None,
+            'siguiente_id':  siguiente.parada_id     if siguiente else None,
             'siguiente_nom': siguiente.parada.nombre if siguiente else None,
         })
 
@@ -487,7 +490,7 @@ def notificar_llegada(request):
 
 
 # ============================================================
-# FINALIZAR RECORRIDO
+# FINALIZAR RECORRIDO (JSON)
 # ============================================================
 @require_POST
 def finalizar_recorrido(request):
@@ -579,7 +582,7 @@ def obtener_ubicacion(request, recorrido_id):
 
 
 # ============================================================
-# MONITOREO (alias que redirige a mapa_tiempo_real)
+# MONITOREO (alias)
 # ============================================================
 def monitoreo(request):
     return mapa_tiempo_real(request)
@@ -631,67 +634,13 @@ def _notificar_acudientes_llegada(parada_rec):
                     pass
     except Exception as e:
         print(f'⚠️ Error notificando acudientes: {e}')
-        
-@require_POST
-def iniciar_recorrido_form(request):
-    if not _sesion_activa(request):
-        return redirect('login')
-    try:
-        recorrido_id = request.POST.get('recorrido_id')
-        recorrido    = Recorrido.objects.get(id=recorrido_id)
-        if not recorrido.lista_confirmada:
-            messages.error(request, 'La monitora aun no ha confirmado la lista.')
-            return redirect('dashboard_conductor')
-        recorrido.estado           = 'EN_CURSO'
-        recorrido.hora_inicio_real = recorrido.hora_inicio_real or datetime.now()
-        recorrido.save()
-        paradas = Parada.objects.filter(ruta=recorrido.ruta, activo=True).order_by('orden')
-        for p in paradas:
-            ParadaRecorrido.objects.get_or_create(recorrido=recorrido, parada=p, defaults={'estado': 'PENDIENTE'})
-        messages.success(request, 'Recorrido iniciado correctamente.')
-    except Exception as e:
-        messages.error(request, f'Error al iniciar recorrido: {str(e)}')
-    return redirect('dashboard_conductor')
-
-
-@require_POST
-def finalizar_recorrido_form(request):
-    if not _sesion_activa(request):
-        return redirect('login')
-    try:
-        recorrido_id            = request.POST.get('recorrido_id')
-        recorrido               = Recorrido.objects.get(id=recorrido_id)
-        recorrido.estado        = 'FINALIZADO'
-        recorrido.hora_fin_real = datetime.now()
-        recorrido.save()
-        ParadaRecorrido.objects.filter(recorrido=recorrido, estado='PENDIENTE').update(estado='SALTADA')
-        messages.success(request, 'Recorrido finalizado correctamente.')
-    except Exception as e:
-        messages.error(request, f'Error al finalizar: {str(e)}')
-    return redirect('dashboard_conductor')
-
-
-@require_POST
-def notificar_llegada_form(request):
-    if not _sesion_activa(request):
-        return redirect('login')
-    try:
-        pr_id      = request.POST.get('parada_recorrido_id')
-        parada_rec = ParadaRecorrido.objects.get(id=pr_id)
-        parada_rec.estado       = 'COMPLETADA'
-        parada_rec.hora_llegada = datetime.now()
-        parada_rec.save()
-        _notificar_acudientes_llegada(parada_rec)
-        messages.success(request, f'Llegada a "{parada_rec.parada.nombre}" registrada.')
-    except Exception as e:
-        messages.error(request, f'Error: {str(e)}')
-    return redirect('dashboard_conductor')
 
 
 # ============================================================
-# INICIAR RECORRIDO � Form HTML (dashboard conductor)
+# INICIAR / FINALIZAR / NOTIFICAR — Form HTML (dashboard conductor)
 # ============================================================
 from django.views.decorators.http import require_POST as _rp
+
 
 @_rp
 def iniciar_recorrido_form(request):
