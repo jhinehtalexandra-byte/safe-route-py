@@ -1372,15 +1372,18 @@ def confirmar_lista(request):
 
             recorrido = None
             if monitora and monitora.ruta_asignada:
-                recorrido = Recorrido.objects.filter(
+                # Buscar recorrido existente, o crearlo si no existe
+                recorrido, _ = Recorrido.objects.get_or_create(
                     ruta  = monitora.ruta_asignada,
                     fecha = date.today(),
-                ).exclude(estado='CANCELADO').first()
-
-            if recorrido:
+                    defaults = {
+                        'conductor':       monitora.ruta_asignada.conductor_cedula,
+                        'estado':          'PENDIENTE',
+                        'lista_confirmada': False,
+                    }
+                )
                 recorrido.lista_confirmada = True
                 recorrido.save()
-
             request.session['lista_confirmada'] = True
             messages.success(request, '✅ Lista confirmada. El conductor ya puede iniciar el recorrido.')
 
