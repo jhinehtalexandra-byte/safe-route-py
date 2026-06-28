@@ -181,7 +181,7 @@
                                     data-turno="{{ ruta.turno|default:'' }}"
                                     data-capacidad="{{ ruta.capacidad_maxima|default:'' }}"
                                     data-conductor="{{ ruta.conductor_cedula.cedula|default:'' }}"
-                                    data-monitora="{{ ruta.monitora_cedula.cedula|default:'' }}"
+                                    data-monitora="{% with ruta.monitoras.first as m %}{{ m.usuario.cedula|default:'' }}{% endwith %}"
                                     data-activo="{{ ruta.activo|yesno:'true,false' }}">
                                 <i class="bi bi-pencil"></i>
                             </button>
@@ -210,7 +210,9 @@
                             <div class="col-md-4 small">
                                 <i class="bi bi-person-heart text-danger me-1"></i>
                                 <strong>Monitora:</strong>
-                                {{ ruta.monitora_cedula.nombre|default:"Sin asignar" }}
+                                {% with ruta.monitoras.first as m %}
+                                    {{ m.usuario.nombre|default:"Sin asignar" }}
+                                {% endwith %}
                             </div>
                             <div class="col-md-4 small">
                                 <i class="bi bi-people text-success me-1"></i>

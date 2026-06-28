@@ -148,20 +148,29 @@ def gestion_rutas(request):
                 monitora_ced  = request.POST.get('monitora_cedula', '').strip() or None
                 try:
                     from monitoras.models import Monitora
-                    ruta             = Ruta.objects.get(codigo=codigo)
-                    ruta.nombre      = request.POST.get('nombre', ruta.nombre).strip()
-                    ruta.descripcion = request.POST.get('descripcion', '').strip() or None
-                    ruta.turno       = turno_post or None
-                    hora_inicio      = request.POST.get('hora_inicio', '').strip()
-                    hora_fin         = request.POST.get('hora_fin', '').strip()
-                    ruta.hora_inicio = hora_inicio or None
-                    ruta.hora_fin    = hora_fin or None
-                    capacidad        = request.POST.get('capacidad_maxima', '').strip()
+                    ruta              = Ruta.objects.get(codigo=codigo)
+                    ruta.nombre       = request.POST.get('nombre', ruta.nombre).strip()
+                    ruta.descripcion  = request.POST.get('descripcion', '').strip() or None
+                    ruta.turno        = turno_post or None
+                    hora_inicio       = request.POST.get('hora_inicio', '').strip()
+                    hora_fin          = request.POST.get('hora_fin', '').strip()
+                    ruta.hora_inicio  = hora_inicio or None
+                    ruta.hora_fin     = hora_fin or None
+                    capacidad         = request.POST.get('capacidad_maxima', '').strip()
                     ruta.capacidad_maxima = int(capacidad) if capacidad else None
-                    ruta.activo      = request.POST.get('activo') == 'on'
+                    ruta.activo       = request.POST.get('activo') == 'on'
                     ruta.conductor_cedula = Usuario.objects.filter(cedula=conductor_ced).first() if conductor_ced else None
-                    ruta.monitora_cedula  = Usuario.objects.filter(cedula=monitora_ced).first() if monitora_ced else None
                     ruta.save()
+
+                    # Desasignar monitora anterior de esta ruta
+                    Monitora.objects.filter(ruta_asignada=ruta).update(ruta_asignada=None)
+
+                    # Asignar nueva monitora si se seleccionó
+                    if monitora_ced:
+                        Monitora.objects.filter(
+                            usuario__cedula=monitora_ced
+                        ).update(ruta_asignada=ruta)
+
                     messages.success(request, f'✅ Ruta "{ruta.nombre}" actualizada.')
                 except Ruta.DoesNotExist:
                     messages.error(request, 'Ruta no encontrada.')
