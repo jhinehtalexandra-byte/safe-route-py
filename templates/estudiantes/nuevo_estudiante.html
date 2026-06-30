@@ -233,6 +233,33 @@
                                    maxlength="200"
                                    value="{% if estudiante %}{{ estudiante.direccion|default:'' }}{% else %}{{ direccion_previo|default:'' }}{% endif %}">
                         </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Localidad</label>
+                            <select class="form-select form-select-sm" name="localidad">
+                                <option value="">Seleccionar localidad…</option>
+                                <option value="USAQUEN" {% if estudiante and estudiante.localidad == 'USAQUEN' %}selected{% endif %}>Usaquén</option>
+                                <option value="CHAPINERO" {% if estudiante and estudiante.localidad == 'CHAPINERO' %}selected{% endif %}>Chapinero</option>
+                                <option value="SANTA_FE" {% if estudiante and estudiante.localidad == 'SANTA_FE' %}selected{% endif %}>Santa Fe</option>
+                                <option value="SAN_CRISTOBAL" {% if estudiante and estudiante.localidad == 'SAN_CRISTOBAL' %}selected{% endif %}>San Cristóbal</option>
+                                <option value="USME" {% if estudiante and estudiante.localidad == 'USME' %}selected{% endif %}>Usme</option>
+                                <option value="TUNJUELITO" {% if estudiante and estudiante.localidad == 'TUNJUELITO' %}selected{% endif %}>Tunjuelito</option>
+                                <option value="BOSA" {% if estudiante and estudiante.localidad == 'BOSA' %}selected{% endif %}>Bosa</option>
+                                <option value="KENNEDY" {% if estudiante and estudiante.localidad == 'KENNEDY' %}selected{% endif %}>Kennedy</option>
+                                <option value="FONTIBON" {% if estudiante and estudiante.localidad == 'FONTIBON' %}selected{% endif %}>Fontibón</option>
+                                <option value="ENGATIVA" {% if estudiante and estudiante.localidad == 'ENGATIVA' %}selected{% endif %}>Engativá</option>
+                                <option value="SUBA" {% if estudiante and estudiante.localidad == 'SUBA' %}selected{% endif %}>Suba</option>
+                                <option value="BARRIOS_UNIDOS" {% if estudiante and estudiante.localidad == 'BARRIOS_UNIDOS' %}selected{% endif %}>Barrios Unidos</option>
+                                <option value="TEUSAQUILLO" {% if estudiante and estudiante.localidad == 'TEUSAQUILLO' %}selected{% endif %}>Teusaquillo</option>
+                                <option value="MARTIRES" {% if estudiante and estudiante.localidad == 'MARTIRES' %}selected{% endif %}>Los Mártires</option>
+                                <option value="ANTONIO_NARINO" {% if estudiante and estudiante.localidad == 'ANTONIO_NARINO' %}selected{% endif %}>Antonio Nariño</option>
+                                <option value="PUENTE_ARANDA" {% if estudiante and estudiante.localidad == 'PUENTE_ARANDA' %}selected{% endif %}>Puente Aranda</option>
+                                <option value="CANDELARIA" {% if estudiante and estudiante.localidad == 'CANDELARIA' %}selected{% endif %}>La Candelaria</option>
+                                <option value="RAFAEL_URIBE" {% if estudiante and estudiante.localidad == 'RAFAEL_URIBE' %}selected{% endif %}>Rafael Uribe Uribe</option>
+                                <option value="CIUDAD_BOLIVAR" {% if estudiante and estudiante.localidad == 'CIUDAD_BOLIVAR' %}selected{% endif %}>Ciudad Bolívar</option>
+                                <option value="SUMAPAZ" {% if estudiante and estudiante.localidad == 'SUMAPAZ' %}selected{% endif %}>Sumapaz</option>
+                            </select>
+                            <small class="text-muted">La ruta se asigna automáticamente según la localidad.</small>
+                        </div>
 
                         <div class="col-md-6">
                             <label class="form-label">Contacto Emergencia - Nombre</label>

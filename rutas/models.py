@@ -20,7 +20,16 @@ class Ruta(models.Model):
     hora_fin         = models.TimeField(blank=True, null=True)
     turno            = models.CharField(max_length=20, choices=TURNO, blank=True, null=True)
     capacidad_maxima = models.IntegerField(blank=True, null=True)
-    activo           = models.BooleanField(default=True)
+    ZONA = [
+        ('NORTE',     'Norte'),
+        ('SUR',       'Sur'),
+        ('ORIENTE',   'Oriente'),
+        ('OCCIDENTE', 'Occidente'),
+        ('CENTRO',    'Centro'),
+    ]
+
+    zona   = models.CharField(max_length=20, choices=ZONA, blank=True, null=True)
+    activo = models.BooleanField(default=True)
     conductor_cedula = models.ForeignKey(
         Usuario,
         on_delete=models.SET_NULL,

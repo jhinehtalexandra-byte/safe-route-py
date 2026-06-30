@@ -25,6 +25,45 @@ def _rol_en(request, *roles):
 
 
 # ============================================================
+# MAPA LOCALIDAD → ZONA → RUTA AUTOMÁTICA
+# ============================================================
+LOCALIDAD_ZONA = {
+    'USAQUEN':        'NORTE',
+    'CHAPINERO':      'NORTE',
+    'SUBA':           'NORTE',
+    'BARRIOS_UNIDOS': 'CENTRO',
+    'TEUSAQUILLO':    'CENTRO',
+    'SANTA_FE':       'CENTRO',
+    'CANDELARIA':     'CENTRO',
+    'MARTIRES':       'CENTRO',
+    'ANTONIO_NARINO': 'CENTRO',
+    'PUENTE_ARANDA':  'OCCIDENTE',
+    'KENNEDY':        'OCCIDENTE',
+    'FONTIBON':       'OCCIDENTE',
+    'ENGATIVA':       'OCCIDENTE',
+    'SAN_CRISTOBAL':  'ORIENTE',
+    'RAFAEL_URIBE':   'ORIENTE',
+    'USME':           'SUR',
+    'TUNJUELITO':     'SUR',
+    'BOSA':           'SUR',
+    'CIUDAD_BOLIVAR': 'SUR',
+    'SUMAPAZ':        'SUR',
+}
+
+
+def _asignar_ruta_por_localidad(localidad):
+    """Retorna el código de ruta que corresponde a la localidad, o None."""
+    from rutas.models import Ruta
+    if not localidad:
+        return None
+    zona = LOCALIDAD_ZONA.get(localidad)
+    if not zona:
+        return None
+    ruta = Ruta.objects.filter(zona=zona, activo=True).first()
+    return ruta.codigo if ruta else None
+
+
+# ============================================================
 # HELPER — Procesar un acudiente (principal o secundario)
 # ============================================================
 def _procesar_acudiente(request, prefijo, nombre_hijo, es_principal):
@@ -51,7 +90,7 @@ def _procesar_acudiente(request, prefijo, nombre_hijo, es_principal):
             # Si no tiene usuario, crear uno nuevo antes de enviar invitación
             if not acudiente.usuario:
                 try:
-                    
+
                     from usuarios.models import Usuario
                     password_auto = 'Padre2026*'
                     usuario_nuevo = Usuario.objects.create(
@@ -392,8 +431,13 @@ def nuevo_estudiante(request):
             direccion      = request.POST.get('direccion', '').strip()
             contacto_nom   = request.POST.get('contacto_emergencia_nombre', '').strip()
             contacto_tel   = request.POST.get('contacto_emergencia_telefono', '').strip()
-            codigo_ruta    = request.POST.get('codigo_ruta', '').strip() or None
             enfermedades   = request.POST.get('enfermedades', '').strip()
+
+            localidad   = request.POST.get('localidad', '').strip() or None
+            codigo_ruta = request.POST.get('codigo_ruta', '').strip() or None
+            # Si no eligió ruta manualmente, asignar automáticamente por localidad
+            if not codigo_ruta and localidad:
+                codigo_ruta = _asignar_ruta_por_localidad(localidad)
 
             if Estudiante.objects.filter(documento=documento).exists():
                 messages.error(request, 'Ya existe un estudiante con ese documento.')
@@ -421,6 +465,7 @@ def nuevo_estudiante(request):
                 institucion                  = institucion or None,
                 tipo_sangre                  = tipo_sangre or None,
                 direccion                    = direccion or None,
+                localidad                    = localidad or None,   # ← NUEVO
                 contacto_emergencia_nombre   = contacto_nom or None,
                 contacto_emergencia_telefono = contacto_tel or None,
                 codigo_ruta_id               = codigo_ruta,
@@ -480,6 +525,7 @@ def estudiante_editar(request, documento):
             estudiante.institucion                  = request.POST.get('institucion', '').strip() or None
             estudiante.tipo_sangre                  = request.POST.get('tipo_sangre', '').strip() or None
             estudiante.direccion                    = request.POST.get('direccion', '').strip() or None
+            estudiante.localidad                    = request.POST.get('localidad', '').strip() or None
             estudiante.contacto_emergencia_nombre   = request.POST.get('contacto_emergencia_nombre', '').strip() or None
             estudiante.contacto_emergencia_telefono = request.POST.get('contacto_emergencia_telefono', '').strip() or None
             estudiante.enfermedades                 = request.POST.get('enfermedades', '').strip() or None

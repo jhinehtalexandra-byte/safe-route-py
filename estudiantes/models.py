@@ -65,6 +65,33 @@ class Estudiante(models.Model):
     apellido         = models.CharField(max_length=100)
     fecha_nacimiento = models.DateField()
     direccion        = models.CharField(max_length=200, blank=True, null=True)
+
+    LOCALIDAD = [
+        ('USAQUEN',        'Usaquén'),
+        ('CHAPINERO',      'Chapinero'),
+        ('SANTA_FE',       'Santa Fe'),
+        ('SAN_CRISTOBAL',  'San Cristóbal'),
+        ('USME',           'Usme'),
+        ('TUNJUELITO',     'Tunjuelito'),
+        ('BOSA',           'Bosa'),
+        ('KENNEDY',        'Kennedy'),
+        ('FONTIBON',       'Fontibón'),
+        ('ENGATIVA',       'Engativá'),
+        ('SUBA',           'Suba'),
+        ('BARRIOS_UNIDOS', 'Barrios Unidos'),
+        ('TEUSAQUILLO',    'Teusaquillo'),
+        ('MARTIRES',       'Los Mártires'),
+        ('ANTONIO_NARINO', 'Antonio Nariño'),
+        ('PUENTE_ARANDA',  'Puente Aranda'),
+        ('CANDELARIA',     'La Candelaria'),
+        ('RAFAEL_URIBE',   'Rafael Uribe Uribe'),
+        ('CIUDAD_BOLIVAR', 'Ciudad Bolívar'),
+        ('SUMAPAZ',        'Sumapaz'),
+    ]
+
+    localidad = models.CharField(
+        max_length=30, choices=LOCALIDAD, blank=True, null=True
+    )
     telefono         = models.CharField(max_length=20,  blank=True, null=True)
     grado            = models.CharField(max_length=100, blank=True, null=True)
     institucion      = models.CharField(max_length=100, blank=True, null=True)

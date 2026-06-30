@@ -160,6 +160,7 @@
                             <div class="ruta-nombre">{{ ruta.nombre }}</div>
                             <div class="ruta-codigo">Código: {{ ruta.codigo }}
                                 {% if ruta.turno %} &nbsp;·&nbsp; {{ ruta.get_turno_display }}{% endif %}
+                                {% if ruta.zona %} &nbsp;·&nbsp; Zona: {{ ruta.zona }}{% endif %}
                                 {% if ruta.hora_inicio %} &nbsp;·&nbsp; {{ ruta.hora_inicio }} — {{ ruta.hora_fin }}{% endif %}
                             </div>
                         </div>
@@ -170,7 +171,7 @@
                             <span class="badge-inactivo">Inactiva</span>
                             {% endif %}
 
-                            <!-- Editar — CORREGIDO: data-monitora agregado y JS usa show.bs.modal -->
+                            <!-- Editar — CORREGIDO: data-monitora y data-zona agregados; JS usa mousedown -->
                             <button class="btn btn-sm btn-outline-primary js-edit-ruta"
                                     data-bs-toggle="modal" data-bs-target="#editarRutaModal"
                                     data-codigo="{{ ruta.codigo }}"
@@ -179,6 +180,7 @@
                                     data-inicio="{{ ruta.hora_inicio|default:'' }}"
                                     data-fin="{{ ruta.hora_fin|default:'' }}"
                                     data-turno="{{ ruta.turno|default:'' }}"
+                                    data-zona="{{ ruta.zona|default:'' }}"
                                     data-capacidad="{{ ruta.capacidad_maxima|default:'' }}"
                                     data-conductor="{{ ruta.conductor_cedula.cedula|default:'' }}"
                                     data-monitora="{% with ruta.monitoras.first as m %}{{ m.usuario.cedula|default:'' }}{% endwith %}"
@@ -299,6 +301,17 @@
                             </select>
                         </div>
                         <div class="col-md-4">
+                            <label class="form-label fw-semibold">Zona</label>
+                            <select class="form-select" name="zona">
+                                <option value="">Sin zona</option>
+                                <option value="NORTE">Norte</option>
+                                <option value="SUR">Sur</option>
+                                <option value="ORIENTE">Oriente</option>
+                                <option value="OCCIDENTE">Occidente</option>
+                                <option value="CENTRO">Centro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
                             <label class="form-label fw-semibold">Hora Inicio</label>
                             <input type="time" class="form-control" name="hora_inicio">
                         </div>
@@ -376,16 +389,27 @@
                             </select>
                         </div>
                         <div class="col-md-4">
+                            <label class="form-label fw-semibold">Zona</label>
+                            <select class="form-select" name="zona" id="edit_zona">
+                                <option value="">Sin zona</option>
+                                <option value="NORTE">Norte</option>
+                                <option value="SUR">Sur</option>
+                                <option value="ORIENTE">Oriente</option>
+                                <option value="OCCIDENTE">Occidente</option>
+                                <option value="CENTRO">Centro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Capacidad Máxima</label>
+                            <input type="number" class="form-control" name="capacidad_maxima" id="edit_capacidad" min="1" max="100">
+                        </div>
+                        <div class="col-md-4">
                             <label class="form-label fw-semibold">Hora Inicio</label>
                             <input type="time" class="form-control" name="hora_inicio" id="edit_inicio">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Hora Fin</label>
                             <input type="time" class="form-control" name="hora_fin" id="edit_fin">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">Capacidad Máxima</label>
-                            <input type="number" class="form-control" name="capacidad_maxima" id="edit_capacidad" min="1" max="100">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Estado</label>
@@ -516,6 +540,7 @@
             document.getElementById('edit_capacidad').value            = d.capacidad || '';
             document.getElementById('edit_activo').checked             = d.activo === 'true';
             setSelect('edit_turno',     d.turno     || '');
+            setSelect('edit_zona',      d.zona      || '');
             setSelect('edit_conductor', d.conductor || '');
             setSelect('edit_monitora',  d.monitora  || '');
         });

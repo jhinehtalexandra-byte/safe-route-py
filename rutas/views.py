@@ -114,6 +114,7 @@ def gestion_rutas(request):
                 nombre        = request.POST.get('nombre', '').strip()
                 descripcion   = request.POST.get('descripcion', '').strip()
                 turno_post    = request.POST.get('turno', '').strip()
+                zona_post     = request.POST.get('zona', '').strip()
                 hora_inicio   = request.POST.get('hora_inicio', '').strip() or None
                 hora_fin      = request.POST.get('hora_fin', '').strip() or None
                 capacidad     = request.POST.get('capacidad_maxima', '').strip() or None
@@ -126,11 +127,20 @@ def gestion_rutas(request):
                     if conductor_ced:
                         conductor_obj = Usuario.objects.filter(cedula=conductor_ced).first()
 
+                    # Validar conductor no duplicado
+                    if conductor_ced:
+                        conductor_obj = Usuario.objects.filter(cedula=conductor_ced).first()
+                        if conductor_obj and Ruta.objects.filter(conductor_cedula=conductor_obj, activo=True).exists():
+                            ruta_existente = Ruta.objects.filter(conductor_cedula=conductor_obj, activo=True).first()
+                            messages.error(request, f'⚠️ El conductor ya está asignado a "{ruta_existente.nombre}".')
+                            return redirect('rutas_gestion')    
+
                     Ruta.objects.create(
                         codigo           = codigo,
                         nombre           = nombre,
                         descripcion      = descripcion or None,
                         turno            = turno_post or None,
+                        zona             = zona_post or None,
                         hora_inicio      = hora_inicio,
                         hora_fin         = hora_fin,
                         capacidad_maxima = int(capacidad) if capacidad else None,
@@ -143,6 +153,7 @@ def gestion_rutas(request):
             elif accion == 'editar':
                 codigo        = request.POST.get('codigo', '').strip()
                 turno_post    = request.POST.get('turno', '').strip()
+                zona_post     = request.POST.get('zona', '').strip()
                 conductor_ced = request.POST.get('conductor_cedula', '').strip() or None
                 monitora_ced  = request.POST.get('monitora_cedula', '').strip() or None
                 try:
@@ -151,6 +162,7 @@ def gestion_rutas(request):
                     ruta.nombre       = request.POST.get('nombre', ruta.nombre).strip()
                     ruta.descripcion  = request.POST.get('descripcion', '').strip() or None
                     ruta.turno        = turno_post or None
+                    ruta.zona         = zona_post or None
                     hora_inicio       = request.POST.get('hora_inicio', '').strip()
                     hora_fin          = request.POST.get('hora_fin', '').strip()
                     ruta.hora_inicio  = hora_inicio or None
@@ -158,7 +170,28 @@ def gestion_rutas(request):
                     capacidad         = request.POST.get('capacidad_maxima', '').strip()
                     ruta.capacidad_maxima = int(capacidad) if capacidad else None
                     ruta.activo       = request.POST.get('activo') == 'on'
-                    ruta.conductor_cedula = Usuario.objects.filter(cedula=conductor_ced).first() if conductor_ced else None
+                    # Validar que conductor no esté en otra ruta
+                    if conductor_ced:
+                        conductor_obj = Usuario.objects.filter(cedula=conductor_ced).first()
+                        ruta_conductor_existente = Ruta.objects.filter(
+                            conductor_cedula=conductor_obj, activo=True
+                        ).exclude(codigo=codigo).first()
+                        if ruta_conductor_existente:
+                            messages.error(request, f'⚠️ El conductor ya está asignado a "{ruta_conductor_existente.nombre}". Primero desasígnalo de esa ruta.')
+                            return redirect('rutas_gestion')
+                        ruta.conductor_cedula = conductor_obj
+                    else:
+                        ruta.conductor_cedula = None
+
+                    # Validar que monitora no esté en otra ruta
+                    if monitora_ced:
+                        monitora_existente = Monitora.objects.filter(
+                            usuario__cedula=monitora_ced
+                        ).exclude(ruta_asignada=ruta).exclude(ruta_asignada__isnull=True).first()
+                        if monitora_existente:
+                            messages.error(request, f'⚠️ La monitora ya está asignada a "{monitora_existente.ruta_asignada.nombre}". Primero desasígnala de esa ruta.')
+                            return redirect('rutas_gestion')
+
                     ruta.save()
 
                     # Desasignar monitora anterior de esta ruta
