@@ -1,4 +1,4 @@
-# rutas/views.py  — corregido para usar db_column correctos
+# rutas/views.py  — con soporte de 2 turnos diarios (mañana/tarde)
 import json
 from datetime import date, datetime
 from django.shortcuts import render, redirect, get_object_or_404
@@ -21,6 +21,16 @@ def _rol_en(request, *roles):
     if rol == 'ADMIN':
         return True
     return rol in roles
+
+
+def _turno_actual():
+    """
+    Determina automáticamente el turno según la hora del día.
+    Antes de las 12:00pm → MAÑANA (recogida hacia el colegio)
+    A partir de las 12:00pm → TARDE (entrega a casa)
+    El conductor NUNCA elige esto manualmente, evita errores humanos.
+    """
+    return 'MAÑANA' if datetime.now().hour < 12 else 'TARDE'
 
 
 def _ctx_base(request):
@@ -133,7 +143,7 @@ def gestion_rutas(request):
                         if conductor_obj and Ruta.objects.filter(conductor_cedula=conductor_obj, activo=True).exists():
                             ruta_existente = Ruta.objects.filter(conductor_cedula=conductor_obj, activo=True).first()
                             messages.error(request, f'⚠️ El conductor ya está asignado a "{ruta_existente.nombre}".')
-                            return redirect('rutas_gestion')    
+                            return redirect('rutas_gestion')
 
                     Ruta.objects.create(
                         codigo           = codigo,
@@ -354,11 +364,13 @@ def mapa_conductor(request):
 
     try:
         cedula = request.session.get('usuario_cedula')
+        turno_hoy = _turno_actual()
 
-        # Buscar recorrido del día
+        # Buscar recorrido del turno actual (mañana o tarde según la hora)
         recorrido = Recorrido.objects.filter(
             conductor__cedula=cedula,
             fecha=date.today(),
+            turno=turno_hoy,
         ).exclude(estado='CANCELADO').order_by('-fecha_creacion').first()
 
         ruta_actual         = None
@@ -385,7 +397,7 @@ def mapa_conductor(request):
 
         parada_actual_rec = paradas_pendientes[0] if paradas_pendientes else None
 
-        # ── FIX: leer lista_confirmada de la BD, no de la sesión ──
+        # ── lista_confirmada se lee de la BD del recorrido actual ──
         lista_confirmada = bool(recorrido and recorrido.lista_confirmada)
 
         paradas_mapa = []
@@ -401,6 +413,7 @@ def mapa_conductor(request):
         ctx.update({
             'ruta_actual':         ruta_actual,
             'recorrido':           recorrido,
+            'turno_actual':        turno_hoy,
             'paradas_completadas': paradas_completadas,
             'paradas_pendientes':  paradas_pendientes,
             'parada_actual_rec':   parada_actual_rec,
@@ -431,15 +444,16 @@ def iniciar_recorrido(request):
     try:
         data    = json.loads(request.body)
         ruta_id = data.get('ruta_codigo')
+        turno_hoy = _turno_actual()
 
         cedula = request.session.get('usuario_cedula')
         from usuarios.models import Usuario
         conductor = Usuario.objects.get(cedula=cedula)
         ruta      = Ruta.objects.get(codigo=ruta_id)
 
-        # ── FIX: verificar lista_confirmada desde la BD ──
+        # Verificar lista_confirmada desde la BD para este turno específico
         recorrido_existente = Recorrido.objects.filter(
-            ruta=ruta, fecha=date.today()
+            ruta=ruta, fecha=date.today(), turno=turno_hoy
         ).exclude(estado='CANCELADO').first()
 
         lista_ok = (
@@ -453,9 +467,10 @@ def iniciar_recorrido(request):
 
         recorrido, creado = Recorrido.objects.get_or_create(
             ruta      = ruta,
-            conductor = conductor,
             fecha     = date.today(),
+            turno     = turno_hoy,
             defaults  = {
+                'conductor':        conductor,
                 'estado':           'EN_CURSO',
                 'hora_inicio_real': datetime.now(),
                 'lista_confirmada': True,
@@ -464,6 +479,7 @@ def iniciar_recorrido(request):
 
         if not creado:
             recorrido.estado           = 'EN_CURSO'
+            recorrido.conductor        = conductor
             recorrido.hora_inicio_real = recorrido.hora_inicio_real or datetime.now()
             recorrido.lista_confirmada = True
             recorrido.save()
@@ -476,7 +492,7 @@ def iniciar_recorrido(request):
                 defaults={'estado': 'PENDIENTE'}
             )
 
-        return JsonResponse({'ok': True, 'recorrido_id': recorrido.id, 'mensaje': '¡Recorrido iniciado!'})
+        return JsonResponse({'ok': True, 'recorrido_id': recorrido.id, 'mensaje': f'¡Recorrido de {recorrido.get_turno_display()} iniciado!'})
 
     except Exception as e:
         return JsonResponse({'ok': False, 'error': str(e)}, status=500)

@@ -20,6 +20,7 @@ class Ruta(models.Model):
     hora_fin         = models.TimeField(blank=True, null=True)
     turno            = models.CharField(max_length=20, choices=TURNO, blank=True, null=True)
     capacidad_maxima = models.IntegerField(blank=True, null=True)
+
     ZONA = [
         ('NORTE',     'Norte'),
         ('SUR',       'Sur'),
@@ -84,6 +85,14 @@ class Recorrido(models.Model):
         ('CANCELADO',  'Cancelado'),
     ]
 
+    # ── NUEVO: turno del recorrido — distingue mañana (ida al colegio)
+    # de tarde (regreso a casa). El sistema lo asigna automáticamente
+    # según la hora del día, nunca lo elige el conductor manualmente. ──
+    TURNO_RECORRIDO = [
+        ('MAÑANA', 'Mañana — Recogida hacia el colegio'),
+        ('TARDE',  'Tarde — Entrega a casa'),
+    ]
+
     ruta = models.ForeignKey(
         Ruta,
         on_delete=models.CASCADE,
@@ -104,6 +113,8 @@ class Recorrido(models.Model):
         related_name='recorridos_monitora',
         db_column='monitora',           # ← evita que Django busque "monitora_id"
     )
+
+    turno  = models.CharField(max_length=10, choices=TURNO_RECORRIDO, default='MAÑANA')
     fecha  = models.DateField()
     estado = models.CharField(max_length=20, choices=ESTADO, default='PENDIENTE')
 
@@ -123,9 +134,11 @@ class Recorrido(models.Model):
     class Meta:
         db_table = 'recorrido'
         ordering = ['-fecha', '-fecha_creacion']
+        # Un recorrido único por ruta + fecha + turno (permite mañana Y tarde el mismo día)
+        unique_together = ('ruta', 'fecha', 'turno')
 
     def __str__(self):
-        return f"{self.ruta.nombre} — {self.fecha} ({self.estado})"
+        return f"{self.ruta.nombre} — {self.fecha} ({self.get_turno_display()}) — {self.estado}"
 
 
 # ============================================================
@@ -161,7 +174,3 @@ class ParadaRecorrido(models.Model):
 
     def __str__(self):
         return f"{self.recorrido} | {self.parada.nombre} → {self.estado}"
-    
-    
-    
-    

@@ -87,6 +87,16 @@
         .header-section h1 { font-size: 1.5rem; font-weight: bold; color: #1f2937; margin-bottom: 0.2rem; }
         .header-section p  { font-size: 0.82rem; color: #6b7280; margin: 0; }
 
+        /* ── Badge turno (mañana/tarde) ── */
+        .turno-badge {
+            display: inline-flex; align-items: center; gap: 0.35rem;
+            padding: 0.3rem 0.75rem; border-radius: 2rem;
+            font-weight: 700; font-size: 0.78rem;
+            background: #eef2ff; color: #3730a3;
+            border: 1px solid #c7d2fe;
+        }
+        .turno-badge.turno-tarde { background: #fff7ed; color: #9a3412; border-color: #fed7aa; }
+
         /* ── Stat cards ── */
         .stat-card {
             background: white; border-radius: 0.75rem; padding: 1.5rem;
@@ -187,7 +197,7 @@
     <div class="main-content">
 
         <!-- Header -->
-        <div class="header-section d-flex justify-content-between align-items-center">
+        <div class="header-section d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div>
                 <h1>Dashboard Conductor</h1>
                 <p>Bienvenido, <strong>{{ usuario_nombre|default:"Conductor" }}</strong> —
@@ -195,6 +205,14 @@
                    <i class="bi bi-clock ms-2 me-1"></i>{{ hora_actual|time:"H:i"|default:"" }}
                 </p>
             </div>
+            <!-- Badge de turno automático: informa al conductor si el sistema
+                 le está mostrando el recorrido de la mañana o el de la tarde. -->
+            {% if recorrido_hoy %}
+            <span class="turno-badge {% if recorrido_hoy.turno == 'TARDE' %}turno-tarde{% endif %}">
+                <i class="bi bi-{% if recorrido_hoy.turno == 'TARDE' %}sunset{% else %}sunrise{% endif %}"></i>
+                Turno {{ recorrido_hoy.get_turno_display }}
+            </span>
+            {% endif %}
         </div>
 
         <div class="p-4">
@@ -213,11 +231,11 @@
                 <i class="bi bi-lock-fill text-warning fs-3 flex-shrink-0 mt-1"></i>
                 <div>
                     <p class="fw-bold mb-1 text-warning" style="font-size:.95rem;">
-                        Esperando confirmación de la monitora
+                        Esperando confirmación de la monitora — Turno {{ recorrido_hoy.get_turno_display }}
                     </p>
                     <p class="mb-0 small text-muted">
                         El botón <strong>"Iniciar Recorrido"</strong> estará disponible una vez que la monitora
-                        llame lista y confirme las novedades del día.
+                        llame lista y confirme las novedades de este turno.
                     </p>
                 </div>
             </div>
@@ -304,7 +322,7 @@
                                 <p class="text-muted small mb-0 mt-1">
                                     <i class="bi bi-clock me-1"></i>{{ ruta_actual.hora_inicio }} — {{ ruta_actual.hora_fin }}
                                     &nbsp;|&nbsp;
-                                    <i class="bi bi-sun me-1"></i>{{ ruta_actual.get_turno_display }}
+                                    <i class="bi bi-sun me-1"></i>Turno {% if recorrido_hoy %}{{ recorrido_hoy.get_turno_display }}{% else %}{{ ruta_actual.get_turno_display }}{% endif %}
                                 </p>
                                 {% endif %}
                             </div>

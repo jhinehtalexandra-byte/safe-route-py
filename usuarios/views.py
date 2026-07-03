@@ -35,6 +35,15 @@ def _es_admin_o_colegio(request):
     return request.session.get('usuario_rol') in ('ADMIN', 'COLEGIO')
 
 
+def _turno_actual():
+    """
+    Antes de las 12:00pm -> MAÑANA (recogida hacia el colegio)
+    A partir de las 12:00pm -> TARDE (entrega a casa)
+    El sistema decide automaticamente, nunca el conductor.
+    """
+    return 'MAÑANA' if datetime.now().hour < 12 else 'TARDE'
+
+
 def _redirigir_dashboard(request):
     """Redirige al dashboard correcto según el rol."""
     DASHBOARDS = {
@@ -362,10 +371,12 @@ def dashboard_conductor(request):
         paradas       = []
         paradas_completadas = 0
 
+        turno_hoy = _turno_actual()
         if ruta_actual:
             recorrido_hoy = Recorrido.objects.filter(
                 ruta  = ruta_actual,
                 fecha = date.today(),
+                turno = turno_hoy,
             ).exclude(estado='CANCELADO').order_by('-fecha_creacion').first()
 
             if not recorrido_hoy:
@@ -373,8 +384,9 @@ def dashboard_conductor(request):
                     ruta      = ruta_actual,
                     conductor = conductor,
                     fecha     = date.today(),
+                    turno     = turno_hoy,
                     estado    = 'PENDIENTE',
-                    lista_confirmada = request.session.get('lista_confirmada', False),
+                    lista_confirmada = False,
                 )
 
             if recorrido_hoy:
@@ -1371,21 +1383,24 @@ def confirmar_lista(request):
             monitora = Monitora.objects.filter(usuario__cedula=cedula).first()
 
             recorrido = None
+            turno_hoy = _turno_actual()
             if monitora and monitora.ruta_asignada:
                 # Buscar recorrido existente, o crearlo si no existe
                 recorrido, _ = Recorrido.objects.get_or_create(
                     ruta  = monitora.ruta_asignada,
                     fecha = date.today(),
+                    turno = turno_hoy,
                     defaults = {
-                        'conductor':       monitora.ruta_asignada.conductor_cedula,
-                        'estado':          'PENDIENTE',
+                        'conductor':        monitora.ruta_asignada.conductor_cedula,
+                        'estado':           'PENDIENTE',
                         'lista_confirmada': False,
                     }
                 )
                 recorrido.lista_confirmada = True
                 recorrido.save()
             request.session['lista_confirmada'] = True
-            messages.success(request, '✅ Lista confirmada. El conductor ya puede iniciar el recorrido.')
+            turno_label = 'mañana' if turno_hoy == 'MAÑANA' else 'tarde'
+            messages.success(request, f'✅ Lista confirmada para el recorrido de la {turno_label}. El conductor ya puede iniciar.')
 
         except Exception as e:
             messages.error(request, f'Error al confirmar lista: {str(e)}')
