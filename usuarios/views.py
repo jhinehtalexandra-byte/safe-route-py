@@ -831,12 +831,13 @@ def usuarios_eliminar(request, cedula):
     try:
         usuario_del = Usuario.objects.get(cedula=cedula)
         nombre      = usuario_del.nombre
-        usuario_del.delete()
-        messages.success(request, f'Usuario {nombre} eliminado exitosamente.')
+        usuario_del.activo = False
+        usuario_del.save(update_fields=['activo'])
+        messages.success(request, f'Usuario {nombre} desactivado exitosamente.')
     except Usuario.DoesNotExist:
         messages.error(request, 'Usuario no encontrado.')
     except Exception as e:
-        messages.error(request, f'Error al eliminar: {str(e)}')
+        messages.error(request, f'Error al desactivar: {str(e)}')
 
     return redirect('usuarios')
 

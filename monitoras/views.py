@@ -237,9 +237,10 @@ def monitora_eliminar(request, cedula):
     if request.method == 'POST':
         try:
             nombre = monitora.usuario.nombre
-            monitora.usuario.delete()
-            messages.success(request, f'Monitora {nombre} eliminada correctamente.')
+            monitora.usuario.activo = False
+            monitora.usuario.save(update_fields=['activo'])
+            messages.success(request, f'Monitora {nombre} desactivada correctamente.')
         except Exception as e:
-            messages.error(request, f'Error al eliminar: {e}')
+            messages.error(request, f'Error al desactivar: {e}')
 
     return redirect('monitoras')

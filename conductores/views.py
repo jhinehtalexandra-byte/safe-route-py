@@ -284,9 +284,10 @@ def conductor_eliminar(request, cedula):
     if request.method == 'POST':
         try:
             nombre = conductor.usuario.nombre
-            conductor.usuario.delete()
-            messages.success(request, f'Conductor {nombre} eliminado correctamente.')
+            conductor.usuario.activo = False
+            conductor.usuario.save(update_fields=['activo'])
+            messages.success(request, f'Conductor {nombre} desactivado correctamente.')
         except Exception as e:
-            messages.error(request, f'Error al eliminar: {e}')
+            messages.error(request, f'Error al desactivar: {e}')
 
     return redirect('conductores')

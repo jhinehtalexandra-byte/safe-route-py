@@ -685,21 +685,18 @@ def eliminar_colegio(request, nit):
         from .models import Colegio
         colegio = Colegio.objects.get(nit=nit)
         nombre  = colegio.nombre_institucion
-        if colegio.usuario:
-            colegio.usuario.delete()
-        else:
-            colegio.delete()
-        messages.success(request, f'Colegio "{nombre}" eliminado permanentemente.')
-    except Colegio.DoesNotExist:
-        messages.error(request, 'Colegio no encontrado.')
-    except Exception as e:
-        messages.error(request, f'Error al eliminar: {str(e)}')
 
-    
-        messages.success(request, f'Colegio "{nombre}" eliminado permanentemente.')
+        colegio.activo = False
+        colegio.save(update_fields=['activo'])
+
+        if colegio.usuario:
+            colegio.usuario.activo = False
+            colegio.usuario.save(update_fields=['activo'])
+
+        messages.success(request, f'Colegio "{nombre}" desactivado correctamente.')
     except Colegio.DoesNotExist:
         messages.error(request, 'Colegio no encontrado.')
     except Exception as e:
-        messages.error(request, f'Error al eliminar: {str(e)}')
+        messages.error(request, f'Error al desactivar: {str(e)}')
 
     return redirect('colegios')
