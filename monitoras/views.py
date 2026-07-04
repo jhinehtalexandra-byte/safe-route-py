@@ -48,7 +48,7 @@ def lista_monitoras(request):
         return redir
 
     nombre     = request.GET.get('nombre',     '').strip()
-    activo_str = request.GET.get('activo',     '').strip()
+    activo_str = request.GET.get('activo',     'true').strip()
     ruta_cod   = request.GET.get('ruta',       '').strip()
     cert_str   = request.GET.get('certificado','').strip()
 
@@ -242,5 +242,26 @@ def monitora_eliminar(request, cedula):
             messages.success(request, f'Monitora {nombre} desactivada correctamente.')
         except Exception as e:
             messages.error(request, f'Error al desactivar: {e}')
+
+    return redirect('monitoras')
+
+# ──────────────────────────────────────────────────────────────
+# REACTIVAR
+# ──────────────────────────────────────────────────────────────
+@transaction.atomic
+def monitora_reactivar(request, cedula):
+    usuario, redir = _require_admin_o_colegio(request)
+    if redir:
+        return redir
+
+    monitora = get_object_or_404(Monitora, usuario__cedula=cedula)
+
+    if request.method == 'POST':
+        try:
+            monitora.usuario.activo = True
+            monitora.usuario.save(update_fields=['activo'])
+            messages.success(request, f'Monitora {monitora.usuario.nombre} reactivada correctamente.')
+        except Exception as e:
+            messages.error(request, f'Error al reactivar: {e}')
 
     return redirect('monitoras')

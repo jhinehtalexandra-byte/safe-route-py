@@ -97,6 +97,7 @@ urlpatterns = [
     path('monitoras/nueva/',                   monitoras_views.monitora_nueva,   name='monitora_nueva'),
     path('monitoras/<str:cedula>/editar/',     monitoras_views.monitora_editar,  name='monitora_editar'),
     path('monitoras/<str:cedula>/eliminar/',   monitoras_views.monitora_eliminar,name='monitora_eliminar'),
+    path('monitoras/<str:cedula>/reactivar/',  monitoras_views.monitora_reactivar,name='monitora_reactivar'),
 
     # ── Rutas ────────────────────────────────────────────────────
     path('rutas/lista/',       rutas_views.lista_rutas,      name='lista_rutas'),
