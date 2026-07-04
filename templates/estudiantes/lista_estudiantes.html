@@ -385,11 +385,32 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Grado</label>
-                            <input type="text" class="form-control" name="grado" maxlength="100" placeholder="Ej: 4° Primaria, Bachillerato...">
+                            <select class="form-select" name="grado">
+                                <option value="">-- Seleccione --</option>
+                                <option value="Prejardín">Prejardín</option>
+                                <option value="Jardín">Jardín</option>
+                                <option value="Transición">Transición</option>
+                                <option value="1° Primaria">1° Primaria</option>
+                                <option value="2° Primaria">2° Primaria</option>
+                                <option value="3° Primaria">3° Primaria</option>
+                                <option value="4° Primaria">4° Primaria</option>
+                                <option value="5° Primaria">5° Primaria</option>
+                                <option value="6° Secundaria">6° Secundaria</option>
+                                <option value="7° Secundaria">7° Secundaria</option>
+                                <option value="8° Secundaria">8° Secundaria</option>
+                                <option value="9° Secundaria">9° Secundaria</option>
+                                <option value="10° Media">10° Media</option>
+                                <option value="11° Media">11° Media</option>
+                            </select>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Institución</label>
-                            <input type="text" class="form-control" name="institucion" maxlength="100">
+                            <select class="form-select" name="institucion">
+                                <option value="">-- Seleccione --</option>
+                                {% for c in colegios %}
+                                <option value="{{ c.nombre_institucion }}">{{ c.nombre_institucion }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Tipo de Sangre</label>
@@ -656,12 +677,32 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Grado</label>
-                            <input type="text" class="form-control" name="grado" id="edit_grado" maxlength="100" placeholder="Ej: 4° Primaria, Bachillerato...">
-                            <small class="text-muted">Escribe el grado tal como está registrado</small>
+                            <select class="form-select" name="grado" id="edit_grado">
+                                <option value="">-- Seleccione --</option>
+                                <option value="Prejardín">Prejardín</option>
+                                <option value="Jardín">Jardín</option>
+                                <option value="Transición">Transición</option>
+                                <option value="1° Primaria">1° Primaria</option>
+                                <option value="2° Primaria">2° Primaria</option>
+                                <option value="3° Primaria">3° Primaria</option>
+                                <option value="4° Primaria">4° Primaria</option>
+                                <option value="5° Primaria">5° Primaria</option>
+                                <option value="6° Secundaria">6° Secundaria</option>
+                                <option value="7° Secundaria">7° Secundaria</option>
+                                <option value="8° Secundaria">8° Secundaria</option>
+                                <option value="9° Secundaria">9° Secundaria</option>
+                                <option value="10° Media">10° Media</option>
+                                <option value="11° Media">11° Media</option>
+                            </select>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Institución</label>
-                            <input type="text" class="form-control" name="institucion" id="edit_institucion" maxlength="100">
+                            <select class="form-select" name="institucion" id="edit_institucion">
+                                <option value="">-- Seleccione --</option>
+                                {% for c in colegios %}
+                                <option value="{{ c.nombre_institucion }}">{{ c.nombre_institucion }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Tipo de Sangre</label>
@@ -728,6 +769,9 @@
        1. btnEditActual = null AL INICIO (no al final)
        2. action asignado PRIMERO
        3. Todo dentro de try/catch
+       NOTA: este modal actualmente no se abre desde ninguna
+       tarjeta (el botón de editar navega a la página completa
+       estudiante_editar). Se deja funcional por si se reactiva.
        ==================================================== */
     let btnEditActual = null;
 
@@ -745,8 +789,8 @@
             document.getElementById('edit_nombre').value            = d.nombre   || '';
             document.getElementById('edit_apellido').value          = d.apellido || '';
             document.getElementById('edit_fecha_nac').value         = d.fecha    || '';
-            document.getElementById('edit_grado').value             = d.grado    || '';
-            document.getElementById('edit_institucion').value       = d.institucion  || '';
+            setSelectValue('edit_grado', d.grado || '');
+            setSelectValue('edit_institucion', d.institucion || '');
             document.getElementById('edit_direccion').value         = d.direccion    || '';
             document.getElementById('edit_contacto_nom').value      = d.contactoNom  || '';
             document.getElementById('edit_contacto_tel').value      = d.contactoTel  || '';
