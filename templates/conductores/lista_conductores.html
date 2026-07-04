@@ -26,7 +26,7 @@
         .sidebar-footer { padding: 0.875rem 1.25rem; border-top: 1px solid rgba(255,255,255,0.08); background-color: rgba(0,0,0,0.2); flex-shrink: 0; }
         .user-avatar { width: 36px; height: 36px; border-radius: 50%; background-color: #f59e0b; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem; flex-shrink: 0; }
         .user-name { font-size: 0.82rem; font-weight: 600; color: white; margin: 0; }
-        .user-role { font-size: 0.7rem; color: #94a3b8; margin: 0; } 
+        .user-role { font-size: 0.7rem; color: #94a3b8; margin: 0; }
         .user-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: #f59e0b; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; }
         .main-content { margin-left: 260px; flex: 1; min-height: 100vh; background-color: #f5f5f5; }
         .header-section { background-color: white; padding: 1.5rem 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
@@ -53,6 +53,8 @@
         .btn-edit:hover   { background-color: #eff6ff; }
         .btn-delete { background-color: transparent; color: #ef4444; }
         .btn-delete:hover { background-color: #fef2f2; }
+        .btn-restore { background-color: transparent; color: #22c55e; }
+        .btn-restore:hover { background-color: #f0fdf4; }
         .btn-view   { background-color: transparent; color: #10b981; }
         .btn-view:hover   { background-color: #ecfdf5; }
         .status-badge { font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-weight: 500; }
@@ -62,6 +64,21 @@
         .modal-header-blue { background-color: #1d4ed8; color: white; }
         .modal-section-divider { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; display: flex; align-items: center; gap: 0.5rem; margin: 0.25rem 0; }
         .modal-section-divider::before, .modal-section-divider::after { content: ''; flex: 1; height: 1px; background: #e5e7eb; }
+
+        /* ── Pestañas Activos / Desactivados ── */
+        .tabs-estado { display: flex; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; }
+        .tab-link {
+            padding: 0.6rem 1.25rem; font-weight: 600; font-size: 0.9rem;
+            text-decoration: none; border-radius: 0.5rem 0.5rem 0 0;
+            border: 2px solid transparent; border-bottom: none;
+            margin-bottom: -2px; transition: all 0.15s;
+        }
+        .tab-link.activos    { color: #16a34a; }
+        .tab-link.desactivos { color: #dc2626; }
+        .tab-link:hover { background-color: #f8fafc; }
+        .tab-link.selected.activos    { background: white; border-color: #e5e7eb; border-bottom: 2px solid white; color: #16a34a; }
+        .tab-link.selected.desactivos { background: white; border-color: #e5e7eb; border-bottom: 2px solid white; color: #dc2626; }
+
         @media (max-width: 992px) { .sidebar { margin-left: -260px; } .main-content { margin-left: 0; } }
     </style>
 </head>
@@ -104,6 +121,7 @@
 
             <!-- Filtros -->
             <form method="GET" action="{% url 'conductores' %}" class="row g-3 mb-4">
+                <input type="hidden" name="activo" id="activoHidden" value="{{ activo }}">
                 <div class="col-md-4">
                     <div class="filter-card">
                         <div class="filter-card-header"><i class="bi bi-person me-2"></i>Filtro por Nombre</div>
@@ -136,19 +154,6 @@
                             <select class="form-select form-select-sm" name="categoria">
                                 <option value="">Todas las categorías</option>
                                 {% for val, lbl in categorias %}<option value="{{ val }}" {% if categoria == val %}selected{% endif %}>{{ lbl }}</option>{% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="filter-card">
-                        <div class="filter-card-header"><i class="bi bi-check-circle me-2"></i>Filtro por Estado</div>
-                        <div class="filter-card-body">
-                            <label class="form-label small">Estado</label>
-                            <select class="form-select form-select-sm" name="activo">
-                                <option value="">Todos los estados</option>
-                                <option value="true"  {% if activo == 'true' %}selected{% endif %}>Activo</option>
-                                <option value="false" {% if activo == 'false' %}selected{% endif %}>Inactivo</option>
                             </select>
                         </div>
                     </div>
@@ -196,7 +201,7 @@
                         <div class="filter-card-header"><i class="bi bi-lightning-charge me-2"></i>Acciones</div>
                         <div class="filter-card-body d-flex flex-column gap-2">
                             <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search me-1"></i>Buscar</button>
-                            <a href="{% url 'conductores' %}" class="btn btn-secondary btn-sm"><i class="bi bi-x-circle me-1"></i>Limpiar Filtros</a>
+                            <a href="{% url 'conductores' %}?activo={{ activo }}" class="btn btn-secondary btn-sm"><i class="bi bi-x-circle me-1"></i>Limpiar Filtros</a>
                         </div>
                     </div>
                 </div>
@@ -226,21 +231,39 @@
                 </div>
             </div>
 
+            <!-- ══ PESTAÑAS: Activos / Desactivados ══ -->
+            <div class="tabs-estado">
+                <a class="tab-link activos {% if activo != 'false' %}selected{% endif %}"
+                   href="?activo=true&nombre={{ nombre|default:'' }}&placa={{ placa|default:'' }}">
+                    <i class="bi bi-person-check-fill me-1"></i>Activos
+                </a>
+                <a class="tab-link desactivos {% if activo == 'false' %}selected{% endif %}"
+                   href="?activo=false&nombre={{ nombre|default:'' }}&placa={{ placa|default:'' }}">
+                    <i class="bi bi-person-x-fill me-1"></i>Desactivados
+                </a>
+            </div>
+
             <!-- Lista -->
             <div class="table-container">
                 <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-person-badge me-2 text-primary"></i>Lista de Conductores</h5>
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-person-badge me-2 text-primary"></i>
+                        {% if activo == 'false' %}Conductores Desactivados{% else %}Conductores Activos{% endif %}
+                    </h5>
                     <span class="badge bg-secondary">{{ conductores|length }} conductores</span>
                 </div>
                 <div class="row p-4">
                     {% if not conductores %}
                     <div class="empty-state">
                         <i class="bi bi-person-badge d-block"></i>
-                        <h4 class="h5 mb-2">No hay conductores registrados</h4>
+                        <h4 class="h5 mb-2">
+                            {% if activo == 'false' %}No hay conductores desactivados{% else %}No hay conductores registrados{% endif %}
+                        </h4>
+                        {% if activo != 'false' %}
                         <p class="text-muted mb-4">Comienza agregando tu primer conductor</p>
                         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#conductorModal">
                             <i class="bi bi-plus-lg me-2"></i>Agregar Primer Conductor
                         </button>
+                        {% endif %}
                     </div>
                     {% else %}
                         {% for c in conductores %}
@@ -323,11 +346,19 @@
                                             <i class="bi bi-pencil"></i>
                                         </a>
 
+                                        {% if c.usuario.activo %}
                                         {% url 'conductor_eliminar' c.usuario.cedula as url_del %}
-                                        <button class="btn-icon btn-delete" title="Eliminar"
-                                                onclick="confirmarEliminar('{{ url_del }}')">
+                                        <button class="btn-icon btn-delete" title="Desactivar"
+                                                onclick="confirmarEliminar('{{ url_del }}', '{{ c.usuario.nombre|escapejs }}')">
                                             <i class="bi bi-trash"></i>
                                         </button>
+                                        {% else %}
+                                        {% url 'conductor_reactivar' c.usuario.cedula as url_react %}
+                                        <button class="btn-icon btn-restore" title="Reactivar"
+                                                onclick="confirmarReactivar('{{ url_react }}', '{{ c.usuario.nombre|escapejs }}')">
+                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                        </button>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -379,7 +410,6 @@
                             <label class="form-label fw-semibold">Teléfono</label>
                             <input type="tel" class="form-control" name="telefono" maxlength="20" placeholder="+57 300 123 4567">
                         </div>
-                        <!-- CAMBIO: sin placeholder que sugiera valor por defecto, campo requerido -->
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Nombre de usuario <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="user_name" maxlength="50" placeholder="Nombre de usuario" required autocomplete="off">
@@ -485,23 +515,46 @@
     </div>
 </div>
 
-<!-- Modal Confirmar Eliminación -->
+<!-- Modal Confirmar Desactivación -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header border-danger">
-                <h5 class="modal-title text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Confirmar Eliminación</h5>
+                <h5 class="modal-title text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Confirmar Desactivación</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>¿Estás seguro de que deseas eliminar este conductor permanentemente?</p>
-                <p class="text-muted small"><strong class="text-danger">Esta acción no se puede deshacer.</strong> Se eliminará también el usuario asociado.</p>
+                <p>¿Desactivar al conductor <strong id="deleteNombre"></strong>?</p>
+                <p class="text-muted small">El conductor no podrá iniciar sesión, pero su información se conserva y puedes reactivarlo cuando quieras.</p>
             </div>
             <div class="modal-footer">
                 <form method="POST" id="deleteForm" action="">
                     {% csrf_token %}
                     <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-2"></i>Sí, Eliminar</button>
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-2"></i>Sí, Desactivar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmar Reactivación -->
+<div class="modal fade" id="restoreModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-success">
+                <h5 class="modal-title text-success"><i class="bi bi-arrow-counterclockwise me-2"></i>Confirmar Reactivación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Reactivar al conductor <strong id="restoreNombre"></strong>?</p>
+                <p class="text-muted small">Podrá volver a iniciar sesión normalmente.</p>
+            </div>
+            <div class="modal-footer">
+                <form method="POST" id="restoreForm" action="">
+                    {% csrf_token %}
+                    <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success"><i class="bi bi-arrow-counterclockwise me-2"></i>Sí, Reactivar</button>
                 </form>
             </div>
         </div>
@@ -535,9 +588,16 @@
         </div>`;
     }
 
-    function confirmarEliminar(url) {
+    function confirmarEliminar(url, nombre) {
         document.getElementById('deleteForm').action = url;
+        document.getElementById('deleteNombre').textContent = nombre;
         new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    }
+
+    function confirmarReactivar(url, nombre) {
+        document.getElementById('restoreForm').action = url;
+        document.getElementById('restoreNombre').textContent = nombre;
+        new bootstrap.Modal(document.getElementById('restoreModal')).show();
     }
 
     document.getElementById('conductorModal').addEventListener('hidden.bs.modal', function() {

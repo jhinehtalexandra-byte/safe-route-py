@@ -80,6 +80,7 @@ urlpatterns = [
     path('conductores/nuevo/',                 conductores_views.conductor_nuevo,   name='conductor_nuevo'),
     path('conductores/<str:cedula>/editar/',   conductores_views.conductor_editar,  name='conductor_editar'),
     path('conductores/<str:cedula>/eliminar/', conductores_views.conductor_eliminar,name='conductor_eliminar'),
+    path('conductores/<str:cedula>/reactivar/', conductores_views.conductor_reactivar,name='conductor_reactivar'),
 
     # ── Conductor · acciones form (dashboard HTML) ───────────────
     path('conductor/iniciar/',   rutas_views.iniciar_recorrido_form,   name='iniciar_recorrido'),

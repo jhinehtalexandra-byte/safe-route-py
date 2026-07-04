@@ -52,7 +52,7 @@ def lista_conductores(request):
     nombre     = request.GET.get('nombre',    '').strip()
     placa      = request.GET.get('placa',     '').strip()
     categoria  = request.GET.get('categoria', '').strip()
-    activo_str = request.GET.get('activo',    '').strip()
+    activo_str = request.GET.get('activo',    'true').strip()
     ruta_cod   = request.GET.get('ruta',      '').strip()
     soat_str   = request.GET.get('soat',      '').strip()
     tecno_str  = request.GET.get('tecno',     '').strip()
@@ -289,5 +289,25 @@ def conductor_eliminar(request, cedula):
             messages.success(request, f'Conductor {nombre} desactivado correctamente.')
         except Exception as e:
             messages.error(request, f'Error al desactivar: {e}')
+
+    return redirect('conductores')
+# ──────────────────────────────────────────────────────────────
+# REACTIVAR
+# ──────────────────────────────────────────────────────────────
+@transaction.atomic
+def conductor_reactivar(request, cedula):
+    usuario, redir = _require_admin_o_colegio(request)
+    if redir:
+        return redir
+
+    conductor = get_object_or_404(Conductor, usuario__cedula=cedula)
+
+    if request.method == 'POST':
+        try:
+            conductor.usuario.activo = True
+            conductor.usuario.save(update_fields=['activo'])
+            messages.success(request, f'Conductor {conductor.usuario.nombre} reactivado correctamente.')
+        except Exception as e:
+            messages.error(request, f'Error al reactivar: {e}')
 
     return redirect('conductores')
