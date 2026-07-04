@@ -1,8 +1,7 @@
 # estudiantes/views.py
 import io
 import bcrypt
-import secrets
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.http import HttpResponse
@@ -52,7 +51,6 @@ LOCALIDAD_ZONA = {
 
 
 def _asignar_ruta_por_localidad(localidad):
-    """Retorna el código de ruta que corresponde a la localidad, o None."""
     from rutas.models import Ruta
     if not localidad:
         return None
@@ -64,31 +62,12 @@ def _asignar_ruta_por_localidad(localidad):
 
 
 # ============================================================
-# HELPER — Sincronizar parada del estudiante (NUEVO)
+# HELPER — Sincronizar parada del estudiante
 # ============================================================
 def _sincronizar_parada(estudiante):
-    """
-    Crea, actualiza o desactiva la parada asociada al estudiante.
-
-    Como no existe FK Parada->Estudiante, la vinculación se rastrea
-    mediante un tag único 'EST-{documento}' embebido en Parada.referencia.
-    Esto permite reubicar la parada del estudiante en ediciones futuras
-    sin depender del nombre (que puede cambiar) y soporta que varios
-    hermanos compartan una misma parada (misma dirección + misma ruta).
-
-    Reglas:
-    - Estudiante inactivo, sin dirección o sin ruta asignada -> se
-      desvincula de la parada. Si él era el único vinculado, la parada
-      se desactiva; si comparte parada con hermanos, solo se le quita
-      su tag y la parada sigue activa para los demás.
-    - Estudiante activo con dirección+ruta -> se reutiliza una parada
-      existente en esa misma dirección/ruta (hermanos) o se crea una
-      nueva parada.
-    """
     from rutas.models import Parada
 
     ref_tag = f'EST-{estudiante.documento}'
-
     parada_actual = Parada.objects.filter(referencia__contains=ref_tag).first()
 
     def _quitar_tag(parada):
@@ -99,7 +78,6 @@ def _sincronizar_parada(estudiante):
             if t.strip() and ref_tag not in t
         ]
         if tags_restantes:
-            # otros estudiantes siguen usando esta parada: no se desactiva
             parada.referencia = ', '.join(tags_restantes)
             parada.save(update_fields=['referencia'])
         else:
@@ -107,14 +85,12 @@ def _sincronizar_parada(estudiante):
             parada.referencia = ''
             parada.save(update_fields=['activo', 'referencia'])
 
-    # Estudiante inactivo, o sin datos suficientes -> desvincular y salir
     if not estudiante.activo or not estudiante.direccion or not estudiante.codigo_ruta_id:
         _quitar_tag(parada_actual)
         return None
 
     nombre_hijo = f'{estudiante.nombre} {estudiante.apellido}'.strip()
 
-    # ¿Ya existe una parada en la MISMA ruta y MISMA dirección? (hermanos)
     parada_hermano = (
         Parada.objects
         .filter(ruta_id=estudiante.codigo_ruta_id, direccion__iexact=estudiante.direccion)
@@ -125,7 +101,6 @@ def _sincronizar_parada(estudiante):
     if parada_hermano:
         if parada_actual and parada_actual.pk != parada_hermano.pk:
             _quitar_tag(parada_actual)
-
         tags = [t.strip() for t in (parada_hermano.referencia or '').split(',') if t.strip()]
         if ref_tag not in tags:
             tags.append(ref_tag)
@@ -136,7 +111,6 @@ def _sincronizar_parada(estudiante):
         parada_hermano.save()
         return parada_hermano
 
-    # Si la parada actual sigue siendo válida (misma dirección/ruta), solo actualizarla
     if (
         parada_actual
         and parada_actual.direccion == estudiante.direccion
@@ -147,7 +121,6 @@ def _sincronizar_parada(estudiante):
         parada_actual.save()
         return parada_actual
 
-    # La dirección/ruta cambió: soltar la parada vieja y crear una nueva
     if parada_actual:
         _quitar_tag(parada_actual)
 
@@ -168,6 +141,154 @@ def _sincronizar_parada(estudiante):
         longitud   = None,
         activo     = True,
     )
+
+
+# ============================================================
+# HELPER — Enviar correo de bienvenida con credenciales
+# ============================================================
+def _generar_y_enviar_invitacion(request, acudiente, nombre_hijo):
+    """
+    Envía correo de bienvenida al padre/acudiente con sus credenciales.
+    El usuario ya queda activo desde el momento del registro.
+    Devuelve True si el correo se envió con éxito, False si falló.
+    """
+    url_login = 'https://web-production-cadfa.up.railway.app/login/'
+
+    try:
+        from django.core.mail import EmailMultiAlternatives
+        from django.conf import settings as cfg
+
+        asunto = '🚌 Bienvenido/a a SafeRoute — Tus credenciales de acceso'
+
+        texto_plano = (
+            f'Hola {acudiente.nombre},\n\n'
+            f'El colegio ha registrado a {nombre_hijo} en SafeRoute.\n'
+            f'Tu cuenta ya está activa. Tus credenciales son:\n\n'
+            f'  Usuario:    {acudiente.documento}\n'
+            f'  Contraseña: {acudiente.documento}\n'
+            f'  Acceso:     {url_login}\n\n'
+            f'Por seguridad, cambia tu contraseña después del primer ingreso.\n\n'
+            f'Con tu cuenta podrás:\n'
+            f'  • Ver la ubicación del bus en tiempo real\n'
+            f'  • Recibir notificaciones de recogida y entrega\n'
+            f'  • Reportar ausencias y notificar al conductor\n'
+            f'  • Consultar y gestionar pagos del servicio\n\n'
+            f'— Equipo SafeRoute'
+        )
+
+        iniciales = ''.join([p[0].upper() for p in nombre_hijo.split()[:2]])
+
+        html = f"""<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f6f8fc;font-family:Arial,sans-serif;">
+  <div style="max-width:520px;margin:32px auto;">
+
+    <div style="background:#1e293b;border-radius:12px 12px 0 0;padding:28px;text-align:center;">
+      <div style="font-size:36px;">🚌</div>
+      <div style="font-size:20px;font-weight:800;color:white;margin-top:8px;">SafeRoute</div>
+      <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;">
+        Sistema de Gestión de Transporte Escolar
+      </div>
+      <div style="margin-top:20px;font-size:18px;font-weight:700;color:white;">
+        ¡Bienvenido/a a SafeRoute!
+      </div>
+      <div style="font-size:12px;color:#94a3b8;margin-top:4px;">
+        El colegio te ha registrado como acudiente
+      </div>
+    </div>
+
+    <div style="background:white;padding:28px;">
+
+      <div style="font-size:16px;font-weight:700;color:#1f2937;margin-bottom:8px;">
+        Hola, <span style="color:#f59e0b;">{acudiente.nombre}</span> 👋
+      </div>
+      <p style="font-size:13px;color:#4b5563;line-height:1.6;margin:0 0 20px;">
+        El colegio ha registrado a <strong>{nombre_hijo}</strong> en el sistema de
+        transporte escolar. Tu cuenta ya está activa y puedes ingresar ahora mismo.
+      </p>
+
+      <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:20px;">
+        <div style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">
+          Estudiante vinculado
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:38px;height:38px;border-radius:50%;background:#f59e0b;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white;flex-shrink:0;">
+            {iniciales}
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#1f2937;">{nombre_hijo}</div>
+            <div style="font-size:11px;color:#6b7280;">Estudiante registrado en SafeRoute</div>
+          </div>
+          <div style="margin-left:auto;background:#d1fae5;color:#065f46;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;">Activo</div>
+        </div>
+      </div>
+
+      <div style="background:#fef3c7;border:1.5px solid #fcd34d;border-radius:10px;padding:16px;margin-bottom:20px;">
+        <div style="font-size:10px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;">
+          Tus credenciales de acceso
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #fde68a;">
+          <span style="font-size:12px;color:#92400e;">🔒 Usuario</span>
+          <span style="font-size:13px;font-weight:700;color:#78350f;font-family:monospace;">{acudiente.documento}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;">
+          <span style="font-size:12px;color:#92400e;">🔑 Contraseña</span>
+          <span style="font-size:13px;font-weight:700;color:#78350f;font-family:monospace;">{acudiente.documento}</span>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin:24px 0 20px;">
+        <a href="{url_login}"
+           style="display:inline-block;background:#f59e0b;color:white;font-weight:700;font-size:14px;padding:14px 36px;border-radius:8px;text-decoration:none;">
+          🚀 &nbsp; Ingresar a SafeRoute
+        </a>
+      </div>
+
+      <div style="font-size:10px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">
+        Con tu cuenta podrás:
+      </div>
+      <div style="font-size:12px;color:#4b5563;padding:4px 0;"><span style="color:#f59e0b;font-weight:700;">✓</span> &nbsp;Ver la ubicación del bus en tiempo real</div>
+      <div style="font-size:12px;color:#4b5563;padding:4px 0;"><span style="color:#f59e0b;font-weight:700;">✓</span> &nbsp;Recibir notificaciones de recogida y entrega</div>
+      <div style="font-size:12px;color:#4b5563;padding:4px 0;"><span style="color:#f59e0b;font-weight:700;">✓</span> &nbsp;Reportar ausencias y notificar al conductor</div>
+      <div style="font-size:12px;color:#4b5563;padding:4px 0;"><span style="color:#f59e0b;font-weight:700;">✓</span> &nbsp;Consultar y gestionar pagos del servicio</div>
+
+      <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:12px 14px;font-size:11px;color:#92400e;line-height:1.6;margin-top:20px;">
+        <strong>⚠️ Recomendación de seguridad:</strong> cambia tu contraseña después de tu primer ingreso.
+      </div>
+
+    </div>
+
+    <div style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:14px 28px;text-align:center;font-size:11px;color:#6b7280;line-height:1.6;">
+      Si no tienes un hijo matriculado en este colegio, puedes ignorar este mensaje.
+    </div>
+
+    <div style="background:#1e293b;border-radius:0 0 12px 12px;padding:20px;text-align:center;">
+      <div style="font-size:14px;font-weight:800;color:white;">🚌 SafeRoute</div>
+      <div style="font-size:10px;color:#64748b;margin-top:8px;line-height:1.7;">
+        Sistema de Gestión de Transporte Escolar<br>
+        Bogotá D.C. · Colombia · © 2026 SafeRoute<br>
+        Correo enviado a <span style="color:#94a3b8;">{acudiente.email}</span>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>"""
+
+        correo = EmailMultiAlternatives(
+            subject=asunto,
+            body=texto_plano,
+            from_email=getattr(cfg, 'DEFAULT_FROM_EMAIL', 'noreply@saferoute.co'),
+            to=[acudiente.email],
+        )
+        correo.attach_alternative(html, 'text/html')
+        correo.send(fail_silently=False)
+        return True
+
+    except Exception as e:
+        print(f'⚠️  No se pudo enviar correo a {acudiente.email}: {e}')
+        return False
 
 
 # ============================================================
@@ -194,42 +315,41 @@ def _procesar_acudiente(request, prefijo, nombre_hijo, es_principal):
             acudiente.save()
 
         if not acudiente.usuario or not acudiente.usuario.activo:
-            # Si no tiene usuario, crear uno nuevo antes de enviar invitación
             if not acudiente.usuario:
                 try:
-
-                    from usuarios.models import Usuario
-                    password_auto = 'Padre2026*'
+                    hash_pass = bcrypt.hashpw(acudiente.documento.encode(), bcrypt.gensalt()).decode()
                     usuario_nuevo = Usuario.objects.create(
                         cedula         = acudiente.documento,
                         tipo_documento = acudiente.tipo_documento,
-                        user_name      = acudiente.email.split('@')[0][:20].replace('.', '_').replace('-', '_'),
-                        password       = bcrypt.hashpw(password_auto.encode(), bcrypt.gensalt()).decode(),
+                        user_name      = acudiente.documento,
+                        password       = hash_pass,
                         nombre         = acudiente.nombre,
                         email          = acudiente.email,
                         telefono       = acudiente.telefono or None,
                         rol            = 'PADRE',
-                        activo         = False,
+                        activo         = True,
                     )
                     acudiente.usuario = usuario_nuevo
                     acudiente.save()
                 except Exception as e:
                     print(f'Error creando usuario para acudiente existente: {e}')
+            else:
+                acudiente.usuario.activo = True
+                acudiente.usuario.save(update_fields=['activo'])
 
             envio_ok = _generar_y_enviar_invitacion(request, acudiente, nombre_hijo)
             if envio_ok:
                 messages.info(
                     request,
                     f'El acudiente {acudiente.nombre} ya existe. '
-                    f'Se reenvió la invitación a {acudiente.email}.'
+                    f'Se reenvió el correo con credenciales a {acudiente.email}.'
                 )
             else:
                 messages.warning(
                     request,
                     f'El acudiente {acudiente.nombre} ya existe, pero no se pudo '
-                    f'reenviar el correo de invitación a {acudiente.email}. '
-                    f'Verifica la configuración de correo o contacta al acudiente '
-                    f'manualmente.'
+                    f'enviar el correo a {acudiente.email}. '
+                    f'Sus credenciales son: usuario y contraseña = {acudiente.documento}.'
                 )
     else:
         acudiente = Acudiente.objects.create(
@@ -240,26 +360,18 @@ def _procesar_acudiente(request, prefijo, nombre_hijo, es_principal):
             telefono       = telefono or None,
         )
 
-        user_name_base = email.split('@')[0].replace('.', '_').replace('-', '_')
-        user_name      = user_name_base[:50]
-        contador = 1
-        while Usuario.objects.filter(user_name=user_name).exists():
-            user_name = f'{user_name_base[:46]}_{contador}'
-            contador += 1
-
-        temp_pass = secrets.token_urlsafe(16)
-        hash_pass = bcrypt.hashpw(temp_pass.encode(), bcrypt.gensalt()).decode()
+        hash_pass = bcrypt.hashpw(documento.encode(), bcrypt.gensalt()).decode()
 
         usuario_padre = Usuario.objects.create(
             cedula         = documento,
             tipo_documento = tipo_doc or 'CEDULA_CIUDADANIA',
-            user_name      = user_name,
+            user_name      = documento,
             password       = hash_pass,
             nombre         = nombre or f'Acudiente de {nombre_hijo}',
             email          = email,
             telefono       = telefono or None,
             rol            = 'PADRE',
-            activo         = False,
+            activo         = True,
         )
         acudiente.usuario = usuario_padre
         acudiente.save()
@@ -268,190 +380,16 @@ def _procesar_acudiente(request, prefijo, nombre_hijo, es_principal):
         if envio_ok:
             messages.success(
                 request,
-                f'Invitación enviada a {email} para que el acudiente active su cuenta.'
+                f'✅ Acudiente registrado. Correo con credenciales enviado a {email}.'
             )
         else:
             messages.warning(
                 request,
-                f'El acudiente se registró correctamente, pero no se pudo enviar '
-                f'el correo de invitación a {email}. Verifica la configuración de '
-                f'correo o comunícate con el acudiente manualmente para activar su cuenta.'
+                f'Acudiente registrado, pero no se pudo enviar el correo a {email}. '
+                f'Sus credenciales son: usuario y contraseña = {documento}.'
             )
 
     return acudiente, tipo_notif
-
-
-# ============================================================
-# HELPER — Generar token e intentar enviar correo de invitación
-# ============================================================
-def _generar_y_enviar_invitacion(request, acudiente, nombre_hijo):
-    """
-    Genera el token de invitación y envía el correo en formato HTML.
-
-    Devuelve True si el correo se envió con éxito, False si falló.
-
-    NOTA PENDIENTE: el token se guarda en request.session del usuario
-    que registra (admin/colegio), no del acudiente. Esto impide validarlo
-    cuando el acudiente abra el enlace desde su dispositivo. Corregir
-    esto requiere un modelo en base de datos para los tokens (migración
-    nueva). Se deja para una siguiente iteración.
-    """
-    token  = secrets.token_urlsafe(32)
-    expira = (datetime.now() + timedelta(hours=48)).isoformat()
-    request.session[f'invitacion_{token}'] = {
-        'documento': acudiente.documento,
-        'expira':    expira,
-    }
-    dominio = request.build_absolute_uri('/')[:-1]
-    enlace  = f'{dominio}/activar-cuenta/{token}/'
-
-    try:
-        from django.core.mail import EmailMultiAlternatives
-        from django.conf import settings as cfg
-
-        asunto = '🚌 Invitación a SafeRoute — Activa tu cuenta'
-
-        texto_plano = (
-            f'Hola {acudiente.nombre},\n\n'
-            f'El colegio ha registrado a {nombre_hijo} en SafeRoute.\n\n'
-            f'Activa tu cuenta aquí (válido 48 h):\n{enlace}\n\n'
-            f'Con tu cuenta podrás:\n'
-            f'  • Ver la ubicación del bus en tiempo real\n'
-            f'  • Recibir notificaciones de recogida y entrega\n'
-            f'  • Reportar ausencias y notificar al conductor\n'
-            f'  • Consultar y gestionar pagos del servicio\n\n'
-            f'— Equipo SafeRoute'
-        )
-
-        iniciales = nombre_hijo[:2].upper()
-
-        html = f"""<!DOCTYPE html>
-<html lang="es">
-<head><meta charset="UTF-8"></head>
-<body style="margin:0;padding:0;background:#f6f8fc;font-family:Arial,sans-serif;">
-  <div style="max-width:520px;margin:32px auto;">
-
-    <!-- ENCABEZADO -->
-    <div style="background:linear-gradient(135deg,#1e293b,#334155);border-radius:12px 12px 0 0;padding:28px;text-align:center;">
-      <div style="font-size:36px;">🚌</div>
-      <div style="font-size:20px;font-weight:800;color:white;margin-top:8px;">SafeRoute</div>
-      <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;">
-        Sistema de Gestión de Transporte Escolar
-      </div>
-      <div style="margin-top:20px;font-size:18px;font-weight:700;color:white;">
-        ¡Tienes una invitación!
-      </div>
-      <div style="font-size:12px;color:#94a3b8;margin-top:4px;">
-        El colegio te ha invitado a SafeRoute
-      </div>
-    </div>
-
-    <!-- CUERPO -->
-    <div style="background:white;padding:28px;">
-
-      <!-- Saludo -->
-      <div style="font-size:16px;font-weight:700;color:#1f2937;margin-bottom:8px;">
-        Hola, <span style="color:#f59e0b;">{acudiente.nombre}</span> 👋
-      </div>
-      <p style="font-size:13px;color:#4b5563;line-height:1.6;margin:0 0 20px;">
-        El colegio ha registrado a <strong>{nombre_hijo}</strong> en el sistema de
-        transporte escolar y te ha asignado como acudiente. Ya puedes activar tu
-        cuenta para comenzar a monitorear la ruta en tiempo real.
-      </p>
-
-      <!-- Chip estudiante -->
-      <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:20px;">
-        <div style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">
-          Estudiante vinculado
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;">
-          <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#fbbf24,#f59e0b);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white;flex-shrink:0;">
-            {iniciales}
-          </div>
-          <div>
-            <div style="font-size:13px;font-weight:600;color:#1f2937;">{nombre_hijo}</div>
-            <div style="font-size:11px;color:#6b7280;">Estudiante registrado en SafeRoute</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Beneficios -->
-      <div style="font-size:10px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">
-        Con tu cuenta podrás:
-      </div>
-      <div style="font-size:12px;color:#4b5563;padding:4px 0;">
-        <span style="color:#f59e0b;font-weight:700;">✓</span> &nbsp;Ver la ubicación del bus en tiempo real
-      </div>
-      <div style="font-size:12px;color:#4b5563;padding:4px 0;">
-        <span style="color:#f59e0b;font-weight:700;">✓</span> &nbsp;Recibir notificaciones de recogida y entrega
-      </div>
-      <div style="font-size:12px;color:#4b5563;padding:4px 0;">
-        <span style="color:#f59e0b;font-weight:700;">✓</span> &nbsp;Reportar ausencias y notificar al conductor
-      </div>
-      <div style="font-size:12px;color:#4b5563;padding:4px 0;">
-        <span style="color:#f59e0b;font-weight:700;">✓</span> &nbsp;Consultar y gestionar pagos del servicio
-      </div>
-
-      <!-- Botón CTA -->
-      <div style="text-align:center;margin:28px 0 20px;">
-        <a href="{enlace}"
-           style="display:inline-block;background:linear-gradient(135deg,#f59e0b,#f97316);color:white;font-weight:700;font-size:14px;padding:14px 36px;border-radius:8px;text-decoration:none;">
-          🔓 &nbsp; Activar Mi Cuenta
-        </a>
-      </div>
-
-      <!-- Nota de expiración -->
-      <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:12px 14px;font-size:11px;color:#92400e;line-height:1.6;margin-bottom:16px;">
-        <strong>⏱ Enlace válido por 48 horas.</strong><br>
-        Si no activas tu cuenta a tiempo, comunícate con la institución educativa
-        para que reenvíen la invitación.
-      </div>
-
-      <!-- Enlace alternativo -->
-      <p style="font-size:10px;color:#9ca3af;word-break:break-all;margin:0;">
-        Si el botón no funciona, copia este enlace en tu navegador:<br>
-        <a href="{enlace}" style="color:#f59e0b;">{enlace}</a>
-      </p>
-    </div>
-
-    <!-- SECCIÓN DE SEGURIDAD -->
-    <div style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:14px 28px;text-align:center;font-size:11px;color:#6b7280;line-height:1.6;">
-      🔒 <strong style="color:#374151;">Enlace seguro de uso único.</strong><br>
-      Si no tienes un hijo matriculado en este colegio, puedes ignorar este mensaje.
-    </div>
-
-    <!-- PIE DE PÁGINA -->
-    <div style="background:#1e293b;border-radius:0 0 12px 12px;padding:20px;text-align:center;">
-      <div style="font-size:14px;font-weight:800;color:white;">🚌 SafeRoute</div>
-      <div style="font-size:10px;color:#64748b;margin-top:8px;line-height:1.7;">
-        Sistema de Gestión de Transporte Escolar<br>
-        Bogotá D.C. · Colombia · © 2026 SafeRoute<br>
-        Correo enviado a <span style="color:#94a3b8;">{acudiente.email}</span>
-      </div>
-    </div>
-
-  </div>
-</body>
-</html>"""
-
-        correo = EmailMultiAlternatives(
-            subject=asunto,
-            body=texto_plano,
-            from_email=getattr(cfg, 'DEFAULT_FROM_EMAIL', 'noreply@saferoute.co'),
-            to=[acudiente.email],
-        )
-        correo.attach_alternative(html, 'text/html')
-
-        try:
-            correo.send(fail_silently=True)
-        except Exception:
-            pass
-        return True
-
-    except Exception as e:
-        print(f'⚠️  No se pudo enviar correo a {acudiente.email}: {e}')
-        print(f'   Enlace manual: {enlace}')
-        return False
 
 
 # ============================================================
@@ -465,7 +403,6 @@ def lista_estudiantes(request):
         from rutas.models import Ruta
 
         rol = request.session.get('usuario_rol')
-        # AJUSTA estos dos strings si en tu Usuario.rol usas otros valores
         es_personal_operativo = rol in ('CONDUCTOR', 'MONITORA')
 
         nombre      = request.GET.get('nombre', '')
@@ -477,16 +414,13 @@ def lista_estudiantes(request):
         estudiantes = Estudiante.objects.all().order_by('nombre')
 
         if es_personal_operativo:
-            # Conductores/monitoras solo ven estudiantes activos, sin excepción
             estudiantes = estudiantes.filter(activo=True)
             activo = 'true'
         else:
-            # Admin/colegio: pueden ver todo, incluido historial de inactivos
             if activo == 'true':
                 estudiantes = estudiantes.filter(activo=True)
             elif activo == 'false':
                 estudiantes = estudiantes.filter(activo=False)
-            # activo == '' -> sin filtrar, ven historial completo
 
         if nombre:
             estudiantes = estudiantes.filter(nombre__icontains=nombre)
@@ -555,7 +489,6 @@ def nuevo_estudiante(request):
 
             localidad   = request.POST.get('localidad', '').strip() or None
             codigo_ruta = request.POST.get('codigo_ruta', '').strip() or None
-            # Si no eligió ruta manualmente, asignar automáticamente por localidad
             if not codigo_ruta and localidad:
                 codigo_ruta = _asignar_ruta_por_localidad(localidad)
 
@@ -594,7 +527,6 @@ def nuevo_estudiante(request):
                 activo                       = True,
             )
 
-            # NUEVO: crea/actualiza la parada de este estudiante
             _sincronizar_parada(estudiante)
 
             if acudiente1:
@@ -658,7 +590,6 @@ def estudiante_editar(request, documento):
             estudiante.activo = (activo == 'true')
             estudiante.save()
 
-            # NUEVO: crea, actualiza, o desactiva la parada según el nuevo estado
             _sincronizar_parada(estudiante)
 
             messages.success(
@@ -705,15 +636,10 @@ def estudiante_eliminar(request, documento):
     try:
         estudiante = Estudiante.objects.get(documento=documento)
         nombre     = f'{estudiante.nombre} {estudiante.apellido}'
-
-        # CAMBIO: en vez de borrar de la base de datos, solo se desactiva
         estudiante.activo = False
         estudiante.save(update_fields=['activo'])
-
-        # NUEVO: desactiva o desvincula su parada
         _sincronizar_parada(estudiante)
-
-        messages.success(request, f'Estudiante {nombre} desactivado (soft delete).')
+        messages.success(request, f'Estudiante {nombre} desactivado.')
     except Estudiante.DoesNotExist:
         messages.error(request, 'Estudiante no encontrado.')
     except Exception as e:

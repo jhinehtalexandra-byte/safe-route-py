@@ -191,7 +191,25 @@
 
                         <div class="col-md-4">
                             <label class="form-label">Grado</label>
-                            <input type="text" class="form-control form-control-sm" name="grado"
+                            <select class="form-select form-select-sm" name="grado">
+                                <option value="">-- Seleccione --</option>
+                                {% with g=estudiante.grado|default:grado_previo|default:'' %}
+                                <option value="Prejardín"       {% if g == "Prejardín" %}selected{% endif %}>Prejardín</option>
+                                <option value="Jardín"          {% if g == "Jardín" %}selected{% endif %}>Jardín</option>
+                                <option value="Transición"      {% if g == "Transición" %}selected{% endif %}>Transición</option>
+                                <option value="1° Primaria"     {% if g == "1° Primaria" %}selected{% endif %}>1° Primaria</option>
+                                <option value="2° Primaria"     {% if g == "2° Primaria" %}selected{% endif %}>2° Primaria</option>
+                                <option value="3° Primaria"     {% if g == "3° Primaria" %}selected{% endif %}>3° Primaria</option>
+                                <option value="4° Primaria"     {% if g == "4° Primaria" %}selected{% endif %}>4° Primaria</option>
+                                <option value="5° Primaria"     {% if g == "5° Primaria" %}selected{% endif %}>5° Primaria</option>
+                                <option value="6° Secundaria"   {% if g == "6° Secundaria" %}selected{% endif %}>6° Secundaria</option>
+                                <option value="7° Secundaria"   {% if g == "7° Secundaria" %}selected{% endif %}>7° Secundaria</option>
+                                <option value="8° Secundaria"   {% if g == "8° Secundaria" %}selected{% endif %}>8° Secundaria</option>
+                                <option value="9° Secundaria"   {% if g == "9° Secundaria" %}selected{% endif %}>9° Secundaria</option>
+                                <option value="10° Media"       {% if g == "10° Media" %}selected{% endif %}>10° Media</option>
+                                <option value="11° Media"       {% if g == "11° Media" %}selected{% endif %}>11° Media</option>
+                                {% endwith %}
+                            </select>
                                    maxlength="100" placeholder="Ej: 4° Primaria"
                                    value="{% if estudiante %}{{ estudiante.grado|default:'' }}{% else %}{{ grado_previo|default:'' }}{% endif %}">
                         </div>
@@ -199,6 +217,15 @@
                         <div class="col-md-4">
                             <label class="form-label">Institución</label>
                             <select class="form-control form-control-sm" name="institucion">
+                                <option value="">-- Seleccione --</option>
+                                {% for c in colegios %}
+                                <option value="{{ c.nombre_institucion }}"
+                                    {% if estudiante and estudiante.institucion == c.nombre_institucion %}selected
+                                    {% elif institucion_previo == c.nombre_institucion %}selected{% endif %}>
+                                    {{ c.nombre_institucion }}
+                                </option>
+                                {% endfor %}
+                            </select>
                                 <option value="">-- Seleccione --</option>
                                 {% for c in colegios %}
                                 <option value="{{ c.nombre_institucion }}"
