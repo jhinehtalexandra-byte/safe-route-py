@@ -43,8 +43,6 @@
         .toggle-secundario.active { border-color: #f59e0b; color: #92400e; background: #fef3c7; border-style: solid; }
         .invite-info-note { font-size: 0.78rem; color: #065f46; background: #d1fae5; border: 1px solid #a7f3d0; border-radius: 0.4rem; padding: 0.45rem 0.75rem; display: flex; align-items: flex-start; gap: 0.4rem; margin-top: 0.5rem; }
         .invite-info-note i { color: #059669; flex-shrink: 0; margin-top: 0.1rem; }
-        .modal-section-divider { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; display: flex; align-items: center; gap: 0.5rem; margin: 0.25rem 0; }
-        .modal-section-divider::before, .modal-section-divider::after { content: ''; flex: 1; height: 1px; background: #e5e7eb; }
         @media (max-width: 768px) { .sidebar { margin-left: -240px; } .main-content { margin-left: 0; } }
     </style>
 </head>
@@ -149,12 +147,11 @@
                             <input type="text" class="form-control form-control-sm bg-light" value="{{ estudiante.documento }}" readonly>
                             <small class="text-muted">El documento no se puede modificar</small>
                             {% endif %}
-                            <div class="invalid-feedback">El documento es requerido.</div>
                         </div>
 
                         <div class="col-md-4">
                             <label class="form-label">Tipo Documento <span class="required">*</span></label>
-                            <select class="form-select form-select-sm" name="tipo_documento" {% if es_nuevo %}required{% endif %}>
+                            <select class="form-select form-select-sm" name="tipo_documento">
                                 <option value="">Seleccionar</option>
                                 {% with td=estudiante.tipo_documento|default:'' %}
                                 <option value="TARJETA_IDENTIDAD" {% if td == 'TARJETA_IDENTIDAD' %}selected{% endif %}>Tarjeta de Identidad</option>
@@ -170,7 +167,6 @@
                             <input type="date" class="form-control form-control-sm" name="fecha_nacimiento"
                                    required
                                    value="{% if estudiante %}{{ estudiante.fecha_nacimiento|date:'Y-m-d' }}{% else %}{{ fecha_nacimiento_previo|default:'' }}{% endif %}">
-                            <div class="invalid-feedback">La fecha de nacimiento es requerida.</div>
                         </div>
 
                         <div class="col-md-6">
@@ -178,7 +174,6 @@
                             <input type="text" class="form-control form-control-sm" name="nombre"
                                    required maxlength="100"
                                    value="{% if estudiante %}{{ estudiante.nombre }}{% else %}{{ nombre_previo|default:'' }}{% endif %}">
-                            <div class="invalid-feedback">El nombre es requerido.</div>
                         </div>
 
                         <div class="col-md-6">
@@ -186,46 +181,36 @@
                             <input type="text" class="form-control form-control-sm" name="apellido"
                                    required maxlength="100"
                                    value="{% if estudiante %}{{ estudiante.apellido }}{% else %}{{ apellido_previo|default:'' }}{% endif %}">
-                            <div class="invalid-feedback">El apellido es requerido.</div>
                         </div>
 
+                        <!-- GRADO — select con lista fija -->
                         <div class="col-md-4">
                             <label class="form-label">Grado</label>
                             <select class="form-select form-select-sm" name="grado">
                                 <option value="">-- Seleccione --</option>
                                 {% with g=estudiante.grado|default:grado_previo|default:'' %}
-                                <option value="Prejardín"       {% if g == "Prejardín" %}selected{% endif %}>Prejardín</option>
-                                <option value="Jardín"          {% if g == "Jardín" %}selected{% endif %}>Jardín</option>
-                                <option value="Transición"      {% if g == "Transición" %}selected{% endif %}>Transición</option>
-                                <option value="1° Primaria"     {% if g == "1° Primaria" %}selected{% endif %}>1° Primaria</option>
-                                <option value="2° Primaria"     {% if g == "2° Primaria" %}selected{% endif %}>2° Primaria</option>
-                                <option value="3° Primaria"     {% if g == "3° Primaria" %}selected{% endif %}>3° Primaria</option>
-                                <option value="4° Primaria"     {% if g == "4° Primaria" %}selected{% endif %}>4° Primaria</option>
-                                <option value="5° Primaria"     {% if g == "5° Primaria" %}selected{% endif %}>5° Primaria</option>
-                                <option value="6° Secundaria"   {% if g == "6° Secundaria" %}selected{% endif %}>6° Secundaria</option>
-                                <option value="7° Secundaria"   {% if g == "7° Secundaria" %}selected{% endif %}>7° Secundaria</option>
-                                <option value="8° Secundaria"   {% if g == "8° Secundaria" %}selected{% endif %}>8° Secundaria</option>
-                                <option value="9° Secundaria"   {% if g == "9° Secundaria" %}selected{% endif %}>9° Secundaria</option>
-                                <option value="10° Media"       {% if g == "10° Media" %}selected{% endif %}>10° Media</option>
-                                <option value="11° Media"       {% if g == "11° Media" %}selected{% endif %}>11° Media</option>
+                                <option value="Prejardín"     {% if g == "Prejardín"     %}selected{% endif %}>Prejardín</option>
+                                <option value="Jardín"        {% if g == "Jardín"        %}selected{% endif %}>Jardín</option>
+                                <option value="Transición"    {% if g == "Transición"    %}selected{% endif %}>Transición</option>
+                                <option value="1° Primaria"   {% if g == "1° Primaria"   %}selected{% endif %}>1° Primaria</option>
+                                <option value="2° Primaria"   {% if g == "2° Primaria"   %}selected{% endif %}>2° Primaria</option>
+                                <option value="3° Primaria"   {% if g == "3° Primaria"   %}selected{% endif %}>3° Primaria</option>
+                                <option value="4° Primaria"   {% if g == "4° Primaria"   %}selected{% endif %}>4° Primaria</option>
+                                <option value="5° Primaria"   {% if g == "5° Primaria"   %}selected{% endif %}>5° Primaria</option>
+                                <option value="6° Secundaria" {% if g == "6° Secundaria" %}selected{% endif %}>6° Secundaria</option>
+                                <option value="7° Secundaria" {% if g == "7° Secundaria" %}selected{% endif %}>7° Secundaria</option>
+                                <option value="8° Secundaria" {% if g == "8° Secundaria" %}selected{% endif %}>8° Secundaria</option>
+                                <option value="9° Secundaria" {% if g == "9° Secundaria" %}selected{% endif %}>9° Secundaria</option>
+                                <option value="10° Media"     {% if g == "10° Media"     %}selected{% endif %}>10° Media</option>
+                                <option value="11° Media"     {% if g == "11° Media"     %}selected{% endif %}>11° Media</option>
                                 {% endwith %}
                             </select>
-                                   maxlength="100" placeholder="Ej: 4° Primaria"
-                                   value="{% if estudiante %}{{ estudiante.grado|default:'' }}{% else %}{{ grado_previo|default:'' }}{% endif %}">
                         </div>
 
+                        <!-- INSTITUCIÓN — select dinámico desde BD -->
                         <div class="col-md-4">
                             <label class="form-label">Institución</label>
-                            <select class="form-control form-control-sm" name="institucion">
-                                <option value="">-- Seleccione --</option>
-                                {% for c in colegios %}
-                                <option value="{{ c.nombre_institucion }}"
-                                    {% if estudiante and estudiante.institucion == c.nombre_institucion %}selected
-                                    {% elif institucion_previo == c.nombre_institucion %}selected{% endif %}>
-                                    {{ c.nombre_institucion }}
-                                </option>
-                                {% endfor %}
-                            </select>
+                            <select class="form-select form-select-sm" name="institucion">
                                 <option value="">-- Seleccione --</option>
                                 {% for c in colegios %}
                                 <option value="{{ c.nombre_institucion }}"
@@ -260,30 +245,31 @@
                                    maxlength="200"
                                    value="{% if estudiante %}{{ estudiante.direccion|default:'' }}{% else %}{{ direccion_previo|default:'' }}{% endif %}">
                         </div>
+
                         <div class="col-md-6">
-                            <label class="form-label">Localidad</label>
+                            <label class="form-label">Localidad <span class="required">*</span></label>
                             <select class="form-select form-select-sm" name="localidad">
                                 <option value="">Seleccionar localidad…</option>
-                                <option value="USAQUEN" {% if estudiante and estudiante.localidad == 'USAQUEN' %}selected{% endif %}>Usaquén</option>
-                                <option value="CHAPINERO" {% if estudiante and estudiante.localidad == 'CHAPINERO' %}selected{% endif %}>Chapinero</option>
-                                <option value="SANTA_FE" {% if estudiante and estudiante.localidad == 'SANTA_FE' %}selected{% endif %}>Santa Fe</option>
-                                <option value="SAN_CRISTOBAL" {% if estudiante and estudiante.localidad == 'SAN_CRISTOBAL' %}selected{% endif %}>San Cristóbal</option>
-                                <option value="USME" {% if estudiante and estudiante.localidad == 'USME' %}selected{% endif %}>Usme</option>
-                                <option value="TUNJUELITO" {% if estudiante and estudiante.localidad == 'TUNJUELITO' %}selected{% endif %}>Tunjuelito</option>
-                                <option value="BOSA" {% if estudiante and estudiante.localidad == 'BOSA' %}selected{% endif %}>Bosa</option>
-                                <option value="KENNEDY" {% if estudiante and estudiante.localidad == 'KENNEDY' %}selected{% endif %}>Kennedy</option>
-                                <option value="FONTIBON" {% if estudiante and estudiante.localidad == 'FONTIBON' %}selected{% endif %}>Fontibón</option>
-                                <option value="ENGATIVA" {% if estudiante and estudiante.localidad == 'ENGATIVA' %}selected{% endif %}>Engativá</option>
-                                <option value="SUBA" {% if estudiante and estudiante.localidad == 'SUBA' %}selected{% endif %}>Suba</option>
+                                <option value="USAQUEN"        {% if estudiante and estudiante.localidad == 'USAQUEN'        %}selected{% endif %}>Usaquén</option>
+                                <option value="CHAPINERO"      {% if estudiante and estudiante.localidad == 'CHAPINERO'      %}selected{% endif %}>Chapinero</option>
+                                <option value="SANTA_FE"       {% if estudiante and estudiante.localidad == 'SANTA_FE'       %}selected{% endif %}>Santa Fe</option>
+                                <option value="SAN_CRISTOBAL"  {% if estudiante and estudiante.localidad == 'SAN_CRISTOBAL'  %}selected{% endif %}>San Cristóbal</option>
+                                <option value="USME"           {% if estudiante and estudiante.localidad == 'USME'           %}selected{% endif %}>Usme</option>
+                                <option value="TUNJUELITO"     {% if estudiante and estudiante.localidad == 'TUNJUELITO'     %}selected{% endif %}>Tunjuelito</option>
+                                <option value="BOSA"           {% if estudiante and estudiante.localidad == 'BOSA'           %}selected{% endif %}>Bosa</option>
+                                <option value="KENNEDY"        {% if estudiante and estudiante.localidad == 'KENNEDY'        %}selected{% endif %}>Kennedy</option>
+                                <option value="FONTIBON"       {% if estudiante and estudiante.localidad == 'FONTIBON'       %}selected{% endif %}>Fontibón</option>
+                                <option value="ENGATIVA"       {% if estudiante and estudiante.localidad == 'ENGATIVA'       %}selected{% endif %}>Engativá</option>
+                                <option value="SUBA"           {% if estudiante and estudiante.localidad == 'SUBA'           %}selected{% endif %}>Suba</option>
                                 <option value="BARRIOS_UNIDOS" {% if estudiante and estudiante.localidad == 'BARRIOS_UNIDOS' %}selected{% endif %}>Barrios Unidos</option>
-                                <option value="TEUSAQUILLO" {% if estudiante and estudiante.localidad == 'TEUSAQUILLO' %}selected{% endif %}>Teusaquillo</option>
-                                <option value="MARTIRES" {% if estudiante and estudiante.localidad == 'MARTIRES' %}selected{% endif %}>Los Mártires</option>
+                                <option value="TEUSAQUILLO"    {% if estudiante and estudiante.localidad == 'TEUSAQUILLO'    %}selected{% endif %}>Teusaquillo</option>
+                                <option value="MARTIRES"       {% if estudiante and estudiante.localidad == 'MARTIRES'       %}selected{% endif %}>Los Mártires</option>
                                 <option value="ANTONIO_NARINO" {% if estudiante and estudiante.localidad == 'ANTONIO_NARINO' %}selected{% endif %}>Antonio Nariño</option>
-                                <option value="PUENTE_ARANDA" {% if estudiante and estudiante.localidad == 'PUENTE_ARANDA' %}selected{% endif %}>Puente Aranda</option>
-                                <option value="CANDELARIA" {% if estudiante and estudiante.localidad == 'CANDELARIA' %}selected{% endif %}>La Candelaria</option>
-                                <option value="RAFAEL_URIBE" {% if estudiante and estudiante.localidad == 'RAFAEL_URIBE' %}selected{% endif %}>Rafael Uribe Uribe</option>
+                                <option value="PUENTE_ARANDA"  {% if estudiante and estudiante.localidad == 'PUENTE_ARANDA'  %}selected{% endif %}>Puente Aranda</option>
+                                <option value="CANDELARIA"     {% if estudiante and estudiante.localidad == 'CANDELARIA'     %}selected{% endif %}>La Candelaria</option>
+                                <option value="RAFAEL_URIBE"   {% if estudiante and estudiante.localidad == 'RAFAEL_URIBE'   %}selected{% endif %}>Rafael Uribe Uribe</option>
                                 <option value="CIUDAD_BOLIVAR" {% if estudiante and estudiante.localidad == 'CIUDAD_BOLIVAR' %}selected{% endif %}>Ciudad Bolívar</option>
-                                <option value="SUMAPAZ" {% if estudiante and estudiante.localidad == 'SUMAPAZ' %}selected{% endif %}>Sumapaz</option>
+                                <option value="SUMAPAZ"        {% if estudiante and estudiante.localidad == 'SUMAPAZ'        %}selected{% endif %}>Sumapaz</option>
                             </select>
                             <small class="text-muted">La ruta se asigna automáticamente según la localidad.</small>
                         </div>
@@ -344,7 +330,6 @@
                 <div class="form-section">
                     <div class="form-section-title"><i class="bi bi-people"></i> Acudientes</div>
 
-                    <!-- Acudiente Principal -->
                     <div class="acudiente-section mb-3">
                         <div class="acudiente-section-header">
                             <i class="bi bi-person-fill text-warning"></i>
@@ -367,8 +352,8 @@
                                 <div class="col-md-4">
                                     <label class="form-label">Número de Documento <span class="required">*</span></label>
                                     <input type="text" class="form-control form-control-sm" name="acudiente1_documento"
-                                           required maxlength="20" placeholder="Ej: 123456789" id="acudiente1_doc">
-                                    <small class="text-muted" style="font-size:.72rem;">Identifica de forma única al acudiente.</small>
+                                           required maxlength="20" placeholder="Ej: 123456789">
+                                    <small class="text-muted" style="font-size:.72rem;">Será usado como usuario y contraseña.</small>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Nombre Completo <span class="required">*</span></label>
@@ -381,7 +366,7 @@
                                            required maxlength="150" placeholder="correo@ejemplo.com" id="acudiente1_email">
                                     <div class="invite-info-note" id="acudiente1_invite_note" style="display:none;">
                                         <i class="bi bi-envelope-check-fill"></i>
-                                        <span>Se enviará un enlace de invitación a este correo al guardar.</span>
+                                        <span>Se enviará correo con credenciales de acceso al guardar.</span>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -400,13 +385,11 @@
                         </div>
                     </div>
 
-                    <!-- Toggle acudiente secundario -->
                     <button type="button" class="toggle-secundario mb-3" id="btnToggleSecundario" onclick="toggleAcudienteSecundario()">
                         <i class="bi bi-plus-circle" id="iconToggleSecundario"></i>
                         <span id="lblToggleSecundario">Agregar acudiente secundario (opcional)</span>
                     </button>
 
-                    <!-- Acudiente Secundario -->
                     <div id="seccionAcudiente2" style="display:none;">
                         <div class="acudiente-section">
                             <div class="acudiente-section-header">
@@ -418,7 +401,7 @@
                                 <div class="row g-3">
                                     <div class="col-md-4">
                                         <label class="form-label">Tipo de Documento</label>
-                                        <select class="form-select form-select-sm" name="acudiente2_tipo_documento" id="acudiente2_tipo_doc">
+                                        <select class="form-select form-select-sm" name="acudiente2_tipo_documento">
                                             <option value="">Seleccionar</option>
                                             <option value="CEDULA_CIUDADANIA">Cédula de Ciudadanía</option>
                                             <option value="CEDULA_EXTRANJERIA">Cédula de Extranjería</option>
@@ -429,13 +412,12 @@
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label">Número de Documento</label>
-                                        <input type="text" class="form-control form-control-sm" name="acudiente2_documento"
-                                               maxlength="20" id="acudiente2_doc">
+                                        <input type="text" class="form-control form-control-sm" name="acudiente2_documento" maxlength="20">
+                                        <small class="text-muted" style="font-size:.72rem;">Será usado como usuario y contraseña.</small>
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label">Nombre Completo</label>
-                                        <input type="text" class="form-control form-control-sm" name="acudiente2_nombre"
-                                               maxlength="150" id="acudiente2_nombre">
+                                        <input type="text" class="form-control form-control-sm" name="acudiente2_nombre" maxlength="150">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Correo Electrónico</label>
@@ -443,7 +425,7 @@
                                                maxlength="150" id="acudiente2_email">
                                         <div class="invite-info-note" id="acudiente2_invite_note" style="display:none;">
                                             <i class="bi bi-envelope-check-fill"></i>
-                                            <span>Se enviará un enlace de invitación a este correo al guardar.</span>
+                                            <span>Se enviará correo con credenciales de acceso al guardar.</span>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -516,7 +498,9 @@
     });
 
     setTimeout(() => {
-        document.querySelectorAll('.alert-dismissible').forEach(a => { try { bootstrap.Alert.getOrCreateInstance(a).close(); } catch(e){} });
+        document.querySelectorAll('.alert-dismissible').forEach(a => {
+            try { bootstrap.Alert.getOrCreateInstance(a).close(); } catch(e) {}
+        });
     }, 5000);
 </script>
 </body>
