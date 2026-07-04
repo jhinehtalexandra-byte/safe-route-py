@@ -64,6 +64,113 @@ def _asignar_ruta_por_localidad(localidad):
 
 
 # ============================================================
+# HELPER — Sincronizar parada del estudiante (NUEVO)
+# ============================================================
+def _sincronizar_parada(estudiante):
+    """
+    Crea, actualiza o desactiva la parada asociada al estudiante.
+
+    Como no existe FK Parada->Estudiante, la vinculación se rastrea
+    mediante un tag único 'EST-{documento}' embebido en Parada.referencia.
+    Esto permite reubicar la parada del estudiante en ediciones futuras
+    sin depender del nombre (que puede cambiar) y soporta que varios
+    hermanos compartan una misma parada (misma dirección + misma ruta).
+
+    Reglas:
+    - Estudiante inactivo, sin dirección o sin ruta asignada -> se
+      desvincula de la parada. Si él era el único vinculado, la parada
+      se desactiva; si comparte parada con hermanos, solo se le quita
+      su tag y la parada sigue activa para los demás.
+    - Estudiante activo con dirección+ruta -> se reutiliza una parada
+      existente en esa misma dirección/ruta (hermanos) o se crea una
+      nueva parada.
+    """
+    from rutas.models import Parada
+
+    ref_tag = f'EST-{estudiante.documento}'
+
+    parada_actual = Parada.objects.filter(referencia__contains=ref_tag).first()
+
+    def _quitar_tag(parada):
+        if not parada:
+            return
+        tags_restantes = [
+            t.strip() for t in (parada.referencia or '').split(',')
+            if t.strip() and ref_tag not in t
+        ]
+        if tags_restantes:
+            # otros estudiantes siguen usando esta parada: no se desactiva
+            parada.referencia = ', '.join(tags_restantes)
+            parada.save(update_fields=['referencia'])
+        else:
+            parada.activo = False
+            parada.referencia = ''
+            parada.save(update_fields=['activo', 'referencia'])
+
+    # Estudiante inactivo, o sin datos suficientes -> desvincular y salir
+    if not estudiante.activo or not estudiante.direccion or not estudiante.codigo_ruta_id:
+        _quitar_tag(parada_actual)
+        return None
+
+    nombre_hijo = f'{estudiante.nombre} {estudiante.apellido}'.strip()
+
+    # ¿Ya existe una parada en la MISMA ruta y MISMA dirección? (hermanos)
+    parada_hermano = (
+        Parada.objects
+        .filter(ruta_id=estudiante.codigo_ruta_id, direccion__iexact=estudiante.direccion)
+        .exclude(pk=getattr(parada_actual, 'pk', None))
+        .first()
+    )
+
+    if parada_hermano:
+        if parada_actual and parada_actual.pk != parada_hermano.pk:
+            _quitar_tag(parada_actual)
+
+        tags = [t.strip() for t in (parada_hermano.referencia or '').split(',') if t.strip()]
+        if ref_tag not in tags:
+            tags.append(ref_tag)
+        parada_hermano.referencia = ', '.join(tags)
+        parada_hermano.activo = True
+        if nombre_hijo and nombre_hijo not in parada_hermano.nombre:
+            parada_hermano.nombre = f'{parada_hermano.nombre} / {nombre_hijo}'
+        parada_hermano.save()
+        return parada_hermano
+
+    # Si la parada actual sigue siendo válida (misma dirección/ruta), solo actualizarla
+    if (
+        parada_actual
+        and parada_actual.direccion == estudiante.direccion
+        and parada_actual.ruta_id == estudiante.codigo_ruta_id
+    ):
+        parada_actual.nombre = f'Casa de {nombre_hijo}'
+        parada_actual.activo = True
+        parada_actual.save()
+        return parada_actual
+
+    # La dirección/ruta cambió: soltar la parada vieja y crear una nueva
+    if parada_actual:
+        _quitar_tag(parada_actual)
+
+    ultimo_orden = (
+        Parada.objects.filter(ruta_id=estudiante.codigo_ruta_id)
+        .order_by('-orden')
+        .values_list('orden', flat=True)
+        .first()
+    )
+
+    return Parada.objects.create(
+        ruta_id    = estudiante.codigo_ruta_id,
+        orden      = (ultimo_orden or 0) + 1,
+        nombre     = f'Casa de {nombre_hijo}',
+        direccion  = estudiante.direccion,
+        referencia = ref_tag,
+        latitud    = None,
+        longitud   = None,
+        activo     = True,
+    )
+
+
+# ============================================================
 # HELPER — Procesar un acudiente (principal o secundario)
 # ============================================================
 def _procesar_acudiente(request, prefijo, nombre_hijo, es_principal):
@@ -357,6 +464,10 @@ def lista_estudiantes(request):
     try:
         from rutas.models import Ruta
 
+        rol = request.session.get('usuario_rol')
+        # AJUSTA estos dos strings si en tu Usuario.rol usas otros valores
+        es_personal_operativo = rol in ('CONDUCTOR', 'MONITORA')
+
         nombre      = request.GET.get('nombre', '')
         grado       = request.GET.get('grado', '')
         institucion = request.GET.get('institucion', '')
@@ -365,16 +476,24 @@ def lista_estudiantes(request):
 
         estudiantes = Estudiante.objects.all().order_by('nombre')
 
+        if es_personal_operativo:
+            # Conductores/monitoras solo ven estudiantes activos, sin excepción
+            estudiantes = estudiantes.filter(activo=True)
+            activo = 'true'
+        else:
+            # Admin/colegio: pueden ver todo, incluido historial de inactivos
+            if activo == 'true':
+                estudiantes = estudiantes.filter(activo=True)
+            elif activo == 'false':
+                estudiantes = estudiantes.filter(activo=False)
+            # activo == '' -> sin filtrar, ven historial completo
+
         if nombre:
             estudiantes = estudiantes.filter(nombre__icontains=nombre)
         if grado:
             estudiantes = estudiantes.filter(grado__icontains=grado)
         if institucion:
             estudiantes = estudiantes.filter(institucion__icontains=institucion)
-        if activo == 'true':
-            estudiantes = estudiantes.filter(activo=True)
-        elif activo == 'false':
-            estudiantes = estudiantes.filter(activo=False)
         if ruta:
             estudiantes = estudiantes.filter(codigo_ruta=ruta)
 
@@ -388,7 +507,8 @@ def lista_estudiantes(request):
             'estudiantes_activos':  Estudiante.objects.filter(activo=True).count(),
             'estudiantes_sin_ruta': Estudiante.objects.filter(codigo_ruta__isnull=True).count(),
             'usuario_nombre':       request.session.get('usuario_nombre'),
-            'usuario_rol':          request.session.get('usuario_rol'),
+            'usuario_rol':          rol,
+            'puede_ver_historial':  not es_personal_operativo,
             'nombre':      nombre,
             'grado':       grado,
             'institucion': institucion,
@@ -465,7 +585,7 @@ def nuevo_estudiante(request):
                 institucion                  = institucion or None,
                 tipo_sangre                  = tipo_sangre or None,
                 direccion                    = direccion or None,
-                localidad                    = localidad or None,   # ← NUEVO
+                localidad                    = localidad or None,
                 contacto_emergencia_nombre   = contacto_nom or None,
                 contacto_emergencia_telefono = contacto_tel or None,
                 codigo_ruta_id               = codigo_ruta,
@@ -473,6 +593,9 @@ def nuevo_estudiante(request):
                 enfermedades                 = enfermedades or None,
                 activo                       = True,
             )
+
+            # NUEVO: crea/actualiza la parada de este estudiante
+            _sincronizar_parada(estudiante)
 
             if acudiente1:
                 EstudianteAcudiente.objects.create(
@@ -534,6 +657,10 @@ def estudiante_editar(request, documento):
             activo = request.POST.get('activo', 'true')
             estudiante.activo = (activo == 'true')
             estudiante.save()
+
+            # NUEVO: crea, actualiza, o desactiva la parada según el nuevo estado
+            _sincronizar_parada(estudiante)
+
             messages.success(
                 request,
                 f'✅ Estudiante {estudiante.nombre} {estudiante.apellido} actualizado.'
@@ -566,7 +693,7 @@ def estudiante_editar(request, documento):
 
 
 # ============================================================
-# ELIMINAR ESTUDIANTE
+# ELIMINAR ESTUDIANTE (SOFT DELETE)
 # ============================================================
 def estudiante_eliminar(request, documento):
     if not _sesion_activa(request):
@@ -578,12 +705,19 @@ def estudiante_eliminar(request, documento):
     try:
         estudiante = Estudiante.objects.get(documento=documento)
         nombre     = f'{estudiante.nombre} {estudiante.apellido}'
-        estudiante.delete()
-        messages.success(request, f'Estudiante {nombre} eliminado.')
+
+        # CAMBIO: en vez de borrar de la base de datos, solo se desactiva
+        estudiante.activo = False
+        estudiante.save(update_fields=['activo'])
+
+        # NUEVO: desactiva o desvincula su parada
+        _sincronizar_parada(estudiante)
+
+        messages.success(request, f'Estudiante {nombre} desactivado (soft delete).')
     except Estudiante.DoesNotExist:
         messages.error(request, 'Estudiante no encontrado.')
     except Exception as e:
-        messages.error(request, f'Error al eliminar: {str(e)}')
+        messages.error(request, f'Error al desactivar: {str(e)}')
 
     return redirect('estudiantes')
 
