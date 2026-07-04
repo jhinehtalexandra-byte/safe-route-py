@@ -402,7 +402,7 @@ def lista_colegios(request):
     try:
         from .models import Colegio
         busqueda = request.GET.get('busqueda', '')
-        estado   = request.GET.get('estado', '')
+        estado   = request.GET.get('estado', 'activo')
         tipo     = request.GET.get('tipo', '')
         plan     = request.GET.get('plan', '')
 
@@ -698,5 +698,32 @@ def eliminar_colegio(request, nit):
         messages.error(request, 'Colegio no encontrado.')
     except Exception as e:
         messages.error(request, f'Error al desactivar: {str(e)}')
+
+    return redirect('colegios')
+
+# ============================================================
+# REACTIVAR COLEGIO
+# ============================================================
+def reactivar_colegio(request, nit):
+    if not _solo_admin(request):
+        return redirect('login')
+
+    try:
+        from .models import Colegio
+        colegio = Colegio.objects.get(nit=nit)
+        nombre  = colegio.nombre_institucion
+
+        colegio.activo = True
+        colegio.save(update_fields=['activo'])
+
+        if colegio.usuario:
+            colegio.usuario.activo = True
+            colegio.usuario.save(update_fields=['activo'])
+
+        messages.success(request, f'Colegio "{nombre}" reactivado correctamente.')
+    except Colegio.DoesNotExist:
+        messages.error(request, 'Colegio no encontrado.')
+    except Exception as e:
+        messages.error(request, f'Error al reactivar: {str(e)}')
 
     return redirect('colegios')

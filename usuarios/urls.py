@@ -66,6 +66,7 @@ urlpatterns = [
     path('colegios/nuevo/',               colegios_views.nuevo_colegio,    name='colegios_nuevo'),
     path('colegios/<str:nit>/editar/',    colegios_views.editar_colegio,   name='colegios_editar'),
     path('colegios/<str:nit>/eliminar/',  colegios_views.eliminar_colegio, name='colegios_eliminar'),
+    path('colegios/<str:nit>/reactivar/', colegios_views.reactivar_colegio, name='colegios_reactivar'),
 
     # ── Estudiantes ──────────────────────────────────────────────
     path('estudiantes/',                          estudiantes_views.lista_estudiantes,   name='estudiantes'),
