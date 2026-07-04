@@ -670,7 +670,7 @@ def usuarios(request):
     try:
         busqueda = request.GET.get('busqueda', '')
         rol      = request.GET.get('rol', '')
-        estado   = request.GET.get('estado', '')
+        estado   = request.GET.get('estado', 'activo')
 
         lista = Usuario.objects.all().order_by('nombre')
         if busqueda:
@@ -841,6 +841,29 @@ def usuarios_eliminar(request, cedula):
 
     return redirect('usuarios')
 
+# ============================================================
+# CRUD USUARIOS — REACTIVAR
+# ============================================================
+def usuarios_reactivar(request, cedula):
+    if not _sesion_activa(request):
+        return redirect('login')
+    if not _es_admin(request):
+        return _redirigir_dashboard(request)
+
+    if request.method != 'POST':
+        return redirect('usuarios')
+
+    try:
+        usuario_react = Usuario.objects.get(cedula=cedula)
+        usuario_react.activo = True
+        usuario_react.save(update_fields=['activo'])
+        messages.success(request, f'Usuario {usuario_react.nombre} reactivado exitosamente.')
+    except Usuario.DoesNotExist:
+        messages.error(request, 'Usuario no encontrado.')
+    except Exception as e:
+        messages.error(request, f'Error al reactivar: {str(e)}')
+
+    return redirect('usuarios')
 
 # ============================================================
 # REPORTES — Vista principal (consulta multicriterio)

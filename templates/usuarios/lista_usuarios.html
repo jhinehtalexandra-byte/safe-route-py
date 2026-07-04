@@ -38,6 +38,21 @@
         .table-container { background: white; border-radius: 0.5rem; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .table th { background-color: #f9fafb; font-weight: 600; font-size: 0.875rem; color: #374151; border-bottom: 2px solid #e5e7eb; }
         .btn-action { padding: 0.25rem 0.55rem; font-size: 0.8rem; border-radius: 6px; }
+
+        /* ── Pestañas Activos / Desactivados ── */
+        .tabs-estado { display: flex; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; }
+        .tab-link {
+            padding: 0.6rem 1.25rem; font-weight: 600; font-size: 0.9rem;
+            text-decoration: none; border-radius: 0.5rem 0.5rem 0 0;
+            border: 2px solid transparent; border-bottom: none;
+            margin-bottom: -2px; transition: all 0.15s;
+        }
+        .tab-link.activos    { color: #16a34a; }
+        .tab-link.desactivos { color: #dc2626; }
+        .tab-link:hover { background-color: #f8fafc; }
+        .tab-link.selected.activos    { background: white; border-color: #e5e7eb; border-bottom: 2px solid white; color: #16a34a; }
+        .tab-link.selected.desactivos { background: white; border-color: #e5e7eb; border-bottom: 2px solid white; color: #dc2626; }
+
         @media (max-width: 992px) { .sidebar { margin-left: -260px; } .main-content { margin-left: 0; } }
     </style>
 </head>
@@ -55,7 +70,7 @@
                     </h1>
                     <p class="text-muted mb-0 small">Administra todos los usuarios del sistema</p>
                 </div>
-        
+            </div>
         </div>
 
         <div class="p-4">
@@ -102,8 +117,11 @@
             <!-- Búsqueda Multicriterio -->
             <h5 class="fw-bold mb-3"><i class="bi bi-search me-2 text-primary"></i>Búsqueda Multicriterio</h5>
             <form method="GET" action="{% url 'usuarios' %}" id="filterForm">
+                <!-- Este campo oculto mantiene la pestaña activa (activo/inactivo) al buscar -->
+                <input type="hidden" name="estado" value="{{ estado }}">
+
                 <div class="row g-3 mb-4">
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <div class="filter-card">
                             <div class="filter-card-header"><i class="bi bi-person me-2"></i>Filtro por Nombre</div>
                             <div class="filter-card-body">
@@ -119,7 +137,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <div class="filter-card">
                             <div class="filter-card-header"><i class="bi bi-person-badge me-2"></i>Filtro por Rol</div>
                             <div class="filter-card-body">
@@ -135,19 +153,6 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="filter-card">
-                            <div class="filter-card-header"><i class="bi bi-check-circle me-2"></i>Filtro por Estado</div>
-                            <div class="filter-card-body">
-                                <label class="form-label small">Estado</label>
-                                <select class="form-select" name="estado">
-                                    <option value="">Todos</option>
-                                    <option value="activo"   {% if estado == 'activo' %}selected{% endif %}>Activo</option>
-                                    <option value="inactivo" {% if estado == 'inactivo' %}selected{% endif %}>Inactivo</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
                     <div class="col-12">
                         <div class="filter-card">
                             <div class="filter-card-header"><i class="bi bi-lightning-charge me-2"></i>Acciones</div>
@@ -155,7 +160,7 @@
                                 <button type="submit" class="btn btn-primary">
                                     <i class="bi bi-search me-1"></i>Buscar
                                 </button>
-                                <a href="{% url 'usuarios' %}" class="btn btn-secondary">
+                                <a href="{% url 'usuarios' %}?estado={{ estado }}" class="btn btn-secondary">
                                     <i class="bi bi-x-circle me-1"></i>Limpiar Filtros
                                 </a>
                                 <a href="{% url 'usuarios_pdf' %}?busqueda={{ busqueda|default:'' }}&rol={{ rol|default:'' }}&estado={{ estado|default:'' }}"
@@ -172,10 +177,25 @@
                 </div>
             </form>
 
+            <!-- ══ PESTAÑAS: Activos / Desactivados ══ -->
+            <div class="tabs-estado">
+                <a class="tab-link activos {% if estado != 'inactivo' %}selected{% endif %}"
+                   href="?estado=activo&busqueda={{ busqueda|default:'' }}&rol={{ rol|default:'' }}">
+                    <i class="bi bi-person-check-fill me-1"></i>Activos
+                </a>
+                <a class="tab-link desactivos {% if estado == 'inactivo' %}selected{% endif %}"
+                   href="?estado=inactivo&busqueda={{ busqueda|default:'' }}&rol={{ rol|default:'' }}">
+                    <i class="bi bi-person-x-fill me-1"></i>Desactivados
+                </a>
+            </div>
+
             <!-- Tabla -->
             <div class="table-container">
                 <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-table text-primary me-2"></i>Lista de Usuarios</h5>
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-table text-primary me-2"></i>
+                        {% if estado == 'inactivo' %}Usuarios Desactivados{% else %}Usuarios Activos{% endif %}
+                    </h5>
                     <span class="badge bg-primary">{{ usuarios|length }} registros</span>
                 </div>
                 <div class="table-responsive">
@@ -197,7 +217,11 @@
                             <tr>
                                 <td colspan="8" class="text-center text-muted py-5">
                                     <i class="bi bi-person-x fs-1 d-block mb-2"></i>
-                                    No hay usuarios. <a href="{% url 'usuarios_nuevo' %}">Crea uno nuevo</a>.
+                                    {% if estado == 'inactivo' %}
+                                        No hay usuarios desactivados.
+                                    {% else %}
+                                        No hay usuarios. <a href="{% url 'usuarios_nuevo' %}">Crea uno nuevo</a>.
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% else %}
@@ -237,11 +261,18 @@
                                     class="btn btn-warning btn-action me-1" title="Editar">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <button type="button" class="btn btn-danger btn-action" title="Eliminar"
+                                    {% if u.activo %}
+                                    <button type="button" class="btn btn-danger btn-action" title="Desactivar"
                                             onclick="confirmarEliminarUsuario('{% url 'usuarios_eliminar' u.cedula %}','{{ u.nombre|escapejs }}')">
                                         <i class="bi bi-trash"></i>
                                     </button>
-</td>
+                                    {% else %}
+                                    <button type="button" class="btn btn-success btn-action" title="Reactivar"
+                                            onclick="confirmarReactivarUsuario('{% url 'usuarios_reactivar' u.cedula %}','{{ u.nombre|escapejs }}')">
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                    </button>
+                                    {% endif %}
+                                </td>
                             </tr>
                             {% endfor %}
                             {% endif %}
@@ -331,33 +362,65 @@
         new bootstrap.Modal(document.getElementById('deleteUsuarioModal')).show();
     }
 
-    // Auto-cerrar alertas
+    function confirmarReactivarUsuario(url, nombre) {
+        document.getElementById('reactivarUsuarioForm').action = url;
+        document.getElementById('reactivarUsuarioNombre').textContent = nombre;
+        new bootstrap.Modal(document.getElementById('reactivarUsuarioModal')).show();
+    }
 
     // Auto-cerrar alertas después de 5 s
     setTimeout(() => document.querySelectorAll('.alert').forEach(a => {
         try { new bootstrap.Alert(a).close(); } catch(e) {}
     }), 5000);
 </script>
-<!-- Modal Confirmar Eliminación Usuario -->
+
+<!-- Modal Confirmar Desactivación -->
 <div class="modal fade" id="deleteUsuarioModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header border-danger">
                 <h5 class="modal-title text-danger">
-                    <i class="bi bi-exclamation-triangle me-2"></i>Confirmar Eliminación
+                    <i class="bi bi-exclamation-triangle me-2"></i>Confirmar Desactivación
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>¿Eliminar al usuario <strong id="deleteUsuarioNombre"></strong>?</p>
-                <p class="text-muted small"><strong class="text-danger">Esta acción no se puede deshacer.</strong></p>
+                <p>¿Desactivar al usuario <strong id="deleteUsuarioNombre"></strong>?</p>
+                <p class="text-muted small">El usuario no podrá iniciar sesión, pero su información se conserva y puedes reactivarlo cuando quieras.</p>
             </div>
             <div class="modal-footer">
                 <form method="POST" id="deleteUsuarioForm" action="">
                     {% csrf_token %}
                     <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-danger">
-                        <i class="bi bi-trash me-1"></i>Sí, Eliminar
+                        <i class="bi bi-trash me-1"></i>Sí, Desactivar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmar Reactivación -->
+<div class="modal fade" id="reactivarUsuarioModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-success">
+                <h5 class="modal-title text-success">
+                    <i class="bi bi-arrow-counterclockwise me-2"></i>Confirmar Reactivación
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Reactivar al usuario <strong id="reactivarUsuarioNombre"></strong>?</p>
+                <p class="text-muted small">El usuario podrá volver a iniciar sesión normalmente.</p>
+            </div>
+            <div class="modal-footer">
+                <form method="POST" id="reactivarUsuarioForm" action="">
+                    {% csrf_token %}
+                    <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>Sí, Reactivar
                     </button>
                 </form>
             </div>

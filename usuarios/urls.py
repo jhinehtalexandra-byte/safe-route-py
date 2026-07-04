@@ -59,6 +59,7 @@ urlpatterns = [
     path('usuarios/excel/',                 views.usuarios_excel,    name='usuarios_excel'),
     path('usuarios/<str:cedula>/editar/',   views.usuarios_editar,   name='usuarios_editar'),
     path('usuarios/<str:cedula>/eliminar/', views.usuarios_eliminar, name='usuarios_eliminar'),
+    path('usuarios/<str:cedula>/reactivar/', views.usuarios_reactivar, name='usuarios_reactivar'),
 
     # ── Colegios ─────────────────────────────────────────────────
     path('colegios/',                     colegios_views.lista_colegios,   name='colegios'),
