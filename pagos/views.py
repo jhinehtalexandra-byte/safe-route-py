@@ -393,7 +393,10 @@ def confirmacion_pago_wompi(request):
         return redirect('login')
     referencia = request.GET.get('id', '')
     pago       = Pago.objects.filter(referencia_wompi=referencia).first()
-    return render(request, 'pagos/confirmacion_wompi.html', {'pago': pago})
+    return render(request, 'pagos/confirmacion_wompi.html', {
+        'pago': pago,
+        'usuario_rol': request.session.get('usuario_rol'),
+    })
 
 
 # ── PDF ───────────────────────────────────────────────────────────────────────
