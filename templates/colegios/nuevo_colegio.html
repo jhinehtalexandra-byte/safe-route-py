@@ -113,6 +113,7 @@
                             <input type="text" class="form-control form-control-sm" name="nit"
                                    required maxlength="20" placeholder="Ej: 900123456-1"
                                    value="{{ nit_previo|default:'' }}" id="nit">
+                            <small class="text-muted" style="font-size:.72rem;">El usuario y contraseña de acceso serán este NIT.</small>
                             {% else %}
                             <input type="text" class="form-control form-control-sm bg-light" value="{{ colegio.nit }}" readonly>
                             <small class="text-muted">El NIT no se puede modificar</small>
@@ -251,11 +252,17 @@
                     </div>
                 </div>
 
-                <!-- ══ SECCIÓN 4 — Credenciales ══ -->
+                <!-- ══ SECCIÓN 4 — Credenciales (AHORA SOLO INFORMATIVA) ══ -->
                 <div class="form-section">
                     <div class="form-section-title"><i class="bi bi-shield-lock"></i> Credenciales de Acceso al Sistema</div>
 
-                    {% if not es_nuevo %}
+                    {% if es_nuevo %}
+                    <div class="alert alert-info small mb-3">
+                        <i class="bi bi-info-circle me-1"></i>
+                        El usuario y la contraseña se generarán automáticamente a partir del NIT,
+                        y se enviarán por correo electrónico al rector.
+                    </div>
+                    {% else %}
                     <div class="credentials-box mb-3">
                         <div class="row g-2">
                             <div class="col-md-4">
@@ -278,52 +285,7 @@
                     {% endif %}
 
                     <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Nombre de Usuario <span class="required">*</span></label>
-                            {% if es_nuevo %}
-                            <input type="text" class="form-control form-control-sm" name="user_name"
-                                    required minlength="4" maxlength="50" pattern="[a-zA-Z0-9_]+"
-                                    placeholder="Ej: colegio_sanagustin" autocomplete="off"
-                                    value="{{ user_name_previo|default:'' }}" id="userName">
-                            <small class="text-muted" style="font-size:.72rem;">Solo letras, números y guion bajo</small>
-                            {% else %}
-                            <input type="text" class="form-control form-control-sm bg-light" value="{{ colegio.usuario.user_name }}" readonly>
-                            <small class="text-muted" style="font-size:.72rem;">El usuario no se puede modificar</small>
-                            {% endif %}
-                            <div class="invalid-feedback">Mínimo 4 caracteres.</div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label">Contraseña{% if es_nuevo %} <span class="required">*</span>{% endif %}</label>
-                            <div class="input-group input-group-sm">
-                                <input type="password" class="form-control" name="password" id="password"
-                                       minlength="6" maxlength="100"
-                                       {% if es_nuevo %}required{% endif %}
-                                       placeholder="Mínimo 6 caracteres">
-                                <button type="button" class="btn btn-outline-secondary" onclick="togglePass('password','iconPass')">
-                                    <i class="bi bi-eye" id="iconPass"></i>
-                                </button>
-                            </div>
-                            {% if not es_nuevo %}
-                            <small class="text-muted" style="font-size:.72rem;">Deje en blanco para mantener la actual</small>
-                            {% endif %}
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label">Confirmar Contraseña{% if es_nuevo %} <span class="required">*</span>{% endif %}</label>
-                            <div class="input-group input-group-sm">
-                                <input type="password" class="form-control" id="confirmPass"
-                                       minlength="6" maxlength="100"
-                                       {% if es_nuevo %}required{% endif %}
-                                       placeholder="Repita la contraseña">
-                                <button type="button" class="btn btn-outline-secondary" onclick="togglePass('confirmPass','iconConfirm')">
-                                    <i class="bi bi-eye" id="iconConfirm"></i>
-                                </button>
-                            </div>
-                            <small id="passMatch" class="text-muted" style="font-size:.72rem;"></small>
-                        </div>
-
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label">Estado <span class="required">*</span></label>
                             <div class="d-flex gap-3 mt-1">
                                 <div class="form-check">
@@ -406,25 +368,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-function togglePass(inputId, iconId) {
-    const f = document.getElementById(inputId);
-    const i = document.getElementById(iconId);
-    if (f.type === 'password') { f.type = 'text'; i.classList.replace('bi-eye','bi-eye-slash'); }
-    else { f.type = 'password'; i.classList.replace('bi-eye-slash','bi-eye'); }
-}
-
-function checkPasswords() {
-    const p  = document.getElementById('password').value;
-    const c  = document.getElementById('confirmPass').value;
-    const el = document.getElementById('passMatch');
-    const cf = document.getElementById('confirmPass');
-    if (!p && !c) { el.textContent = ''; return true; }
-    if (p === c) { el.textContent = '✓ Coinciden'; el.className = 'text-success'; cf.setCustomValidity(''); return true; }
-    el.textContent = '✗ No coinciden'; el.className = 'text-danger'; cf.setCustomValidity('no-match'); return false;
-}
-document.getElementById('password')?.addEventListener('input', checkPasswords);
-document.getElementById('confirmPass')?.addEventListener('input', checkPasswords);
-
 document.getElementById('logoInput')?.addEventListener('change', function() {
     const file = this.files[0]; if (!file) return;
     const reader = new FileReader();
@@ -433,8 +376,7 @@ document.getElementById('logoInput')?.addEventListener('change', function() {
 });
 
 document.getElementById('colegioForm').addEventListener('submit', function(e) {
-    const passOk = checkPasswords();
-    if (!this.checkValidity() || !passOk) { e.preventDefault(); e.stopPropagation(); }
+    if (!this.checkValidity()) { e.preventDefault(); e.stopPropagation(); }
     else { const btn = document.getElementById('submitBtn'); btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Guardando...'; btn.disabled = true; }
     this.classList.add('was-validated');
 });

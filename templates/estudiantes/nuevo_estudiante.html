@@ -290,16 +290,9 @@
 
                         <div class="col-md-6">
                             <label class="form-label">Ruta Asignada</label>
-                            <select class="form-select form-select-sm" name="codigo_ruta">
-                                <option value="">Sin ruta asignada</option>
-                                {% for r in rutas %}
-                                <option value="{{ r.codigo }}"
-                                    {% if estudiante and estudiante.ruta and estudiante.ruta.codigo == r.codigo %}selected
-                                    {% elif ruta_previo == r.codigo %}selected{% endif %}>
-                                    {{ r.nombre }}
-                                </option>
-                                {% endfor %}
-                            </select>
+                            <input type="text" class="form-control form-control-sm bg-light" readonly
+                                   value="{% if estudiante.codigo_ruta %}{{ estudiante.codigo_ruta.nombre }}{% else %}Sin ruta (revisa la localidad){% endif %}">
+                            <small class="text-muted" style="font-size:.72rem;">Se recalcula según la localidad.</small>
                         </div>
 
                         <div class="col-md-6">

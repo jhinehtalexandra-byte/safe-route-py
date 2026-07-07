@@ -385,14 +385,12 @@
                             <label class="form-label fw-semibold">Teléfono</label>
                             <input type="tel" class="form-control" name="telefono" maxlength="20" placeholder="+57 300 123 4567">
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Nombre de usuario <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="user_name" maxlength="50" placeholder="Nombre de usuario" required autocomplete="off">
-                            <small class="text-muted">Requerido para el acceso al sistema.</small>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Contraseña <span class="text-danger">*</span></label>
-                            <input type="password" class="form-control" name="password" maxlength="128" placeholder="Contraseña" required autocomplete="new-password">
+                        <div class="col-12">
+                            <div class="alert alert-info small mb-0">
+                                <i class="bi bi-shield-lock me-1"></i>
+                                El usuario y la contraseña se generan automáticamente a partir de la cédula,
+                                y se enviarán por correo electrónico a la monitora.
+                            </div>
                         </div>
 
                         <div class="col-12"><div class="modal-section-divider">Formación y Experiencia</div></div>

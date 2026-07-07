@@ -446,10 +446,20 @@ def dashboard_monitora(request):
 
     try:
         from estudiantes.models import Estudiante
+        from monitoras.models import Monitora
 
-        estudiantes = Estudiante.objects.filter(activo=True).order_by('nombre')
+        cedula   = request.session.get('usuario_cedula')
+        monitora = Monitora.objects.filter(usuario__cedula=cedula).select_related('ruta_asignada').first()
+
+        if monitora and monitora.ruta_asignada:
+            estudiantes = Estudiante.objects.filter(
+                codigo_ruta=monitora.ruta_asignada, activo=True
+            ).order_by('nombre')
+        else:
+            estudiantes = Estudiante.objects.none()
 
         context = {
+            'ruta_monitora': monitora.ruta_asignada if monitora else None,
             'usuario_nombre':            request.session.get('usuario_nombre'),
             'usuario_rol':               request.session.get('usuario_rol'),
             'fecha_actual':              date.today(),

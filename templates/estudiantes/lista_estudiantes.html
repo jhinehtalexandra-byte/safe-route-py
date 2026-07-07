@@ -8,6 +8,12 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
+        .tabs-estado { display: flex; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 2px solid #e5e7eb; }
+        .tab-link { padding: 0.6rem 1.25rem; font-weight: 600; font-size: 0.9rem; text-decoration: none; border-radius: 0.5rem 0.5rem 0 0; border: 2px solid transparent; border-bottom: none; margin-bottom: -2px; transition: all 0.15s; }
+        .tab-link.activos { color: #16a34a; } .tab-link.desactivos { color: #dc2626; }
+        .tab-link:hover { background-color: #f8fafc; }
+        .tab-link.selected.activos { background: white; border-color: #e5e7eb; border-bottom: 2px solid white; }
+        .tab-link.selected.desactivos { background: white; border-color: #e5e7eb; border-bottom: 2px solid white; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5; overflow-x: hidden; }
         .app-container { display: flex; min-height: 100vh; }
@@ -164,19 +170,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="filter-card">
-                        <div class="filter-card-header"><i class="bi bi-check-circle me-2"></i>Filtro por Estado</div>
-                        <div class="filter-card-body">
-                            <label class="form-label small">Estado</label>
-                            <select class="form-select form-select-sm" name="activo">
-                                <option value="">Todos los estados</option>
-                                <option value="true"  {% if activo == 'true' %}selected{% endif %}>Activo</option>
-                                <option value="false" {% if activo == 'false' %}selected{% endif %}>Inactivo</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+                <input type="hidden" name="activo" value="{{ activo }}">
                 <div class="col-md-4">
                     <div class="filter-card">
                         <div class="filter-card-header"><i class="bi bi-sign-turn-right me-2"></i>Filtro por Ruta</div>
@@ -236,6 +230,17 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div class="tabs-estado">
+                <a class="tab-link activos {% if activo != 'false' %}selected{% endif %}"
+                   href="?activo=true&nombre={{ nombre|default:'' }}&grado={{ grado|default:'' }}">
+                    <i class="bi bi-person-check-fill me-1"></i>Activos
+                </a>
+                <a class="tab-link desactivos {% if activo == 'false' %}selected{% endif %}"
+                   href="?activo=false&nombre={{ nombre|default:'' }}&grado={{ grado|default:'' }}">
+                    <i class="bi bi-person-x-fill me-1"></i>Desactivados
+                </a>
             </div>
 
             <!-- Lista -->
@@ -462,11 +467,10 @@
                             <input type="text" class="form-control" name="contacto_emergencia_telefono" maxlength="20">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Ruta Asignada</label>
-                            <select class="form-select" name="codigo_ruta">
-                                <option value="">Sin ruta asignada</option>
-                                {% for r in rutas %}<option value="{{ r.codigo }}">{{ r.nombre }}</option>{% endfor %}
-                            </select>
+                            <label class="form-label fw-semibold">Ruta</label>
+                            <div class="alert alert-info small mb-0 py-2">
+                                <i class="bi bi-info-circle me-1"></i>Se asigna automáticamente según la localidad.
+                            </div>
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Enfermedades / Observaciones médicas</label>

@@ -473,22 +473,16 @@ def nuevo_colegio(request):
             plan                = request.POST.get('plan', 'BASICO')
             observaciones       = request.POST.get('observaciones', '').strip() or None
             activo_val          = request.POST.get('activo', 'true') == 'true'
-            user_name           = request.POST.get('user_name', '').strip()
-            password            = request.POST.get('password', '').strip()
+
+            # ── Usuario y contraseña se generan automáticamente: ambos = NIT ──
+            user_name = nit
+            password  = nit
 
             ctx = _ctx_nuevo_previo(request, request.POST)
 
             # ── Validaciones ──────────────────────────────────
             if not nit:
                 messages.error(request, 'El NIT es obligatorio.')
-                return render(request, 'colegios/nuevo_colegio.html', ctx)
-
-            if not user_name:
-                messages.error(request, 'El nombre de usuario es obligatorio.')
-                return render(request, 'colegios/nuevo_colegio.html', ctx)
-
-            if len(password) < 6:
-                messages.error(request, 'La contraseña debe tener al menos 6 caracteres.')
                 return render(request, 'colegios/nuevo_colegio.html', ctx)
 
             if Colegio.objects.filter(nit=nit).exists():
@@ -627,43 +621,14 @@ def editar_colegio(request, nit):
                 colegio.logo = logo_nuevo         
             colegio.save()
 
-            password_nueva = request.POST.get('password', '').strip()
-            correo_enviado = False
-
             if colegio.usuario:
                 colegio.usuario.nombre   = colegio.nombre_institucion
                 colegio.usuario.email    = colegio.email_institucional
                 colegio.usuario.telefono = colegio.telefono or None
                 colegio.usuario.activo   = activo_val
+                colegio.usuario.save()
 
-                if password_nueva:
-                    colegio.usuario.password = bcrypt.hashpw(
-                        password_nueva.encode(), bcrypt.gensalt()
-                    ).decode()
-                    colegio.usuario.save()
-                    dominio = request.build_absolute_uri('/')[:-1]
-                    correo_enviado = _enviar_correo_nueva_password(
-                        colegio.nombre_institucion, colegio.nombre_rector,
-                        colegio.email_institucional, colegio.usuario.user_name,
-                        password_nueva, dominio,
-                    )
-                else:
-                    colegio.usuario.save()
-
-            if password_nueva:
-                if correo_enviado:
-                    messages.success(
-                        request,
-                        f'✅ Colegio actualizado. Nueva contraseña enviada a {colegio.email_institucional}.'
-                    )
-                else:
-                    messages.warning(
-                        request,
-                        f'✅ Colegio actualizado, pero no se pudo enviar el correo. '
-                        f'Notifique la nueva contraseña manualmente.'
-                    )
-            else:
-                messages.success(request, f'✅ Colegio "{colegio.nombre_institucion}" actualizado.')
+            messages.success(request, f'✅ Colegio "{colegio.nombre_institucion}" actualizado.')
 
             return redirect('colegios')
 

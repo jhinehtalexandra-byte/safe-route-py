@@ -408,7 +408,7 @@ def lista_estudiantes(request):
         nombre      = request.GET.get('nombre', '')
         grado       = request.GET.get('grado', '')
         institucion = request.GET.get('institucion', '')
-        activo      = request.GET.get('activo', '')
+        activo      = request.GET.get('activo', 'true')
         ruta        = request.GET.get('ruta', '')
 
         estudiantes = Estudiante.objects.all().order_by('nombre')
@@ -488,9 +488,8 @@ def nuevo_estudiante(request):
             enfermedades   = request.POST.get('enfermedades', '').strip()
 
             localidad   = request.POST.get('localidad', '').strip() or None
-            codigo_ruta = request.POST.get('codigo_ruta', '').strip() or None
-            if not codigo_ruta and localidad:
-                codigo_ruta = _asignar_ruta_por_localidad(localidad)
+            # La ruta SIEMPRE se asigna automáticamente según la localidad
+            codigo_ruta = _asignar_ruta_por_localidad(localidad) if localidad else None
 
             if Estudiante.objects.filter(documento=documento).exists():
                 messages.error(request, 'Ya existe un estudiante con ese documento.')
@@ -584,8 +583,8 @@ def estudiante_editar(request, documento):
             estudiante.contacto_emergencia_nombre   = request.POST.get('contacto_emergencia_nombre', '').strip() or None
             estudiante.contacto_emergencia_telefono = request.POST.get('contacto_emergencia_telefono', '').strip() or None
             estudiante.enfermedades                 = request.POST.get('enfermedades', '').strip() or None
-            codigo_ruta = request.POST.get('codigo_ruta', '').strip()
-            estudiante.codigo_ruta_id = codigo_ruta if codigo_ruta else None
+            # La ruta se recalcula automáticamente cada vez, según la localidad actual
+            estudiante.codigo_ruta_id = _asignar_ruta_por_localidad(estudiante.localidad) if estudiante.localidad else None
             activo = request.POST.get('activo', 'true')
             estudiante.activo = (activo == 'true')
             estudiante.save()
